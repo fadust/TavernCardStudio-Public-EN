@@ -15,7 +15,7 @@ const TEMPLATE_DIR = path.join(ROOT, 'templates/modules/mvu');
 const MVU_COMMIT = '3377b494cd7277230f3056230062124fe117f93f';
 const HELPER_COMMIT = '69abb272d46bed4057a0dfb31758f6164cb7ecef';
 const HELPER_SHA256 = '78c40f52d81022d9d769a923a49e673b8babb562656051a7d0410b6b19f45184';
-const ENTRY_NAMES = ['[initvar]变量初始化勿开', '变量列表', '[mvu_update]变量更新规则', '[mvu_update]变量输出格式'];
+const ENTRY_NAMES = ['变量列表', '[mvu_update]变量更新规则', '[mvu_update]变量输出格式', '[initvar]变量初始化勿开'];
 const REGEX_NAMES = ['折叠变量更新块（仅显示）', '折叠未闭合变量更新块（仅显示，流式）', '屏蔽变量更新块（仅提示词）', '屏蔽未闭合变量更新块（仅提示词，流式）'];
 
 async function workspace(t) {
@@ -59,10 +59,10 @@ test('mvu 模板生成四个标准条目、固定依赖与注册脚本', async t
   assert.deepEqual(entries.map(e => e.comment), ENTRY_NAMES);
   assert.ok(entries.every(e => e.constant === true), '四个标准条目都要是蓝灯（constant）');
   assert.ok(entries.every(e => e.extensions.exclude_recursion === true && e.extensions.prevent_recursion === true));
-  assert.equal(entries[0].enabled, false, '[initvar] 条目保持禁用');
-  assert.equal(entries[0].extensions.position, 0);
-  assert.equal(entries[0].insertion_order, 90);
-  assert.deepEqual(entries.slice(1).map(e => [e.extensions.position, e.extensions.depth, e.extensions.role, e.insertion_order]), [[4, 0, 0, 100], [4, 0, 0, 101], [4, 0, 0, 102]]);
+  assert.equal(entries[3].enabled, false, '[initvar] 条目保持禁用');
+  assert.equal(entries[3].extensions.position, 0);
+  assert.equal(entries[3].insertion_order, 4);
+  assert.deepEqual(entries.slice(0, 3).map(e => [e.extensions.position, e.extensions.depth, e.extensions.role, e.insertion_order]), [[4, 0, 0, 1], [4, 0, 0, 2], [4, 0, 0, 3]]);
 
   const regexes = card.data.extensions.regex_scripts;
   assert.deepEqual(regexes.slice(0, 4).map(r => r.scriptName), REGEX_NAMES);
@@ -86,9 +86,9 @@ test('mvu 模板生成四个标准条目、固定依赖与注册脚本', async t
   for (const file of (await readYAML(dir, 'src/index.yaml')).世界书.条目) worldbook.push(await readYAML(dir, file));
   assert.deepEqual(worldbook.map(config => config.名称), ENTRY_NAMES, '世界书条目顺序与模板一致');
   for (const config of worldbook) await fs.stat(path.join(dir, config.文件));
-  const variables = await fs.readFile(path.join(dir, worldbook[1].文件), 'utf8');
+  const variables = await fs.readFile(path.join(dir, worldbook[0].文件), 'utf8');
   assert.match(variables, /\{\{format_message_variable::stat_data\}\}/);
-  const format = await fs.readFile(path.join(dir, worldbook[3].文件), 'utf8');
+  const format = await fs.readFile(path.join(dir, worldbook[2].文件), 'utf8');
   assert.match(format, /^变量输出格式:/m);
   assert.match(format, /^  rule:/m);
   assert.match(format, /^  format: \|-/m);
@@ -104,17 +104,17 @@ test('mvu 模板生成四个标准条目、固定依赖与注册脚本', async t
   assert.equal(report.report.regexFixtures, (await readJSON(path.join(TEMPLATE_DIR, 'module.json'))).fixtures.length);
 });
 
-test('模板引擎按 module.json 写入位置、角色、顺序与正则作用位置', async t => {
+test('模板引擎保留位置与角色，并在组合模块后生成全局编号', async t => {
   const root = await workspace(t);
   await newCard('引擎', { root, modules: ['worldbook', 'regex', 'mvu'] });
   const { card } = await loadProject('引擎', root);
 
   const plain = card.data.character_book.entries.find(e => e.comment === '世界观');
-  assert.deepEqual([plain.position, plain.insertion_order, plain.extensions.position, plain.extensions.depth, plain.extensions.role], ['before_char', 100, 0, 4, 0]);
+  assert.deepEqual([plain.position, plain.insertion_order, plain.extensions.position, plain.extensions.depth, plain.extensions.role], ['before_char', 1, 0, 4, 0]);
   const keyword = card.data.character_book.entries.find(e => e.comment === '旧书店');
   assert.deepEqual([keyword.constant, keyword.keys], [false, ['旧书店']]);
   const depthEntry = card.data.character_book.entries.find(e => e.comment === '[mvu_update]变量更新规则');
-  assert.deepEqual([depthEntry.position, depthEntry.insertion_order, depthEntry.extensions.position, depthEntry.extensions.depth, depthEntry.extensions.role], ['after_char', 101, 4, 0, 0]);
+  assert.deepEqual([depthEntry.position, depthEntry.insertion_order, depthEntry.extensions.position, depthEntry.extensions.depth, depthEntry.extensions.role], ['after_char', 8, 4, 0, 0]);
 
   const note = card.data.extensions.regex_scripts.find(r => r.scriptName === '显示备注');
   assert.deepEqual([note.placement, note.markdownOnly, note.promptOnly, note.runOnEdit, note.substituteRegex, note.minDepth, note.maxDepth], [[2], true, false, true, 0, null, null]);

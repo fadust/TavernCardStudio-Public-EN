@@ -805,10 +805,20 @@ function renderActions(card) {
         ...(isExampleCard(card) ? [{ label: '复制成我的卡', run: () => openExampleDialog(card.name) }] : []),
         { label: '重命名', run: () => openRenameDialog(card) },
         { label: '复制卡', run: () => openDuplicateDialog(card) },
+      ],
+    },
+    {
+      title: '世界书',
+      actions: [
         {
           label: '整理世界书',
           run: () => organizeCard(card.name),
           title: '把世界书条目按分类目录与条目名归位，引用同步更新。开始前请先保存并关闭正在编辑这个工程的编辑器；工具会先备份原工程。',
+        },
+        {
+          label: '按提示词顺序编号',
+          run: () => arrangeCard(card.name),
+          title: '按 角色定义之前 → 角色定义之后 → 指定深度（由深到浅）排列条目并重新编号 1..N，总索引、顺序与展示索引一起更新，改动前先备份原工程。排序会改变跨位置的提示词预算优先级，需要在宿主里核对；作者注、示例消息、出口等位置先按宿主排好索引，再用命令行 --order index 编号。',
         },
       ],
     },
@@ -1034,13 +1044,16 @@ async function submitImport() {
         body: { filename: pending.file.name, base64, name },
       });
       if (typeof payload.name === 'string' && payload.name) importedName = payload.name;
+      const notes = classificationNotes(payload.classification);
       addResult({
         title: '导入卡片 · ' + importedName,
         status: 'success',
         summary: [
           '源文件：' + pending.file.name + '（' + formatBytes(pending.file.size) + '）',
           payload.message ? String(payload.message) : '已拆分到 cards/' + importedName,
+          ...notes.lines,
         ],
+        details: notes.details,
       });
       // 列表刷新和切换选中留在同一个忙碌窗口里：用户在刷新途中点不到别的卡，也就不会被覆盖。
       state.selected = '';
@@ -1665,6 +1678,7 @@ async function organizeCard(name) {
       const details = [];
       if (entries.length) details.push({ label: '条目设置（' + entries.length + '）', text: entries.join('\n') });
       if (bodies.length) details.push({ label: '条目正文（' + bodies.length + '）', text: bodies.join('\n') });
+      const notes = classificationNotes(payload.classification);
       addResult({
         title: '整理世界书 · ' + name,
         status: organized ? 'success' : 'info',
@@ -1673,15 +1687,83 @@ async function organizeCard(name) {
               '已整理 ' + changes.length + ' 项世界书：设置与正文按分类目录、条目名归位，引用同步更新，正文内容不变。',
               backup ? '原工程备份：' + backup : '原工程备份在 work/layout-backups/ 下。',
               '后续从新目录编辑即可；卡片内容、条目顺序与注入位置保持不变。',
+              ...notes.lines,
             ]
           : [
               '无需整理',
               worldbookCount
                 ? '这张卡的世界书已经按分类目录与条目名组织，没有需要移动的文件。'
                 : '这张卡还没有世界书条目，整理不会改动任何文件。',
+              ...notes.lines,
             ],
-        details,
+        details: details.concat(notes.details),
       });
+      await loadCards({ silentBusy: true });
+    });
+  });
+}
+
+// 待分类反馈：工具只按条目名里的显式标签与约定总览名归档，不读正文猜分类；正文要由 AI 分批读取后再写进条目 YAML。
+function classificationNotes(classification) {
+  const info = classification && typeof classification === 'object' ? classification : null;
+  if (!info) return { lines: [], details: [] };
+  const files = (value) => (Array.isArray(value) ? value : []).map((item) => String(item)).filter((item) => item);
+  const pending = files(info.pending);
+  const pendingMoves = files(info.pendingMoves);
+  const details = [];
+  if (pending.length) details.push({ label: '待分类条目（' + pending.length + '）', text: pending.join('\n') });
+  if (pendingMoves.length) details.push({ label: '分类与目录不一致（' + pendingMoves.length + '）', text: pendingMoves.join('\n') });
+  if (!info.supported) {
+    return { lines: ['世界书分类：这个工程还不是 v2 创作格式，先迁移到 v2 再读条目正文写「分类」。'], details };
+  }
+  if (Number(info.total) === 0) return { lines: [], details: [] };
+  const lines = [];
+  if (pending.length) {
+    lines.push('待分类 ' + pending.length + ' 项：工具只按条目名的显式标签与约定总览名归档，不会读正文猜分类。');
+    lines.push('这些条目的正文要由 AI 分批读取，按职责在条目 YAML 补「分类」，再执行「整理世界书」；一次读多少按正文长度定，不要整本一次拉完。');
+  } else {
+    lines.push('世界书分类已齐：条目都有可用的分类目录。');
+  }
+  if (pendingMoves.length) lines.push('另有 ' + pendingMoves.length + ' 项的分类与当前目录不一致，执行「整理世界书」后会移动。');
+  return { lines, details };
+}
+
+async function arrangeCard(name) {
+  const card = state.cards.find((item) => item.name === name);
+  const worldbookCount = card && card.counts ? Number(card.counts.worldbook) || 0 : 0;
+  await withFailureReport('按提示词顺序编号 · ' + name, async () => {
+    await run('正在按提示词顺序编号「' + name + '」的世界书…', async () => {
+      const payload = await apiFetch('/api/arrange', { method: 'POST', body: { name } });
+      const changes = Array.isArray(payload.changes) ? payload.changes : [];
+      const arranged = payload.arranged === true;
+      const backup = typeof payload.backup === 'string' && payload.backup ? payload.backup : '';
+      const budgetNotice = typeof payload.budgetNotice === 'string' ? payload.budgetNotice.trim() : '';
+      const mode = payload.order === 'index' ? 'index' : 'prompt';
+      const rows = changes.map((change) => {
+        const row = change && typeof change === 'object' ? change : {};
+        const label = textOrDash(row.name);
+        const from = row.from ? String(row.from) : '';
+        const to = row.to ? String(row.to) : '';
+        return from || to ? label + '：顺序 ' + (from || '—') + ' → ' + (to || '—') : label;
+      });
+      const details = rows.length ? [{ label: '顺序变化的条目（' + rows.length + '）', text: rows.join('\n') }] : [];
+      const summary = arranged
+        ? [
+            mode === 'index'
+              ? '已按总索引顺序编号：条目顺序连续重编为 1..N。'
+              : '已按提示词顺序编号：普通条目按 角色定义之前 → 角色定义之后 → 指定深度（由深到浅）排列，并连续重编为 1..N。',
+            rows.length ? '顺序有变化的条目 ' + rows.length + ' 项，展开可见。' : '条目的相对次序没有实际变化，只同步了编号与展示索引。',
+            backup ? '原工程备份：' + backup : '原工程备份在 work/order-backups/ 下。',
+            '条目位置、深度、角色、关键词与正文不变；跨位置的提示词预算优先级会随顺序改变，请在宿主的提示词预览里核对。',
+          ]
+        : [
+            '无需变更',
+            worldbookCount
+              ? '这张卡的世界书条目已经按当前排列规则编号，没有需要改动的顺序。'
+              : '这张卡还没有世界书条目，编号不会改动任何文件。',
+          ];
+      if (budgetNotice) summary.push(budgetNotice);
+      addResult({ title: '按提示词顺序编号 · ' + name, status: arranged ? 'success' : 'info', summary, details });
       await loadCards({ silentBusy: true });
     });
   });

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { parseDocument, stringify } from 'yaml';
 import { safeFile, inside, write, writeJSON, exists, sha256, jsonText, getPointer, setPointer } from './files.mjs';
+import { validateWorldbookFolder } from './worldbook-layout.mjs';
 
 const TEXT = { 角色描述: 'description', 性格: 'personality', 场景: 'scenario', 第一条消息: 'first_mes', 对话示例: 'mes_example', 创作者备注: 'creator_notes', 系统提示: 'system_prompt', 历史后提示: 'post_history_instructions' };
 const ROLE = { 名称: 'name', 作者: 'creator', 版本: 'character_version', 标签: 'tags' };
@@ -250,7 +251,8 @@ export async function loadAuthoring(dir, manifest) {
   const defaultWorld = (file) => ({ id: parseInt(sha256(file).slice(0, 12), 16), keys: [], secondary_keys: [], comment: path.basename(file, '.yaml'), content: '', enabled: true, constant: false, selective: true, insertion_order: 100, position: 'before_char', use_regex: false, extensions: { position: 0, depth: 4, role: 0, exclude_recursion: true, prevent_recursion: true } });
   const makeItem = async (kind, file, pointer) => {
     const config = await useFile(file); const map = kind === 'worldbook' ? WORLD : kind === 'regex' ? REGEX : SCRIPT;
-    strictKeys(config, [...Object.keys(map), '关联', '附属文本', '构建', ...(kind === 'worldbook' ? ['文件', '激活', '位置', '角色'] : kind === 'regex' ? ['替换文件', '作用于'] : ['文件', '类型', '脚本', '数据文件'])], file);
+    strictKeys(config, [...Object.keys(map), '关联', '附属文本', '构建', ...(kind === 'worldbook' ? ['文件', '激活', '位置', '角色', '分类'] : kind === 'regex' ? ['替换文件', '作用于'] : ['文件', '类型', '脚本', '数据文件'])], file);
+    if (kind === 'worldbook' && Object.hasOwn(config, '分类')) validateWorldbookFolder(config.分类);
     let record;
     const association = config.关联 ?? Object.keys(state.records).find(key => state.records[key].file?.toLowerCase() === file.toLowerCase());
     if (association !== undefined) {

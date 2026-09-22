@@ -57,6 +57,7 @@
     },
     {
       "id": "sillytavern",
+      "pinCommit": "06bde939fb1e9c4c8d8641d810f0a916b5bce127",
       "repository": "SillyTavern/SillyTavern",
       "ref": "release",
       "dest": "sillytavern",
@@ -71,6 +72,9 @@
         "src/endpoints/characters.js",
         "src/endpoints/worldinfo.js",
         "public/scripts/world-info.js",
+        "public/script.js",
+        "public/scripts/openai.js",
+        "public/scripts/PromptManager.js",
         "public/scripts/macros.js",
         "public/scripts/slash-commands.js",
         "public/scripts/macros/definitions/",

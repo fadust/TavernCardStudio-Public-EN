@@ -303,7 +303,7 @@
           "useProbability": true,
           "exclude_recursion": true,
           "prevent_recursion": true,
-          "display_index": 0
+          "display_index": 3
         }
       },
       "config": {
@@ -349,7 +349,7 @@
           "useProbability": true,
           "exclude_recursion": true,
           "prevent_recursion": true,
-          "display_index": 1
+          "display_index": 0
         }
       },
       "config": {
@@ -395,7 +395,7 @@
           "useProbability": true,
           "exclude_recursion": true,
           "prevent_recursion": true,
-          "display_index": 2
+          "display_index": 1
         }
       },
       "config": {
@@ -441,7 +441,7 @@
           "useProbability": true,
           "exclude_recursion": true,
           "prevent_recursion": true,
-          "display_index": 3
+          "display_index": 2
         }
       },
       "config": {

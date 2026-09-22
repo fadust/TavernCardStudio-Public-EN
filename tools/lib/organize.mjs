@@ -43,7 +43,7 @@ export async function organizeWorldbook(name, root = ROOT) {
     const moveBody = body.startsWith('src/worldbook/') && ['.md', '.txt'].includes(extension) && !config.构建 && !loaded.project.builds.some(build => build.entry === body);
     const own = [file, ...(moveBody ? [body] : [])];
     own.forEach(value => occupied.delete(value.toLowerCase()));
-    const stem = allocateWorldbook(config.名称 ?? loaded.card.data.character_book.entries[i].comment, { folder: existingWorldbookFolder(file), extensions: ['.yaml', ...(moveBody ? [extension] : [])], occupied });
+    const stem = allocateWorldbook(config.名称 ?? loaded.card.data.character_book.entries[i].comment, { folder: config.分类 ?? existingWorldbookFolder(file), extensions: ['.yaml', ...(moveBody ? [extension] : [])], occupied });
     const target = stem + '.yaml'; const targetBody = moveBody ? stem + extension : body;
     // Keep old occupied paths reserved too: preserve unreferenced files and avoid move cycles.
     own.forEach(value => occupied.add(value.toLowerCase()));
@@ -111,3 +111,5 @@ export async function organizeWorldbook(name, root = ROOT) {
     throw error;
   }
 }
+
+export { snapshot as snapshotProject, directory as ensureProjectDirectory };

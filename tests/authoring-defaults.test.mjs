@@ -57,7 +57,7 @@ test('worldbook defaults separate setting, geography, characters and depth rules
   assert.deepEqual(entries.map(e => e.extensions.position), [0, 0, 0, 1, 1, 4]);
   assert.deepEqual(entries.map(e => e.constant), [true, true, false, true, false, true]);
   assert.ok(entries.every(e => e.extensions.exclude_recursion && e.extensions.prevent_recursion));
-  assert.ok(entries[0].insertion_order < entries[1].insertion_order && entries[1].insertion_order < entries[2].insertion_order);
+  assert.deepEqual(entries.map(e => e.insertion_order), [1, 2, 3, 4, 5, 6]);
   assert.ok(entries[3].insertion_order < entries[4].insertion_order);
   assert.equal(entries[5].extensions.depth, 1);
   assert.equal(entries[5].extensions.role, 0);

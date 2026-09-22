@@ -52,7 +52,7 @@ util/mvu_zod.ts 的注册链是：registerMvuSchema(input) → 取 input 或 inp
 变量列表、[mvu_update]变量更新规则、[mvu_update]变量输出格式（蓝灯、@D0、role 0 system）。
 
 - MVU 读取注释里含 [initvar] 的条目，不筛选启用状态（src/function/initvar/variable_init.ts:262-291），条目内容是 JSON/YAML 都能解析。
-- 注入顺序显式写在 insertion_order：90 / 100 / 101 / 102。world-info.js 的 sortFn = (a, b) => b.order - a.order 配合
+- module.json 的 order 是模块内部相对次序；新建时先组合模块，再按全局提示词布局重编为 1..N，禁用初始化条目放末尾。world-info.js 的 sortFn = (a, b) => b.order - a.order 配合
   entries.unshift，使同深度同角色内 order 小的先出现，于是提示词顺序是 变量列表 → 更新规则 → 输出格式。
 - extensions.position = 4（atDepth）、depth 0、role 0（system）来自 world-info.js 的 world_info_position 与 extension_prompt_roles。
 - 变量列表与上游一致用 format_message_variable::stat_data；只去掉了上游同步工具用的 YAML --- 前置行。

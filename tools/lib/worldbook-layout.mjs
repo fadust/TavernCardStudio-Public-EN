@@ -14,16 +14,23 @@ export function fileLabel(value) {
 export function worldbookLocation(title, folder) {
   const name = String(title || '未命名');
   const prefix = name.match(/^(?:\[([^\]]+)\]|【([^】]+)】|([^\s:：·-]+)\s*[-:：·])\s*(.+)$/u);
-  const category = prefix && categories[prefix[1] ?? prefix[2] ?? prefix[3]];
+  const key = prefix && (prefix[1] ?? prefix[2] ?? prefix[3]);
+  const category = Object.hasOwn(categories, key) ? categories[key] : undefined;
   const protocol = /\[(?:initvar|mvu_update|config_override)\]/i.test(name) || name === '变量列表';
-  const overview = { 世界观: '世界设定', 世界总览: '世界设定', 地理总览: '地理', 角色总览: '角色', 人物总览: '角色' }[name];
+  const overviews = { 世界观: '世界设定', 世界总览: '世界设定', 地理总览: '地理', 角色总览: '角色', 人物总览: '角色' };
+  const overview = Object.hasOwn(overviews, name) ? overviews[name] : undefined;
   return { folder: folder ?? (protocol ? '变量' : category ?? overview ?? '未分类'), label: fileLabel(category ? prefix[4] : name) };
+}
+
+export function validateWorldbookFolder(folder) {
+  if (typeof folder !== 'string' || !folder || folder.split('/').some(segment => fileLabel(segment) !== segment)) throw new Error(`无效世界书分类目录: ${folder}`);
+  return folder;
 }
 
 export function allocateWorldbook(title, { folder, extensions = ['.md', '.yaml'], occupied = new Set() } = {}) {
   const location = worldbookLocation(title, folder);
   // Folder may be an existing user-chosen nested directory. Validate each segment before use.
-  if (typeof location.folder !== 'string' || !location.folder || location.folder.split('/').some(segment => fileLabel(segment) !== segment)) throw new Error(`无效世界书分类目录: ${location.folder}`);
+  validateWorldbookFolder(location.folder);
   const stem = `src/worldbook/${location.folder}/${location.label}`;
   let candidate = stem, suffix = 2;
   while (extensions.some(ext => occupied.has((candidate + ext).toLowerCase()))) candidate = `${stem} (${suffix++})`;

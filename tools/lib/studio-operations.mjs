@@ -11,6 +11,8 @@ import { checkProject } from './validation.mjs';
 import { parsePNG } from './png.mjs';
 import { publishDirectory } from './publish.mjs';
 import { organizeWorldbook } from './organize.mjs';
+import { arrangeWorldbook } from './arrange.mjs';
+import { worldbookInventory } from './worldbook-inventory.mjs';
 
 export const MAX_UPLOAD = 64 * 1024 * 1024;
 function nameOf(value) {
@@ -35,6 +37,10 @@ function countScripts(card) {
   const visit = list => { for (const item of list) { if (item?.type === 'folder') visit(item.scripts ?? []); else if (item && typeof item.content === 'string') count++; } };
   for (const ext of [card.data.extensions, card.extensions]) for (const group of helperScriptLists(ext?.tavern_helper, '')) visit(group.list);
   return count;
+}
+// UI receives only the fields needed to explain each order change.
+function orderChanges(changes) {
+  return (changes ?? []).map(change => ({ name: change.file, from: change.orderFrom == null ? '未设置' : String(change.orderFrom), to: String(change.orderTo) }));
 }
 
 export function createOperations({ root = ROOT, openFolder = async () => {} } = {}) {
@@ -105,6 +111,18 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
       }
     } finally { await fs.rm(staging, { recursive: true, force: true }); }
   }
+  // 分类信息只在导入、整理这类必要动作里读取；列表接口不逐条读世界书，避免整库变慢。
+  async function classificationOf(name) {
+    const { worldbook, classification } = await worldbookInventory(await loadProject(name, root));
+    const files = value => Array.isArray(value) ? value.filter(item => typeof item === 'string') : [];
+    return {
+      supported: classification?.supported === true,
+      total: Array.isArray(worldbook) ? worldbook.length : 0,
+      pending: files(classification?.pending),
+      pendingMoves: files(classification?.pendingMoves),
+      instruction: typeof classification?.instruction === 'string' ? classification.instruction : '',
+    };
+  }
   return {
     listCards,
     async importCard({ filename, base64, name }) {
@@ -120,7 +138,7 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
         await splitCard(file, { root, name });
       } finally { await fs.rm(temp, { recursive: true, force: true }); }
       const manifest = await readJSON(path.join(root, 'cards', name, 'project.json'));
-      return { ok: true, name, importPath: manifest.original.importPath, message: `完整原卡：${manifest.original.importPath}；拆分编辑区：cards/${name}/src；打包成品：dist/${name}。AI 和手动打包均读取同一份编辑文件。` };
+      return { ok: true, name, importPath: manifest.original.importPath, classification: await classificationOf(name), message: `完整原卡：${manifest.original.importPath}；拆分编辑区：cards/${name}/src；打包成品：dist/${name}。AI 和手动打包均读取同一份编辑文件。` };
     },
     async newCard({ name, modules = [] }) {
       await cardsRoot(); await available(name);
@@ -194,7 +212,24 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
       const changes = Array.isArray(result.changes)
         ? result.changes.map(change => ({ from: String(change.from), to: String(change.to), bodyFrom: String(change.bodyFrom), bodyTo: String(change.bodyTo) }))
         : [];
-      return { ok: true, name, organized: result.organized === true, backup: typeof result.backup === 'string' ? result.backup : null, changes };
+      // 整理结果顺带回读分类状态：还剩哪些条目要由 AI 读正文后补「分类」再整理。
+      return { ok: true, name, organized: result.organized === true, backup: typeof result.backup === 'string' ? result.backup : null, changes, classification: await classificationOf(name) };
+    },
+    async arrangeCard({ name }) {
+      const dir = await projectDir(name); await walk(dir);
+      // arrange 和 organize 一样会在 cards/ 下建临时目录，并把原工程备份到 work/order-backups/；两处都必须是真实目录，不能是链接。
+      await regularDirectory(path.join(root, 'work'), true);
+      await regularDirectory(path.join(root, 'work/order-backups'), true);
+      const result = await arrangeWorldbook(name, root);
+      return {
+        ok: true,
+        name,
+        arranged: result.arranged === true,
+        order: result.order === 'index' ? 'index' : 'prompt',
+        backup: typeof result.backup === 'string' ? result.backup : null,
+        changes: orderChanges(result.changes),
+        budgetNotice: typeof result.budgetNotice === 'string' ? result.budgetNotice : '',
+      };
     },
     async open({ name, target }) {
       let dir;

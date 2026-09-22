@@ -20,7 +20,6 @@
   条目:
     - src/worldbook/世界设定/世界观.yaml
     - src/worldbook/地理/地理总览.yaml
-    - src/worldbook/规则/调查局规程.yaml
     - src/worldbook/地理/北堤灯塔.yaml
     - src/worldbook/地理/潮汐巷鱼市.yaml
     - src/worldbook/地理/旧船坞.yaml
@@ -28,16 +27,17 @@
     - src/worldbook/事件/灯塔停灯的排查.yaml
     - src/worldbook/事件/雾季失踪案的办理.yaml
     - src/worldbook/世界设定/港上通用说法.yaml
-    - src/worldbook/角色/黛莉亚·克雷恩.yaml
     - src/worldbook/角色/角色总览.yaml
+    - src/worldbook/角色/黛莉亚·克雷恩.yaml
     - src/worldbook/角色/莫兰·维斯.yaml
     - src/worldbook/角色/奥托·兰姆.yaml
     - src/worldbook/角色/海蒂.yaml
     - src/worldbook/角色/佩里·道恩.yaml
-    - src/worldbook/变量/[initvar]变量初始化勿开.yaml
+    - src/worldbook/规则/调查局规程.yaml
     - src/worldbook/变量/变量列表.yaml
     - src/worldbook/变量/[mvu_update]变量更新规则.yaml
     - src/worldbook/变量/[mvu_update]变量输出格式.yaml
+    - src/worldbook/变量/[initvar]变量初始化勿开.yaml
   名称: 示例-雾港调查局
 正则:
   - src/regex/001-折叠变量更新块（仅显示）.yaml

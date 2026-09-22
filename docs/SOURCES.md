@@ -10,7 +10,7 @@
 
 `references/upstream/` 与 `references/index.json` 是本地缓存，**不随公开发布分发**；`maintenance/reference-sources.json` 与 `maintenance/references.lock.json` 随仓库保留。克隆、清理或缓存损坏后先运行 `pnpm refs restore`：它只读锁文件，按锁定的完整提交与文件清单取字节，逐文件按 sha256 校验，已存在且校验通过的文件直接复用；不使用 GitHub tree API，也不解析最新分支，锁文件的内容与时间保持不变，失败会回滚且不损伤现有缓存。只还原部分来源时用 `--source <id>`，其余来源缺失不影响；还原完成会重建本地索引。未还原时 `pnpm refs search` 与 `pnpm refs check` 都会提示先运行 restore。
 
-`pnpm refs update` 是主动刷新，与 restore 分工不同：update 解析 `ref` 到当时的最新提交、重新下载、重写锁文件与 `fetchedAt` 并重建索引；只有在需要升级锁定的来源或首次生成锁文件时才用它。日常重建缓存用 restore，不要用 update 顺手改锁。
+`pnpm refs update` 是主动刷新，与 restore 分工不同：update 对有 `pinCommit` 的来源使用固定提交，其余解析 `ref` 到当时的最新提交、重新下载、重写锁文件与 `fetchedAt` 并重建索引；只有在需要升级锁定的来源或首次生成锁文件时才用它。日常重建缓存用 restore，不要用 update 顺手改锁。
 
 **许可证不在文档里复述**：每个来源的 `spdx` 与 `source` 字段以 `maintenance/references.lock.json` 为准，实际条款读 `references/upstream/<来源>/` 里那份 LICENSE 原文。锁文件记录与上游标注不一致时，以锁文件加原文为准；不要按项目名或印象补写许可证。
 
@@ -18,7 +18,7 @@
 | --- | --- |
 | `tavern-helper` | 酒馆助手运行时 API 类型（`@types/`） |
 | `tavern-helper-docs` | 酒馆助手中文文档 |
-| `sillytavern` | 角色卡解析、世界书、宏、斜杠命令、正则引擎源码 |
+| `sillytavern` | 角色卡解析、世界书、提示词与聊天注入、宏、斜杠命令、正则引擎源码 |
 | `sillytavern-docs` | 官方文档：宏、世界书、角色、聊天、正则 |
 | `prompt-template` | ST-Prompt-Template（EJS）文档与源码 |
 | `tavern-helper-template` | StageDog 模板：AGENTS.md、.agents 技能、模板与示例、MVU 类型、webpack 入口 |
@@ -34,7 +34,7 @@
 写卡常用路径：
 
 - 卡 JSON 字段规范：`references/upstream/character-card-spec/spec_v2.md`、`references/upstream/character-card-spec-v3/SPEC_V3.md`（具体文件名以 `maintenance/references.lock.json` 记录的 `local` 路径为准）
-- 世界书注入与位置：`references/upstream/sillytavern/public/scripts/world-info.js`
+- 世界书分组与位置：`references/upstream/sillytavern/public/scripts/world-info.js`；最终消息排列还需核对 `public/script.js` 的 `doChatInject`、`public/scripts/openai.js` 的 `populationInjectionPrompts` 与 `public/scripts/PromptManager.js` 的提示词列表。上述路径相对于该来源根目录。
 - 正则作用位置与替换语义：`references/upstream/sillytavern/public/scripts/extensions/regex/engine.js`
 - 角色卡解析与校验：`references/upstream/sillytavern/src/character-card-parser.js`、`references/upstream/sillytavern/src/validator/TavernCardValidator.js`
 - 酒馆助手接口：`references/upstream/tavern-helper/@types/function/`、`references/upstream/tavern-helper/@types/iframe/`
@@ -70,6 +70,7 @@
 - 2026-09-18 至 19 核对 MVU 的五种输出操作、move.to 形状例外、注册器接管命令与逐条解析、宿主全局 Zod 实例；新模板的协议资产与这些固定实现对应。
 - 研究用的参考卡只作为输入，技能、模板与测试不依赖任何私有卡文件；提炼后的结论要能脱离原卡使用。
 - MVU 自动状态栏标记与阶段过滤：`mvu/src/function/update_variables.ts`、`function_call.ts`、`request/filter_entries.ts`、`request/worldinfo_scan.ts`；模板模式说明见 [MVU-MODES.md](MVU-MODES.md)。
+- 同深度多角色排序：上述 SillyTavern 提交的 `public/script.js#doChatInject` 与 `public/scripts/openai.js#populationInjectionPrompts` 最终为 assistant → user → system；缓存官方 prompt-manager 文档描述与代码不一致，此处以实现为准，未替代真实宿主预览。
 - 地点扫描注入：`tavern-helper/@types/function/inject.d.ts` 的 `position: 'none'`、`should_scan`，并对照 `sillytavern/public/scripts/world-info.js` 的扫描缓冲与递归筛选。目录或变量里的地名不等于扫描材料。
 
 这些是源码层面的核对结果，来自 `pnpm refs restore` 还原并按 sha256 校验过的锁定源码文本，不代表在真实酒馆里跑过。源码、CI 与真实宿主三类证据不互相替代；实机结论一律记在 `project.json` 的 `runtimeVerified`。

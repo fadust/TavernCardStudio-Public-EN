@@ -126,6 +126,7 @@ try {
   await fs.writeFile(path.join(bookstore, entryLegacy), entryDocument.toString({ lineWidth: 0 }));
   await organizeBtn().click();
   await expect(page.locator('#resultsBody')).toContainText('已整理 1 项世界书');
+  await expect(page.locator('#resultsBody .result').first()).toContainText('世界书分类已齐');
   const backups = await fs.readdir(path.join(root, 'work/layout-backups'));
   assert.equal(backups.length, 1, '整理应留下一份备份');
   assert.match(backups[0], /^灯塔书店-/);
@@ -137,6 +138,43 @@ try {
   await assert.rejects(fs.access(path.join(bookstore, bodyLegacy)));
   assert.equal(parseDocument(await fs.readFile(path.join(bookstore, entryBefore), 'utf8')).get('文件'), bodyBefore);
   assert.ok((await fs.readFile(bookstoreIndex, 'utf8')).includes(entryBefore), '整理后索引应指回分类目录');
+  // —— 按提示词顺序编号：先把同类条目的旧编号写回去，核对重排、备份与接口返回值 ——
+  const arrangeBtn = () => page.locator('#detailPanel').getByRole('button', { name: '按提示词顺序编号', exact: true });
+  async function setEntryValue(relative, key, value) {
+    const file = path.join(bookstore, relative);
+    const document = parseDocument(await fs.readFile(file, 'utf8'));
+    document.set(key, value);
+    await fs.writeFile(file, document.toString({ lineWidth: 0 }));
+  }
+  await setEntryValue('src/worldbook/世界设定/世界观.yaml', '顺序', 300);
+  await setEntryValue('src/worldbook/地理/地理总览.yaml', '顺序', 200);
+  await setEntryValue('src/worldbook/地理/旧书店.yaml', '顺序', 100);
+  await arrangeBtn().click();
+  const arrangeResult = page.locator('#resultsBody .result').first();
+  await expect(arrangeResult).toContainText('按提示词顺序编号 · 灯塔书店');
+  await expect(arrangeResult).toContainText('已按提示词顺序编号');
+  await expect(arrangeResult).toContainText('顺序变化的条目');
+  const ordered = await loadProject('灯塔书店', root);
+  assert.deepEqual(ordered.card.data.character_book.entries.map((entry) => entry.comment), ['旧书店', '地理总览', '世界观', '角色总览', '书店店主', '信息边界'], '重排后总索引应按提示词次序');
+  assert.deepEqual(ordered.card.data.character_book.entries.map((entry) => entry.insertion_order), [1, 2, 3, 4, 5, 6], '重排后顺序应连续编号 1..N');
+  await fs.access(path.join(bookstore, 'src/worldbook/地理/旧书店.yaml'));
+  // 再改回旧编号，核对接口返回值、备份路径与重复执行不产生改动。
+  await setEntryValue('src/worldbook/世界设定/世界观.yaml', '顺序', 900);
+  const reshuffled = await apiPost(app, '/api/arrange', { name: '灯塔书店' });
+  assert.equal(reshuffled.arranged, true);
+  assert.equal(reshuffled.order, 'prompt');
+  assert.ok(reshuffled.changes.length >= 1, '重排应报告顺序变化的条目');
+  assert.ok(reshuffled.backup, '重排应返回备份路径');
+  await fs.access(path.isAbsolute(reshuffled.backup) ? reshuffled.backup : path.join(root, reshuffled.backup));
+  const settled = await apiPost(app, '/api/arrange', { name: '灯塔书店' });
+  assert.equal(settled.arranged, false, '已经排好时重复执行不应再改动');
+  assert.deepEqual(settled.changes, []);
+  // 作者注、出口等复杂位置无法静态排全：拒绝自动排列，要求先用命令行按索引编号。
+  await setEntryValue('src/worldbook/规则/信息边界.yaml', '位置', '出口');
+  const refused = await apiPost(app, '/api/arrange', { name: '灯塔书店' });
+  assert.equal(refused.ok, false);
+  assert.match(String(refused.error), /--order index/);
+  await setEntryValue('src/worldbook/规则/信息边界.yaml', '位置', '指定深度');
   const jpegData = await page.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 560;
     const ctx = canvas.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 400, 560);
@@ -191,6 +229,13 @@ try {
   assert.equal(imported.project.original.importPath, 'imports/灯塔书店.png');
   assert.deepEqual(await fs.readFile(path.join(root, 'imports/灯塔书店.png')), await fs.readFile(path.join(root, 'dist/灯塔书店/灯塔书店.png')));
   await expect(page.locator('#detailPanel')).toContainText('imports/灯塔书店.png');
+  // 导入结果要说清待分类数量与“AI 分批读正文后补分类再整理”的流程，不声称工具懂语义。
+  const importResult = page.locator('#resultsBody .result').first();
+  await expect(importResult).toContainText('导入卡片 · 导入的灯塔书店');
+  await expect(importResult).toContainText(/待分类 \d+ 项/);
+  await expect(importResult).toContainText('src/worldbook/未分类/');
+  await expect(importResult).toContainText('不会读正文猜分类');
+  await expect(importResult).toContainText('再执行「整理世界书」');
   await page.locator('#detailPanel').getByRole('button', { name: '去封面', exact: true }).click();
   await page.locator('#confirmOk').click();
   await expect(page.locator('#detailPanel')).toContainText('无封面');
@@ -224,7 +269,7 @@ try {
   assert.deepEqual(errors, [], '浏览器未处理错误'); assert.deepEqual(external, [], '不请求外部资源');
   await page.locator('#shutdownBtn').click(); await page.locator('#confirmOk').click();
   await expect(page.locator('#shutdownNotice')).toBeVisible();
-  const result = { ok: true, flow: ['entry guidance', 'official example badge', 'copy example', 'new', 'check', 'organize worldbook (no-op + relocate with backup)', 'JPEG cover', 'replace WebP cover + preview', 'build PNG + JSON', 'duplicate', 'rename', 'import PNG', 'remove cover', 'build JSON', 'open folder callback', 'search', 'name collision error', 'refresh session', 'responsive', 'shutdown'], errors, external, realTavern: false };
+  const result = { ok: true, flow: ['entry guidance', 'official example badge', 'copy example', 'new', 'check', 'organize worldbook (no-op + relocate with backup + classification)', 'arrange worldbook order (prompt renumber + backup + refusal)', 'JPEG cover', 'replace WebP cover + preview', 'build PNG + JSON', 'duplicate', 'rename', 'import PNG', 'pending classification feedback', 'remove cover', 'build JSON', 'open folder callback', 'search', 'name collision error', 'refresh session', 'responsive', 'shutdown'], errors, external, realTavern: false };
   await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));
 } finally {
   await browser?.close(); await app.close(); await fs.rm(root, { recursive: true, force: true });

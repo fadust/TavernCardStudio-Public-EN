@@ -184,7 +184,7 @@
           "useProbability": true,
           "exclude_recursion": true,
           "prevent_recursion": true,
-          "display_index": 1
+          "display_index": 2
         }
       },
       "config": {

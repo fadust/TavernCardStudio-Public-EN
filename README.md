@@ -46,9 +46,9 @@ pnpm card map advanced-card        # 创作入口、设置文件、正文文件�
 pnpm card diff advanced-card       # 导入过的卡还要看有没有意外差异
 ```
 
-卡根目录的 `内容导航.md` 由工具生成，列出世界书、正则、脚本、文本与界面的落点。完整流程看 [复杂卡模块联动](docs/COMPLEX-CARDS.md)，字段与顺序含义看 [架构与操作](docs/ARCHITECTURE.md)。
+卡根目录的 `内容导航.md` 由工具生成，列出世界书、正则、脚本、文本与界面的落点。大世界的可选内容与组织方式看 [世界设计](docs/WORLD-DESIGN.md)。完整流程看 [复杂卡模块联动](docs/COMPLEX-CARDS.md)，字段与顺序含义看 [架构与操作](docs/ARCHITECTURE.md)。
 
-世界书使用“分类目录／条目名称”，文件名无需编号。关键词、注入位置和顺序仍由条目 YAML 控制。旧工程可以运行 `pnpm card organize my-card` 整理，工具会备份并验证内容不变，详见 [世界书文件](docs/WORLDBOOK-FILES.md)。需要宏、EJS 按变量生成动态正文时，再读 [进阶用法](docs/WORLDBOOK-TEMPLATING.md)。
+世界书使用“分类目录／条目名称”，文件名无需编号。导入后让 agent 分批读正文、填写条目 YAML 的 `分类`，再运行 `pnpm card organize my-card` 整理目录；`pnpm card map my-card` 会列出待分类条目。新卡的列表和 `顺序` 按常规提示词布局全局连续编号，已有卡用 `pnpm card arrange my-card` 单独调整并备份。特殊注入位置先核对宿主布局，详见 [世界书文件](docs/WORLDBOOK-FILES.md)。需要宏、EJS 按变量生成动态正文时，再读 [进阶用法](docs/WORLDBOOK-TEMPLATING.md)。
 
 ### 3. 导入已有卡
 
@@ -168,6 +168,7 @@ dist/my-card/
 AI 写卡先按 [AGENTS.md 的技能索引](AGENTS.md#按任务加载技能) 选择任务模块。技能提供工作步骤与关键约束，以下文档保存按需查询的字段、协议和示例。
 
 - [创作指南](docs/CREATION.md)：从需求到卡，三条路径、模块选择与写卡检查清单。
+- [世界设计](docs/WORLD-DESIGN.md)：种族、政治、社会风俗等可选内容，以及通用树状组织与蓝绿灯分工。
 - [复杂卡模块联动](docs/COMPLEX-CARDS.md)：世界书、变量、正则、脚本、界面怎么串起来，以及怎么定位内容。
 - [运行环境与语法](docs/ENVIRONMENT.md)：宏、EJS、脚本、MVU、界面分别在哪里生效。
 - [世界书](docs/WORLDBOOK.md) 与 [世界书条目写作](docs/WORLDBOOK-WRITING.md)：条目字段、触发策略、注入位置与正文组织。

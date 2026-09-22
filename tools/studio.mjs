@@ -44,7 +44,7 @@ export async function createStudioServer({ root = ROOT, token = randomBytes(32).
   const routes = {
     '/api/import': 'importCard', '/api/new': 'newCard', '/api/rename': 'renameCard', '/api/duplicate': 'duplicateCard',
     '/api/cover': 'setCover', '/api/remove-cover': 'removeCover', '/api/check': 'checkCard', '/api/build': 'buildCard',
-    '/api/organize': 'organizeCard', '/api/open': 'open',
+    '/api/organize': 'organizeCard', '/api/arrange': 'arrangeCard', '/api/open': 'open',
   };
   const server = http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { ROOT, readJSON, write, writeJSON, getPointer } from './files.mjs';
 import { createProject } from './project.mjs';
+import { orderNewWorldbook } from './worldbook-order.mjs';
 
 export const MODULES = ['worldbook', 'regex', 'script', 'mvu', 'html', 'vue'];
 // 世界书位置、深度注入角色与正则作用位置用宿主的数字枚举；模板可以写数字，也可以写可读名字。
@@ -77,7 +78,8 @@ export async function newCard(name, { modules = [], root = ROOT, templatesRoot =
     regexes().push(newRegex({ scriptName: '隐藏MVU占位（无界面，仅显示）', findRegex: '<StatusPlaceHolderImpl/>', replaceString: '' }));
     regexes().push(newRegex({ scriptName: '屏蔽状态栏占位（仅提示词）', findRegex: '<StatusPlaceHolderImpl/>', replaceString: '', markdownOnly: false, promptOnly: true }));
   }
-  return createProject(card, name, { root, worldbookFolders, setup: async (project, dir) => {
+  const orderedFolders = orderNewWorldbook(card.data.character_book, worldbookFolders);
+  return createProject(card, name, { root, worldbookFolders: orderedFolders, setup: async (project, dir) => {
     project.modules = modules; project.dependencies = dependencies;
     for (const pointer of bundlePointers) project.builds.push({ kind: 'script', pointer, entry: project.fields.find(f => f.pointer === pointer).file });
     for (const job of uiJobs) {

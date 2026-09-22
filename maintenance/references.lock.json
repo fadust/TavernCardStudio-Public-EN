@@ -551,6 +551,16 @@
           "local": "references/upstream/sillytavern/package.json",
           "bytes": 5941
         },
+        "public/script.js": {
+          "sha256": "955c603d0bad84bac5a716f0818d85c2543e44d4c43878e0d63ef1e55ca91855",
+          "local": "references/upstream/sillytavern/public/script.js",
+          "bytes": 497669
+        },
+        "public/scripts/PromptManager.js": {
+          "sha256": "b0054793b763d92b265f5f487645b68b4eca0867cb5ad6b5deb1034004b2c1cc",
+          "local": "references/upstream/sillytavern/public/scripts/PromptManager.js",
+          "bytes": 90717
+        },
         "public/scripts/extensions/regex/engine.js": {
           "sha256": "091bb3402a12552cf1754d6e4d2b44df38d3553aa374539896c716e78905d350",
           "local": "references/upstream/sillytavern/public/scripts/extensions/regex/engine.js",
@@ -595,6 +605,11 @@
           "sha256": "ea6ce2cc4595440c55e7921147cff1a17004236241ad5add4a84d82372ed179c",
           "local": "references/upstream/sillytavern/public/scripts/macros/definitions/variable-macros.js",
           "bytes": 16951
+        },
+        "public/scripts/openai.js": {
+          "sha256": "0b77c30282825540265d5a09e681e5ccacf6760b05111ec880ffe237a9250604",
+          "local": "references/upstream/sillytavern/public/scripts/openai.js",
+          "bytes": 307267
         },
         "public/scripts/slash-commands.js": {
           "sha256": "3da6aa888a52d09fd5d54eadee1724b7c3b7dbc208a3d56fe98c7d23d86fcde3",
