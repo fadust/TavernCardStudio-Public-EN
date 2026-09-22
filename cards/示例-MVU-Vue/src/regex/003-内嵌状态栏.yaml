@@ -1,6 +1,6 @@
 关联: regex-8
 名称: 内嵌状态栏
-查找: <CardStatus/>
+查找: <StatusPlaceHolderImpl/>
 裁剪: []
 禁用: false
 仅显示: true

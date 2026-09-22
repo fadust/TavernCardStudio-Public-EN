@@ -209,6 +209,8 @@
         "src/function/global/",
         "src/function/update_variables.ts",
         "src/function/function_call.ts",
+        "src/function/is_extra_model_supported.ts",
+        "src/function/character_override/",
         "src/function/exported_events.ts",
         "src/function/initvar/",
         "src/function/request/",

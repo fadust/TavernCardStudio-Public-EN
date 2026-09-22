@@ -64,8 +64,10 @@ test('mvu 模板生成四个标准条目、固定依赖与注册脚本', async t
   assert.deepEqual(entries.slice(1).map(e => [e.extensions.position, e.extensions.depth, e.extensions.role, e.insertion_order]), [[4, 0, 0, 100], [4, 0, 0, 101], [4, 0, 0, 102]]);
 
   const regexes = card.data.extensions.regex_scripts;
-  assert.deepEqual(regexes.map(r => r.scriptName), REGEX_NAMES);
-  assert.deepEqual(regexes.map(r => [r.markdownOnly, r.promptOnly, r.placement]), [[true, false, [1, 2]], [true, false, [1, 2]], [false, true, [1, 2]], [false, true, [1, 2]]]);
+  assert.deepEqual(regexes.slice(0, 4).map(r => r.scriptName), REGEX_NAMES);
+  assert.deepEqual(regexes.slice(0, 4).map(r => [r.markdownOnly, r.promptOnly, r.placement]), [[true, false, [1, 2]], [true, false, [1, 2]], [false, true, [1, 2]], [false, true, [1, 2]]]);
+  for (const markerRegex of regexes.slice(4)) assert.equal(applyRegexFixture(markerRegex, '正文\n<StatusPlaceHolderImpl/>'), '正文\n');
+  assert.deepEqual(regexes.slice(4).map(r => [r.markdownOnly, r.promptOnly]), [[true, false], [false, true]]);
 
   const scripts = card.data.extensions.tavern_helper.scripts;
   assert.deepEqual(scripts.map(s => s.name), ['MVU 框架（固定提交）', '变量结构（zod 注册）']);
@@ -103,7 +105,7 @@ test('模板引擎按 module.json 写入位置、角色、顺序与正则作用�
   await newCard('引擎', { root, modules: ['worldbook', 'regex', 'mvu'] });
   const { card } = await loadProject('引擎', root);
 
-  const plain = card.data.character_book.entries.find(e => e.comment === '场景规则');
+  const plain = card.data.character_book.entries.find(e => e.comment === '世界观');
   assert.deepEqual([plain.position, plain.insertion_order, plain.extensions.position, plain.extensions.depth, plain.extensions.role], ['before_char', 100, 0, 4, 0]);
   const keyword = card.data.character_book.entries.find(e => e.comment === '旧书店');
   assert.deepEqual([keyword.constant, keyword.keys], [false, ['旧书店']]);
@@ -179,7 +181,7 @@ test('正则覆盖完整块、未闭合块与多块，且只影响显示或提�
   const root = await workspace(t);
   await newCard('MVU正则', { root, modules: ['mvu'] });
   const { card } = await loadProject('MVU正则', root);
-  const regexes = card.data.extensions.regex_scripts;
+  const regexes = card.data.extensions.regex_scripts.filter(r => r.scriptName.includes('变量更新块'));
   const fold = regexes.filter(r => r.markdownOnly);
   const strip = regexes.filter(r => r.promptOnly);
   assert.equal(fold.length, 2);

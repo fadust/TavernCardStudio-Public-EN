@@ -1,6 +1,10 @@
 {
   "worldbook": [
-    { "comment": "场景规则", "keys": [], "constant": true, "contentFile": "setting.md" },
-    { "comment": "旧书店", "keys": ["旧书店"], "constant": false, "contentFile": "bookshop.md" }
+    { "comment": "世界观", "keys": [], "constant": true, "position": "before_char", "insertion_order": 100, "contentFile": "setting.md" },
+    { "comment": "地理总览", "keys": [], "constant": true, "position": "before_char", "insertion_order": 110, "contentFile": "geography.md" },
+    { "comment": "旧书店", "keys": ["旧书店"], "constant": false, "position": "before_char", "insertion_order": 120, "contentFile": "bookshop.md" },
+    { "comment": "角色总览", "keys": [], "constant": true, "position": "after_char", "insertion_order": 100, "contentFile": "characters.md" },
+    { "comment": "书店店主", "keys": ["书店店主", "店主"], "constant": false, "position": "after_char", "insertion_order": 110, "contentFile": "bookseller.md" },
+    { "comment": "信息边界", "keys": [], "constant": true, "position": "at_depth_as_system", "depth": 1, "insertion_order": 100, "contentFile": "rules.md" }
   ]
 }

@@ -6,7 +6,7 @@
     "description": "",
     "personality": "",
     "scenario": "",
-    "first_mes": "{{char}} 注意到你的到来，暂时放下手里的事情。\n\n“你好。今天想从哪里开始？”",
+    "first_mes": "门外的脚步声停了下来，桌边的人抬头望向入口。\n\n“你好，请进。”",
     "mes_example": "",
     "creator_notes": "创作骨架：请完善人物与场景后使用。",
     "system_prompt": "",

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { isDeepStrictEqual } from 'node:util';
+import { setTimeout as delay } from 'node:timers/promises';
 import { ROOT, exists, safeName, safeFile, write, writeJSON, readJSON, sha256, jsonText, getPointer, setPointer, pointerKey, walk } from './files.mjs';
 import { readCardPNG } from './png.mjs';
 import { writeAuthoring, loadAuthoring, helperScriptLists } from './authoring.mjs';
@@ -87,7 +88,16 @@ export async function createProject(card, name, { root = ROOT, originalBytes, or
     if (setup) await setup(project, temporary);
     await writeJSON(path.join(temporary, 'project.json'), project);
     if (formatVersion === 2) await writeAuthoring(temporary, card, project);
-    await fs.rename(temporary, destination);
+    // Windows can briefly deny a directory rename after its files have been written.
+    // Retry only sharing/permission failures, and recheck the no-overwrite boundary each time.
+    for (let attempt = 0; ; attempt++) {
+      if (await exists(destination)) throw new Error(`已存在 ${destination}；拒绝覆盖已有编辑。请使用 --name 指定新名称。`);
+      try { await fs.rename(temporary, destination); break; }
+      catch (error) {
+        if (process.platform !== 'win32' || !['EPERM', 'EACCES', 'EBUSY'].includes(error.code) || attempt >= 3) throw error;
+        await delay(50 * (2 ** attempt));
+      }
+    }
     return destination;
   } catch (error) {
     await fs.rm(temporary, { recursive: true, force: true }); throw error;

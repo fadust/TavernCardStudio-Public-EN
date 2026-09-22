@@ -214,7 +214,7 @@ test('newCard 默认 schemaVersion 2，无 src/card.json，只写第一条消息
   assert.equal(loaded.card.data.personality, '');
   assert.equal(loaded.card.data.scenario, '');
   assert.equal(loaded.card.data.mes_example, '');
-  assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ['场景规则', '旧书店'], 'worldbook 模板条目保留');
+  assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ['世界观', '地理总览', '旧书店', '角色总览', '书店店主', '信息边界'], 'worldbook 模板条目保留');
 
   await t.test('纯文字卡不带可选模块内容', async () => {
     const textOnly = await newCard('纯文字骨架', { root });

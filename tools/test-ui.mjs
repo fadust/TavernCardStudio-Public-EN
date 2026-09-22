@@ -33,7 +33,7 @@ try {
       const card = await readJSON(cardFile);
       const cardSha256 = sha256(await fs.readFile(cardFile));
       const regex = card.data.extensions.regex_scripts.find(r => r.scriptName === '内嵌状态栏');
-      const rendered = applyRegexFixture(regex, '<CardStatus/>').replace(/^```html\n/, '').replace(/\n```$/, '');
+      const rendered = applyRegexFixture(regex, kind === 'mvu' ? '<StatusPlaceHolderImpl/>' : '<CardStatus/>').replace(/^```html\n/, '').replace(/\n```$/, '');
       await page.setContent(rendered, { waitUntil: 'load' });
       await page.getByRole('button').click();
       if (kind === 'html') await page.getByText('编辑本卡 src/ui/html/ 下的文件，然后重新打包即可。').waitFor({ state: 'visible' });

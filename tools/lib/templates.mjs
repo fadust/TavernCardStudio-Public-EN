@@ -57,14 +57,23 @@ export async function newCard(name, { modules = [], root = ROOT, templatesRoot =
     }
     for (const [source, destination] of Object.entries(spec.files ?? {})) copies.push({ source: path.join(dir, source), destination });
     if (spec.ui) {
+      // MVU supplies its own marker after updating a message; never ask the model to emit it.
+      const marker = modules.includes('mvu') ? '<StatusPlaceHolderImpl/>' : spec.ui.marker;
       const pointer = `/data/extensions/regex_scripts/${regexes().length}/replaceString`;
-      regexes().push(newRegex({ scriptName: '内嵌状态栏', findRegex: spec.ui.marker, replaceString: '<!-- 此字段由界面构建生成，请编辑 src/ui/ -->' }));
+      regexes().push(newRegex({ scriptName: '内嵌状态栏', findRegex: marker, replaceString: '<!-- 此字段由界面构建生成，请编辑 src/ui/ -->' }));
       // Remove only the display placeholder from model-facing history, leaving the displayed panel intact.
-      regexes().push(newRegex({ scriptName: '屏蔽状态栏占位（仅提示词）', findRegex: spec.ui.marker, replaceString: '', markdownOnly: false, promptOnly: true }));
-      card.data.first_mes += '\n\n' + spec.ui.marker;
-      worldbook().entries.push(newEntry({ comment: '状态栏输出位置', constant: true, content: `每次叙事正文结束后另起一行输出 ${spec.ui.marker}，作为界面显示位置；若有变量更新块，将它放在变量更新块之前。` }, worldbook().entries.length));
+      regexes().push(newRegex({ scriptName: '屏蔽状态栏占位（仅提示词）', findRegex: marker, replaceString: '', markdownOnly: false, promptOnly: true }));
+      if (!modules.includes('mvu')) {
+        card.data.first_mes += '\n\n' + marker;
+        worldbook().entries.push(newEntry({ comment: '状态栏输出位置', constant: true, position: 'at_depth_as_system', depth: 0, content: `界面占位:\n  输出: 每次正文结束后另起一行输出 ${marker}\n  用途: 为独立界面提供显示位置` }, worldbook().entries.length));
+      }
       uiJobs.push({ source: path.join(dir, spec.ui.directory), kind: spec.ui.kind, pointer });
     }
+  }
+  if (modules.includes('mvu') && uiJobs.length === 0) {
+    // No panel consumes the automatic marker: hide it without rewriting the stored message.
+    regexes().push(newRegex({ scriptName: '隐藏MVU占位（无界面，仅显示）', findRegex: '<StatusPlaceHolderImpl/>', replaceString: '' }));
+    regexes().push(newRegex({ scriptName: '屏蔽状态栏占位（仅提示词）', findRegex: '<StatusPlaceHolderImpl/>', replaceString: '', markdownOnly: false, promptOnly: true }));
   }
   return createProject(card, name, { root, setup: async (project, dir) => {
     project.modules = modules; project.dependencies = dependencies;

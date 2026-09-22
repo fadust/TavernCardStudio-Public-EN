@@ -59,6 +59,8 @@ util/mvu_zod.ts 的注册链是：registerMvuSchema(input) → 取 input 或 inp
 
 ## 正则
 
+0.3.0 起，界面默认消费 MVU 自动添加的 `<StatusPlaceHolderImpl/>`，不要求模型输出。依据 `src/function/update_variables.ts` 的 `handleVariablesInMessage` 与 `src/function/function_call.ts`；没有界面时模板引擎另配两条占位清理正则。有界面时配显示渲染与提示词清理两条。以下四条只指更新块处理，不包含界面占位处理。更新模式与阶段标记见 [更新模式](../../../docs/MVU-MODES.md)。
+
 四条，覆盖完整块与流式未闭合块，按 update 与 UpdateVariable（大小写不敏感）匹配：
 
 - 仅显示（markdownOnly）：折叠完整块、折叠未闭合块。placement 是用户输入 + AI 输出（regex_placement.USER_INPUT = 1、AI_OUTPUT = 2）。

@@ -21,6 +21,8 @@
 正则:
   - src/regex/001-隐藏变量更新（仅显示）.yaml
   - src/regex/002-屏蔽历史变量更新（仅提示词）.yaml
+  - src/regex/003-隐藏MVU占位（无界面，仅显示）.yaml
+  - src/regex/004-屏蔽状态栏占位（仅提示词）.yaml
 脚本:
   - src/scripts/001-MVU 框架（固定提交）.yaml
 助手变量: {}

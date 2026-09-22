@@ -39,7 +39,7 @@ pnpm card check advanced-card
 pnpm card build advanced-card
 ```
 
-复杂卡的模块互相引用：世界书条目注入变量规则 → MVU 解析模型输出 → Zod 约束取值 → 正则隐藏更新块并把占位符渲染成楼层界面 → 脚本读写变量、挂界面。改动前先定位内容落在哪里，再动那一处：
+复杂卡的模块互相引用：世界书条目注入变量规则 → 主 API 或额外 API 请求产生变量更新 → MVU 解析与 Zod 约束取值 → 正则隐藏更新块，并把 MVU 自动添加的固定占位符渲染成楼层界面 → 脚本读写变量。MVU 卡不需要提示模型输出状态栏占位符。改动前先定位内容落在哪里，再动那一处：
 
 ```powershell
 pnpm card map advanced-card        # 创作入口、设置文件、正文文件与构建项
@@ -170,6 +170,9 @@ AI 写卡先按 [AGENTS.md 的技能索引](AGENTS.md#按任务加载技能) 选
 - [运行环境与语法](docs/ENVIRONMENT.md)：宏、EJS、脚本、MVU、界面分别在哪里生效。
 - [世界书](docs/WORLDBOOK.md) 与 [世界书条目写作](docs/WORLDBOOK-WRITING.md)：条目字段、触发策略、注入位置与正文组织。
 - [正则](docs/REGEX.md)、[变量与 MVU](docs/VARIABLES.md)、[MVU Zod](docs/MVU-ZOD.md)、[助手脚本与 EJS](docs/SCRIPTS.md)、[前端资源](docs/FRONTEND.md)：各模块字段与样例。
+- [MVU 更新模式](docs/MVU-MODES.md)：主 API、额外 API、阶段标记与自动状态栏占位。
+- [地点扫描与树状设定](.agents/skills/tavern-worldbook/references/location-scan.md)：关键词层级与按需的脚本扫描接入。
+- [外链资源](docs/REMOTE-ASSETS.md)：将自写脚本或前端发布到公开 Git 后，以固定版本在卡内加载。
 - [架构与操作](docs/ARCHITECTURE.md)：目录、`src/index.yaml`、`project.json`、命令与构建流程。
 - [升级与备份](docs/UPDATING.md)：备份范围、升级步骤、旧卡迁移、自建卡的版本管理与回滚。
 - [验证](docs/VERIFICATION.md)：检查覆盖、证据层级与报告方式。
@@ -179,6 +182,6 @@ AI 写卡先按 [AGENTS.md 的技能索引](AGENTS.md#按任务加载技能) 选
 
 - 工具只做本地静态检查与打包，**不等于真实酒馆实测**。`project.json` 的 `runtimeVerified` 记录实际核实结果，`null` 表示尚未核实。
 - `check` 只做解析与编译级检查，不执行卡里的脚本、EJS 和界面代码，也不联网验证外链可用性。
-- 公开依赖必须写进 `project.json` 的 `dependencies`：无凭据 HTTPS，地址里含固定版本或提交；自己写的资源随卡内嵌。
+- 公开依赖必须写进 `project.json` 的 `dependencies`：无凭据 HTTPS，地址里含固定版本或提交；自写资源默认内嵌，也可按 [外链资源](docs/REMOTE-ASSETS.md) 发布到自己的公开仓库。
 - 界面 HTML 以 Base64 编码写进卡，用来避开宿主对 `$1` 和宏的替换，属于编码而不是加密，内容仍然可读。
 - 本工作区内容限非商业使用，详见 [LICENSE](LICENSE)。

@@ -18,7 +18,7 @@ const plain = value => JSON.parse(JSON.stringify(value));
 
 test('综合示例每个开场初值与结构一致，重复解析不改变状态', async () => {
   const { card } = await loadProject('示例-雾港调查局');
-  assert.equal(card.data.name, '黛莉亚·克雷恩');
+  assert.equal(card.data.name, '雾港调查局');
   const base = JSON.parse(card.data.character_book.entries.find(e => e.comment.includes('[initvar]')).content);
   const starts = [base, ...card.data.alternate_greetings.map(text => JSON.parse(text.match(/<initvar>([\s\S]*?)<\/initvar>/)[1]))];
   assert.equal(starts.length, 4);

@@ -69,6 +69,8 @@
 - V3 的字段名与结构对照 `character-card-spec-v3` 的 `SPEC_V3.md`；宿主对 V3 的实际支持范围另看 SillyTavern 的解析与校验实现，两者不互相替代。
 - 2026-09-18 至 19 核对 MVU 的五种输出操作、move.to 形状例外、注册器接管命令与逐条解析、宿主全局 Zod 实例；新模板的协议资产与这些固定实现对应。
 - 研究用的参考卡只作为输入，技能、模板与测试不依赖任何私有卡文件；提炼后的结论要能脱离原卡使用。
+- MVU 自动状态栏标记与阶段过滤：`mvu/src/function/update_variables.ts`、`function_call.ts`、`request/filter_entries.ts`、`request/worldinfo_scan.ts`；模板模式说明见 [MVU-MODES.md](MVU-MODES.md)。
+- 地点扫描注入：`tavern-helper/@types/function/inject.d.ts` 的 `position: 'none'`、`should_scan`，并对照 `sillytavern/public/scripts/world-info.js` 的扫描缓冲与递归筛选。目录或变量里的地名不等于扫描材料。
 
 这些是源码层面的核对结果，来自 `pnpm refs restore` 还原并按 sha256 校验过的锁定源码文本，不代表在真实酒馆里跑过。源码、CI 与真实宿主三类证据不互相替代；实机结论一律记在 `project.json` 的 `runtimeVerified`。
 

@@ -1,6 +1,6 @@
 关联: regex-11
 名称: 屏蔽状态栏占位（仅提示词）
-查找: <CardStatus/>
+查找: <StatusPlaceHolderImpl/>
 裁剪: []
 禁用: false
 仅显示: false

@@ -17,7 +17,6 @@
     - src/worldbook/002-变量列表.yaml
     - src/worldbook/003-[mvu_update]变量更新规则.yaml
     - src/worldbook/004-[mvu_update]变量输出格式.yaml
-    - src/worldbook/005-状态栏输出位置.yaml
   名称: 示例-MVU-Zod-Vue
 正则:
   - src/regex/001-折叠变量更新块（仅显示）.yaml

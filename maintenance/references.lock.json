@@ -1207,6 +1207,16 @@
           "local": "references/upstream/mvu/package.json",
           "bytes": 4974
         },
+        "src/function/character_override/index.ts": {
+          "sha256": "71cbe6ba27650937497484197dd56c3045e02af107bc72114407e0d19016be89",
+          "local": "references/upstream/mvu/src/function/character_override/index.ts",
+          "bytes": 22491
+        },
+        "src/function/character_override/schema.ts": {
+          "sha256": "14f292337d87d0f310f11273c6e52f6b3d0339d3681abdc54cb4f332449f7ec5",
+          "local": "references/upstream/mvu/src/function/character_override/schema.ts",
+          "bytes": 7389
+        },
         "src/function/exported_events.ts": {
           "sha256": "b7fa2a2a92643b894476c5ca8153a1a1178185fa505511a7b0a62f2c86023d9f",
           "local": "references/upstream/mvu/src/function/exported_events.ts",
@@ -1231,6 +1241,11 @@
           "sha256": "d2b730788fc74723f9df29ebd02085cd142e1f7289c3b25fb85cbebab51470bf",
           "local": "references/upstream/mvu/src/function/initvar/variable_init.ts",
           "bytes": 15882
+        },
+        "src/function/is_extra_model_supported.ts": {
+          "sha256": "b54bf58da10220cd2ca36bd3350a899eb83a6932f6b06ab87eb3d72cdd099efa",
+          "local": "references/upstream/mvu/src/function/is_extra_model_supported.ts",
+          "bytes": 632
         },
         "src/function/request/entry_comment_regex.ts": {
           "sha256": "72994e44d53c26e108663d6a584cbc29dc09bccd298b8a4fab5a2eedec32e33d",

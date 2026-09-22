@@ -8,6 +8,20 @@ function literal(node) {
   if (node?.type === 'TemplateLiteral' && node.expressions.length === 0) return node.quasis[0].value.cooked;
   return null;
 }
+// jQuery 的 ajax 系列把地址写在第一个参数，或选项对象的 url 字段里。
+const JQUERY_CALLERS = new Set(['$', 'jQuery']);
+const JQUERY_AJAX = new Set(['ajax', 'get', 'post', 'getJSON']);
+// `new URL(...)` 与 `foo.url(...)` 只是构造或访问地址的 JS 调用，不是 CSS 的 url() 资源引用。
+function isJavaScriptCallSite(source, index) {
+  const before = source.slice(0, index).replace(/\s+$/, '');
+  return /[.$]$/.test(before) || /(?:^|[^\w$])new$/.test(before);
+}
+function ajaxUrlProperties(node) {
+  if (node?.type !== 'ObjectExpression') return null;
+  return node.properties.filter(property => property.type === 'Property' && !property.computed && (property.key?.name === 'url' || property.key?.value === 'url'));
+}
+// 字面量绝对地址都审计（包括不受支持的协议）；相对 API 地址留给宿主核对。
+const isAbsoluteAddress = value => /^(?:[a-z][a-z\d+.-]*:|\/\/|\\\\)/i.test(value);
 export function findResourceReferences(text, { javascript = false } = {}) {
   const references = []; const dynamic = [];
   const add = (url, kind) => { if (typeof url === 'string' && url.trim()) references.push({ url: url.trim(), kind }); };
@@ -18,7 +32,9 @@ export function findResourceReferences(text, { javascript = false } = {}) {
       if (!attr[2].startsWith('data:')) for (const value of attr[2].split(',')) add(value.trim().split(/\s+/)[0], 'html:srcset');
     }
   }
-  for (const match of text.matchAll(/\burl\(\s*(["']?)([^)"']+)\1\s*\)/gi)) add(match[2], 'css:url');
+  for (const match of text.matchAll(/\burl\(\s*(["']?)([^)"']+)\1\s*\)/gi)) {
+    if (!isJavaScriptCallSite(text, match.index)) add(match[2], 'css:url');
+  }
   for (const match of text.matchAll(/@import\s+(["'])(.*?)\1/gi)) add(match[2], 'css:import');
   const scripts = javascript ? [text] : [...text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
   for (const code of scripts) {
@@ -34,9 +50,21 @@ export function findResourceReferences(text, { javascript = false } = {}) {
       }
       if (node.type === 'CallExpression' || node.type === 'NewExpression') {
         const name = node.callee?.name ?? node.callee?.property?.name;
-        if (['fetch', 'load', 'getScript', 'Worker', 'WebSocket', 'EventSource', 'URL'].includes(name)) {
+        if (['fetch', 'load', 'getScript', 'Worker', 'WebSocket', 'EventSource'].includes(name)) {
           const value = literal(node.arguments[0]);
           if (value === null) dynamic.push(`动态 ${name}()`); else add(value, `js:${name}`);
+        }
+        if (JQUERY_AJAX.has(name) && JQUERY_CALLERS.has(node.callee?.object?.name)) {
+          const argument = node.arguments[0];
+          const properties = ajaxUrlProperties(argument);
+          const known = literal(argument) !== null ? [literal(argument)]
+            : properties?.length ? properties.map(property => literal(property.value)) : null;
+          // 选项对象没写 url 时可能是就地配置（地址来自 ajaxSetup 等），不当作证据。
+          if (known === null && argument && argument.type !== 'ObjectExpression') dynamic.push(`动态 ${name}() 地址`);
+          for (const address of (known ?? [])) {
+            if (address !== null && isAbsoluteAddress(address)) add(address, `js:${name}`);
+            else dynamic.push(`${name}() 地址 ${address ?? '（非字面量）'} 不是外链`);
+          }
         }
         if (name === 'setAttribute' && ['src', 'href', 'poster', 'data'].includes(literal(node.arguments[0]))) {
           const value = literal(node.arguments[1]);
@@ -73,13 +101,17 @@ export async function auditResources(text, { file, dir, dependencies = [], javas
   const errors = []; const warnings = dynamic.map(item => `${file}: ${item}，需要人工核对最终地址。`); const external = [];
   for (const reference of references) {
     const { url, kind } = reference;
-    if (/^(data:|#|blob:)/i.test(url)) continue;
+    if (/^(data:|#)/i.test(url)) continue;
+    // blob: 地址只在生成它的那次页面会话里有效，写进卡里对玩家没有意义。
+    if (/^blob:/i.test(url)) { warnings.push(`${file}: blob: 地址只在生成它的会话里有效，不能作为卡内资源地址 ${url}`); continue; }
     if (/^(?:file:|[a-z]:[\\/]|\\\\)/i.test(url)) { errors.push(`${file}: 不能依赖本机资源 ${url}`); continue; }
     if (/<%|\{\{|\$\{/.test(url)) { warnings.push(`${file}: 动态资源地址需复核 ${url}`); continue; }
     if (/^(https?:)?\/\//i.test(url)) {
       let parsed; try { parsed = new URL(url.startsWith('//') ? 'https:' + url : url); } catch { errors.push(`${file}: 无效地址 ${url}`); continue; }
       if (/^(localhost|127\.|0\.0\.0\.0|\[::1\]|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(parsed.hostname)) errors.push(`${file}: 成品不能加载开发或局域网地址 ${url}`);
-      if (!dependencies.some(d => d.url === url)) errors.push(`${file}: 未声明的外部资源 ${url}。私有资源请内嵌，公开资源请在 dependencies 声明固定版本。`);
+      // 协议相对地址按 HTTPS 使用；声明处只能写完整地址，比较时两种写法都算已声明。
+      const normalized = url.startsWith('//') ? `https:${url}` : url;
+      if (!dependencies.some(d => d.url === url || d.url === normalized)) errors.push(`${file}: 未声明的外部资源 ${url}。私有资源请内嵌，公开资源请在 dependencies 声明固定版本。`);
       external.push(url); continue;
     }
     if (/^[a-z][a-z\d+.-]*:/i.test(url)) { errors.push(`${file}: 不支持自动打包的资源协议 ${url}`); continue; }

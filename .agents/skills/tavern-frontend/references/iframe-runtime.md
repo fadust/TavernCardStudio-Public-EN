@@ -11,11 +11,11 @@
 | `src/ui/html/` 或 `src/ui/vue/` | `index.html`、`main.js`、`style.css`；Vue 还有 `App.vue` |
 | 正则条目的 `构建` | `{ 类型: 'html' 或 'vue', 入口: 'src/ui/<kind>/index.html' }` |
 | `src/regex/*.yaml` 的两条正则 | `内嵌状态栏`（仅格式显示，`查找` 就是占位符）、`屏蔽状态栏占位（仅提示词）` |
-| 卡内容 | `first_mes` 末尾追加占位符（模块 `ui.marker`，默认 `<CardStatus/>`），并加一条常驻世界书条目 `状态栏输出位置` |
+| 卡内容 | 与 MVU 组合时使用框架自动添加的 `<StatusPlaceHolderImpl/>`，不生成输出条目；独立界面才在 `first_mes` 末尾添加 `<CardStatus/>` 并配 `状态栏输出位置` 条目 |
 
 `vue` 且同时选了 `mvu` 时，`App.mvu.vue` 会覆盖 `App.vue` 然后被删除。`构建` 写在正则条目上，结果写回它的 `替换文件`：界面不需要单独的脚本条目。
 
-在已有卡上手动加第二个界面时要自己补齐这四件事（新占位符、新正则两条、新正则条目上的 `构建`、给模型一个输出该占位符的出处）。每个界面用不同占位符，否则两条正则互相抢。
+在已有卡上手动加第二个界面时，补齐标记、正则、构建与可靠的生产者。MVU 标准标记由框架产生；其它标记可由脚本或明确的输出约定产生，不一律交给模型。每个独立界面使用不同标记，或在一次替换中组合，避免正则互相抢。
 
 ## 2. 构建怎么写回
 
@@ -57,7 +57,7 @@ jQuery 的作用域在两处不同：
 | 自动导入 | `unplugin-auto-import` 注入 `vue`、`pinia`、`@vueuse/core`、`klona`、`z`、`dedent` 等 | 没有；每个符号都要自己 import，或来自运行时全局 |
 | 未安装的包 | `externals` 把 `jquery`/`lodash`/`toastr`/`vue`/`vue-router`/`yaml`/`zod` 映射到 iframe 全局，其余自动变成 jsDelivr 的 `+esm` 远程 import | 只解析 `node_modules`；远程地址必须声明在 `dependencies` |
 | 样式 | sass/postcss/tailwind、`<style lang='scss'>`、html-loader、remark-loader、`?raw` | Vite 原生 CSS、`?raw`/`?url`；没有 sass/tailwind 构建链 |
-| 交付 | 仓库托管 `dist/`，卡里用 URL 加载 | 单文件随卡内嵌，卡外不依赖仓库 |
+| 交付 | 仓库托管 `dist/`，卡里用 URL 加载 | 默认单文件随卡内嵌；可按 [外链流程](../../../../docs/REMOTE-ASSETS.md) 选择固定版本托管 |
 
 上游 `util/`（`mvu.ts` 的 `defineMvuDataStore`、`script.ts` 的 `teleportStyle`/`createScriptIdIframe`、`streaming.ts` 的 `mountStreamingMessages`）依赖 pinia、`@vueuse/core`、`klona`、`?raw` 与 html 加载器，属于那套环境。要复用就得按本仓库工具链改写或补依赖。
 
