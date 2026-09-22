@@ -130,7 +130,7 @@
         "角色": "系统",
         "文件": "src/worldbook/001-状态栏输出位置.md"
       },
-      "file": "src/worldbook/001-状态栏输出位置.yaml"
+      "file": "src/worldbook/规则/状态栏输出位置.yaml"
     },
     "regex-2": {
       "kind": "regex",

@@ -11,12 +11,12 @@
 群聊开场白: []
 世界书:
   条目:
-    - src/worldbook/001-场景规则.yaml
-    - src/worldbook/004-地理总览.yaml
-    - src/worldbook/002-旧书店.yaml
-    - src/worldbook/005-角色总览.yaml
-    - src/worldbook/003-书店老板.yaml
-    - src/worldbook/006-信息边界.yaml
+    - src/worldbook/世界设定/世界观.yaml
+    - src/worldbook/地理/地理总览.yaml
+    - src/worldbook/地理/旧书店.yaml
+    - src/worldbook/角色/角色总览.yaml
+    - src/worldbook/角色/书店老板.yaml
+    - src/worldbook/规则/信息边界.yaml
   名称: 示例-世界书创作
 正则:
   - src/regex/001-显示备注.yaml

@@ -198,7 +198,7 @@ export async function writeAuthoring(dir, card, manifest) {
     (index.兼容文本 ??= {})[title] = reference(field.pointer, field.file); state.text[title] = field.pointer;
   }
   await writeYAML(dir, 'src/index.yaml', index);
-  await write(path.join(dir, '内容导航.md'), '# 内容导航\n\n从 `src/index.yaml` 开始：总索引中的列表决定条目顺序。修改正文到对应文本/代码文件；设置在同名 YAML 中。\n\n| 内容 | 位置 |\n| --- | --- |\n| 世界书 | `src/worldbook/*.yaml` 设置 + 同名 `.md` 正文 |\n| 正则 | `src/regex/*.yaml` 查找与设置 + 同名 `.txt` 替换文本 |\n| 助手脚本 | `src/scripts/*.yaml` 设置 + `.js` 代码 |\n| 第一条消息 | `src/text/first_mes.md` |\n| 其他开场白 | `src/greetings/`，顺序见总索引 |\n| HTML/Vue 源码 | `src/ui/`（仅有此模块时） |\n| 项目依赖与头像 | `project.json` 的 dependencies / avatar |\n\n新卡默认将角色描写、性格、场景、对话示例留空，提示词主要写世界书；导入卡保留已有内容。添加条目时新建 YAML 和正文文件，在总索引引用；新条目省略“关联”，原有“关联”不改。移除引用就不再打包，文件可以保留。脚本文件夹的子项在文件夹 YAML 的“脚本”列表中管理。\n\n`.card/` 是工具维护的兼容数据，`original/` 是原件，均不手改。导入的界面只能保留卡内已有代码，不能自动还原成原始 Vue 工程。\n\n在仓库根运行 `pnpm card map "' + manifest.name + '"` 查看当前有效路径，`pnpm card build "' + manifest.name + '"` 生成到 `dist/' + manifest.name + '/`。\n');
+  await writeContentNavigation(dir, manifest.name);
   const bytes = jsonText(state); await write(path.join(dir, '.card/state.json'), bytes);
   const next = { ...manifest, schemaVersion: 2, source: 'src/index.yaml', state: { file: '.card/state.json', sha256: sha256(bytes) } };
   delete next.fields; delete next.builds;
@@ -247,7 +247,7 @@ export async function loadAuthoring(dir, manifest) {
     if (value.构建 !== undefined) await registerBuild(value.构建, pointer, value.文件);
     return text;
   };
-  const defaultWorld = (file) => ({ id: parseInt(sha256(file).slice(0, 12), 16), keys: [], secondary_keys: [], comment: path.basename(file, '.yaml'), content: '', enabled: true, constant: false, selective: true, insertion_order: 100, position: 'before_char', use_regex: false, extensions: { position: 0, depth: 4, role: 0 } });
+  const defaultWorld = (file) => ({ id: parseInt(sha256(file).slice(0, 12), 16), keys: [], secondary_keys: [], comment: path.basename(file, '.yaml'), content: '', enabled: true, constant: false, selective: true, insertion_order: 100, position: 'before_char', use_regex: false, extensions: { position: 0, depth: 4, role: 0, exclude_recursion: true, prevent_recursion: true } });
   const makeItem = async (kind, file, pointer) => {
     const config = await useFile(file); const map = kind === 'worldbook' ? WORLD : kind === 'regex' ? REGEX : SCRIPT;
     strictKeys(config, [...Object.keys(map), '关联', '附属文本', '构建', ...(kind === 'worldbook' ? ['文件', '激活', '位置', '角色'] : kind === 'regex' ? ['替换文件', '作用于'] : ['文件', '类型', '脚本', '数据文件'])], file);
@@ -350,4 +350,8 @@ export async function loadAuthoring(dir, manifest) {
   for (const [title, file] of Object.entries(index.兼容文本 ?? {})) setPointer(card, state.text[title], await textReference(file, state.text[title]));
   const unreferenced = Object.entries(state.records).filter(([key]) => !seenKeys.has(key)).map(([key, record]) => ({ association: key, name: record.config.名称 ?? '', file: record.file ?? null }));
   return { card, project: { ...manifest, fields, builds }, sources, unreferenced };
+}
+
+export async function writeContentNavigation(dir, name) {
+  await write(path.join(dir, '内容导航.md'), '# 内容导航\n\n从 `src/index.yaml` 开始：总索引指定参与打包的条目；世界书注入顺序由位置、顺序、深度与角色决定，文件名不参与排序。修改正文到对应文本/代码文件；设置在同名 YAML 中。\n\n| 内容 | 位置 |\n| --- | --- |\n| 世界书 | `src/worldbook/**/*.yaml` 按分类放置设置 + `.md` 正文 |\n| 正则 | `src/regex/*.yaml` 查找与设置 + 同名 `.txt` 替换文本 |\n| 助手脚本 | `src/scripts/*.yaml` 设置 + `.js` 代码 |\n| 第一条消息 | `src/text/first_mes.md` |\n| 其他开场白 | `src/greetings/`，顺序见总索引 |\n| HTML/Vue 源码 | `src/ui/`（仅有此模块时） |\n| 项目依赖与头像 | `project.json` 的 dependencies / avatar |\n\n新卡默认将角色描写、性格、场景、对话示例留空，提示词主要写世界书；导入卡保留已有内容。添加条目时新建 YAML 和正文文件，在总索引引用；新条目省略“关联”，原有“关联”不改。移除引用就不再打包，文件可以保留。脚本文件夹的子项在文件夹 YAML 的“脚本”列表中管理。\n\n`.card/` 是工具维护的兼容数据，`original/` 是原件，均不手改。导入的界面只能保留卡内已有代码，不能自动还原成原始 Vue 工程。\n\n在仓库根运行 `pnpm card map "' + name + '"` 查看当前有效路径，`pnpm card build "' + name + '"` 生成到 `dist/' + name + '/`。\n');
 }

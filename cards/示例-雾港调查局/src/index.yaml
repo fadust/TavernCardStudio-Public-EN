@@ -18,26 +18,26 @@
 群聊开场白: []
 世界书:
   条目:
-    - src/worldbook/001-世界观.yaml
-    - src/worldbook/002-地理总览.yaml
-    - src/worldbook/003-调查局规程.yaml
-    - src/worldbook/010-地点-北堤灯塔.yaml
-    - src/worldbook/011-地点-潮汐巷鱼市.yaml
-    - src/worldbook/012-地点-旧船坞.yaml
-    - src/worldbook/013-地点-调查局本部.yaml
-    - src/worldbook/018-事件-灯塔停灯的排查.yaml
-    - src/worldbook/019-事件-雾季失踪案的办理.yaml
-    - src/worldbook/020-行话-港上通用说法.yaml
-    - src/worldbook/004-搭档-黛莉亚·克雷恩.yaml
-    - src/worldbook/005-角色总览.yaml
-    - src/worldbook/014-人物-莫兰·维斯.yaml
-    - src/worldbook/015-人物-奥托·兰姆.yaml
-    - src/worldbook/016-人物-海蒂.yaml
-    - src/worldbook/017-人物-佩里·道恩.yaml
-    - src/worldbook/006-[initvar]变量初始化勿开.yaml
-    - src/worldbook/007-变量列表.yaml
-    - src/worldbook/008-[mvu_update]变量更新规则.yaml
-    - src/worldbook/009-[mvu_update]变量输出格式.yaml
+    - src/worldbook/世界设定/世界观.yaml
+    - src/worldbook/地理/地理总览.yaml
+    - src/worldbook/规则/调查局规程.yaml
+    - src/worldbook/地理/北堤灯塔.yaml
+    - src/worldbook/地理/潮汐巷鱼市.yaml
+    - src/worldbook/地理/旧船坞.yaml
+    - src/worldbook/地理/调查局本部.yaml
+    - src/worldbook/事件/灯塔停灯的排查.yaml
+    - src/worldbook/事件/雾季失踪案的办理.yaml
+    - src/worldbook/世界设定/港上通用说法.yaml
+    - src/worldbook/角色/黛莉亚·克雷恩.yaml
+    - src/worldbook/角色/角色总览.yaml
+    - src/worldbook/角色/莫兰·维斯.yaml
+    - src/worldbook/角色/奥托·兰姆.yaml
+    - src/worldbook/角色/海蒂.yaml
+    - src/worldbook/角色/佩里·道恩.yaml
+    - src/worldbook/变量/[initvar]变量初始化勿开.yaml
+    - src/worldbook/变量/变量列表.yaml
+    - src/worldbook/变量/[mvu_update]变量更新规则.yaml
+    - src/worldbook/变量/[mvu_update]变量输出格式.yaml
   名称: 示例-雾港调查局
 正则:
   - src/regex/001-折叠变量更新块（仅显示）.yaml

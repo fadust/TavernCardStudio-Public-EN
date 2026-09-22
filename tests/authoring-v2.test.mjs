@@ -510,26 +510,28 @@ test('世界书条目的构建绑定跟随条目，重排后指针与入口不�
   let index = await readYAML(dir, 'src/index.yaml');
   const [first, second] = index.世界书.条目;
   const firstConfig = await readYAML(dir, first);
-  assert.equal(firstConfig.文件, 'src/worldbook/001-甲.md');
-  firstConfig.构建 = { 类型: 'script', 入口: 'src/worldbook/001-甲.js' };
+  const firstBody = firstConfig.文件;
+  assert.equal(await readText(dir, firstBody), '甲的内容', '正文按条目配置的路径读取');
+  const firstEntry = firstBody.replace(/\.md$/, '.js');
+  firstConfig.构建 = { 类型: 'script', 入口: firstEntry };
   await writeYAML(dir, first, firstConfig);
-  await writeText(dir, 'src/worldbook/001-甲.js', 'console.info("甲构建");');
+  await writeText(dir, firstEntry, 'console.info("甲构建");');
 
   let loaded = await loadProject('构建世界书', root);
-  assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: 'src/worldbook/001-甲.js', pointer: '/data/character_book/entries/0/content' }]);
+  assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: firstEntry, pointer: '/data/character_book/entries/0/content' }]);
 
   index.世界书.条目 = [second, first];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('构建世界书', root);
-  assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: 'src/worldbook/001-甲.js', pointer: '/data/character_book/entries/1/content' }], '重排后指针跟着条目');
+  assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: firstEntry, pointer: '/data/character_book/entries/1/content' }], '重排后指针跟着条目');
   assert.equal(loaded.card.data.character_book.entries[1].comment, '甲');
-  assert.equal(loaded.project.fields.find(field => field.pointer === loaded.project.builds[0].pointer).file, 'src/worldbook/001-甲.md');
+  assert.equal(loaded.project.fields.find(field => field.pointer === loaded.project.builds[0].pointer).file, firstBody);
   assert.equal(await readText(dir, loaded.project.builds[0].entry), 'console.info("甲构建");');
 
   index.世界书.条目 = [first, second];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('构建世界书', root);
-  assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: 'src/worldbook/001-甲.js', pointer: '/data/character_book/entries/0/content' }]);
+  assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: firstEntry, pointer: '/data/character_book/entries/0/content' }]);
 });
 
 test('HTML 模块的界面构建绑定仍指向正则替换字段', async t => {
@@ -1332,11 +1334,12 @@ test('源文件必须解析到 src/ 内，src/../original 被拒绝', async t =>
   await writeText(dir, 'original/外面.md', '外面');
   const index = await readYAML(dir, 'src/index.yaml');
   const first = await readYAML(dir, index.世界书.条目[0]);
+  const body = first.文件;
   first.文件 = 'src/../original/外面.md';
   await writeYAML(dir, index.世界书.条目[0], first);
   await assert.rejects(() => loadProject('源范围', root), /源文件路径越界/);
 
-  first.文件 = 'src/worldbook/001-旧书店.md';
+  first.文件 = body;
   await writeYAML(dir, index.世界书.条目[0], first);
   const restored = await loadProject('源范围', root);
   assert.deepEqual(restored.card.data.character_book.entries.map(entry => entry.comment), ['旧书店']);

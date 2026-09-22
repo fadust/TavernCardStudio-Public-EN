@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { chromium, expect } from '@playwright/test';
+import { parseDocument } from 'yaml';
 import { createStudioServer } from './studio.mjs';
 import { ROOT, readJSON } from './lib/files.mjs';
 import { loadProject } from './lib/project.mjs';
@@ -101,6 +102,41 @@ try {
   await expect(page.locator('#detailPanel h2')).toHaveText('灯塔书店');
   await page.locator('#detailPanel').getByRole('button', { name: '检查', exact: true }).click();
   await expect(page.locator('#resultsBody')).toContainText('检查通过');
+  // —— 整理世界书：新卡已按分类目录生成，先核对“无需整理”，再改回旧式平铺路径核对整理数、备份与引用 ——
+  const organizeBtn = () => page.locator('#detailPanel').getByRole('button', { name: '整理世界书', exact: true });
+  await organizeBtn().click();
+  await expect(page.locator('#resultsBody')).toContainText('无需整理');
+  const bookstore = path.join(root, 'cards/灯塔书店');
+  const bookstoreIndex = path.join(bookstore, 'src/index.yaml');
+  const entryBefore = 'src/worldbook/世界设定/世界观.yaml';
+  const bodyBefore = 'src/worldbook/世界设定/世界观.md';
+  const entryLegacy = 'src/worldbook/001-世界观.yaml';
+  const bodyLegacy = 'src/worldbook/001-世界观.md';
+  const indexDocument = parseDocument(await fs.readFile(bookstoreIndex, 'utf8'));
+  let relocated = 0;
+  for (const item of indexDocument.getIn(['世界书', '条目'], true).items) {
+    if (String(item.value) === entryBefore) { item.value = entryLegacy; relocated += 1; }
+  }
+  assert.equal(relocated, 1, '索引里应能找到这一条世界书引用');
+  await fs.writeFile(bookstoreIndex, indexDocument.toString({ lineWidth: 0 }));
+  await fs.rename(path.join(bookstore, entryBefore), path.join(bookstore, entryLegacy));
+  await fs.rename(path.join(bookstore, bodyBefore), path.join(bookstore, bodyLegacy));
+  const entryDocument = parseDocument(await fs.readFile(path.join(bookstore, entryLegacy), 'utf8'));
+  entryDocument.set('文件', bodyLegacy);
+  await fs.writeFile(path.join(bookstore, entryLegacy), entryDocument.toString({ lineWidth: 0 }));
+  await organizeBtn().click();
+  await expect(page.locator('#resultsBody')).toContainText('已整理 1 项世界书');
+  const backups = await fs.readdir(path.join(root, 'work/layout-backups'));
+  assert.equal(backups.length, 1, '整理应留下一份备份');
+  assert.match(backups[0], /^灯塔书店-/);
+  await expect(page.locator('#resultsBody')).toContainText('原工程备份：work/layout-backups/' + backups[0]);
+  await fs.access(path.join(bookstore, entryBefore));
+  await fs.access(path.join(bookstore, bodyBefore));
+  await fs.access(path.join(root, 'work/layout-backups', backups[0], entryLegacy));
+  await assert.rejects(fs.access(path.join(bookstore, entryLegacy)));
+  await assert.rejects(fs.access(path.join(bookstore, bodyLegacy)));
+  assert.equal(parseDocument(await fs.readFile(path.join(bookstore, entryBefore), 'utf8')).get('文件'), bodyBefore);
+  assert.ok((await fs.readFile(bookstoreIndex, 'utf8')).includes(entryBefore), '整理后索引应指回分类目录');
   const jpegData = await page.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 560;
     const ctx = canvas.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 400, 560);
@@ -188,7 +224,7 @@ try {
   assert.deepEqual(errors, [], '浏览器未处理错误'); assert.deepEqual(external, [], '不请求外部资源');
   await page.locator('#shutdownBtn').click(); await page.locator('#confirmOk').click();
   await expect(page.locator('#shutdownNotice')).toBeVisible();
-  const result = { ok: true, flow: ['entry guidance', 'official example badge', 'copy example', 'new', 'check', 'JPEG cover', 'replace WebP cover + preview', 'build PNG + JSON', 'duplicate', 'rename', 'import PNG', 'remove cover', 'build JSON', 'open folder callback', 'search', 'name collision error', 'refresh session', 'responsive', 'shutdown'], errors, external, realTavern: false };
+  const result = { ok: true, flow: ['entry guidance', 'official example badge', 'copy example', 'new', 'check', 'organize worldbook (no-op + relocate with backup)', 'JPEG cover', 'replace WebP cover + preview', 'build PNG + JSON', 'duplicate', 'rename', 'import PNG', 'remove cover', 'build JSON', 'open folder callback', 'search', 'name collision error', 'refresh session', 'responsive', 'shutdown'], errors, external, realTavern: false };
   await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));
 } finally {
   await browser?.close(); await app.close(); await fs.rm(root, { recursive: true, force: true });

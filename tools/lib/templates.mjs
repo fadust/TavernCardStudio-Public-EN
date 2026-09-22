@@ -35,7 +35,7 @@ export async function newCard(name, { modules = [], root = ROOT, templatesRoot =
   for (const module of modules) if (!MODULES.includes(module)) throw new Error(`未知模块 ${module}。可选: ${MODULES.join(', ')}`);
   if (modules.includes('html') && modules.includes('vue')) throw new Error('初始模板请选择 html 或 vue 之一；同一卡后续可以手动添加多个独立界面。');
   const card = await readJSON(path.join(templatesRoot, 'base/card.json')); card.data.name = name;
-  const bundlePointers = []; const uiJobs = []; const copies = []; const dependencies = []; const fixtures = [];
+  const bundlePointers = []; const uiJobs = []; const copies = []; const dependencies = []; const fixtures = []; const worldbookFolders = [];
   const worldbook = () => (card.data.character_book ??= { name, entries: [] });
   const regexes = () => (card.data.extensions.regex_scripts ??= []);
   const scripts = () => (card.data.extensions.tavern_helper ??= { scripts: [], variables: {} }).scripts;
@@ -44,6 +44,7 @@ export async function newCard(name, { modules = [], root = ROOT, templatesRoot =
     dependencies.push(...spec.dependencies ?? []); fixtures.push(...spec.fixtures ?? []);
     for (const entry of spec.worldbook ?? []) {
       const value = { ...entry, content: entry.contentFile ? await fs.readFile(path.join(dir, entry.contentFile), 'utf8') : entry.content };
+      worldbookFolders[worldbook().entries.length] = entry.category;
       worldbook().entries.push(newEntry(value, worldbook().entries.length));
     }
     for (const regex of spec.regex ?? []) {
@@ -65,6 +66,7 @@ export async function newCard(name, { modules = [], root = ROOT, templatesRoot =
       regexes().push(newRegex({ scriptName: '屏蔽状态栏占位（仅提示词）', findRegex: marker, replaceString: '', markdownOnly: false, promptOnly: true }));
       if (!modules.includes('mvu')) {
         card.data.first_mes += '\n\n' + marker;
+        worldbookFolders[worldbook().entries.length] = '规则';
         worldbook().entries.push(newEntry({ comment: '状态栏输出位置', constant: true, position: 'at_depth_as_system', depth: 0, content: `界面占位:\n  输出: 每次正文结束后另起一行输出 ${marker}\n  用途: 为独立界面提供显示位置` }, worldbook().entries.length));
       }
       uiJobs.push({ source: path.join(dir, spec.ui.directory), kind: spec.ui.kind, pointer });
@@ -75,7 +77,7 @@ export async function newCard(name, { modules = [], root = ROOT, templatesRoot =
     regexes().push(newRegex({ scriptName: '隐藏MVU占位（无界面，仅显示）', findRegex: '<StatusPlaceHolderImpl/>', replaceString: '' }));
     regexes().push(newRegex({ scriptName: '屏蔽状态栏占位（仅提示词）', findRegex: '<StatusPlaceHolderImpl/>', replaceString: '', markdownOnly: false, promptOnly: true }));
   }
-  return createProject(card, name, { root, setup: async (project, dir) => {
+  return createProject(card, name, { root, worldbookFolders, setup: async (project, dir) => {
     project.modules = modules; project.dependencies = dependencies;
     for (const pointer of bundlePointers) project.builds.push({ kind: 'script', pointer, entry: project.fields.find(f => f.pointer === pointer).file });
     for (const job of uiJobs) {

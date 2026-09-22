@@ -62,6 +62,8 @@
 - `references/` 是锁定的参考资料区，只读；其中代码不执行，内容不自动打进卡。公开包不带参考资料实体，用 `pnpm refs restore` 按锁文件取回本地缓存。
 - 新增或重命名卡片目录优先用 `pnpm card new` 与 `pnpm card split`，两者默认生成 v2；旧版目录用 `pnpm card migrate` 原地迁移。引用增删或重排后下次打包自动生效，删除引用后源文件可以保留，但不参与打包。
 
+世界书文件按分类目录与条目名组织，不用全局编号排序。旧路径继续支持；整理已有工程见 [docs/WORLDBOOK-FILES.md](docs/WORLDBOOK-FILES.md)，动态宏与 EJS 按需读 [docs/WORLDBOOK-TEMPLATING.md](docs/WORLDBOOK-TEMPLATING.md)。
+
 ## 命令
 
 创作者可双击根目录的 `打开角色卡工具.cmd`（Windows）或 `打开角色卡工具.sh` 使用本地界面，也可以运行 `pnpm studio`。界面使用同一拆分／检查／构建实现，增加工程改名、副本与封面操作；服务只监听 127.0.0.1。界面源码在 `tools/studio-ui/`，服务在 `tools/studio.mjs`，工程管理逻辑在 `tools/lib/studio-operations.mjs`。操作说明见 [docs/STUDIO.md](docs/STUDIO.md)。
@@ -76,6 +78,7 @@
 | `pnpm card build <名称\|all>` | 生成可导入产物到 `dist/<名称>/` |
 | `pnpm card diff <名称\|all>` | 对比原件基线与当前编辑区 |
 | `pnpm card migrate <名称\|all>` | 把旧版卡片目录原地迁移到 v2，旧快照留在 `.card/migration-v1/` |
+| `pnpm card organize <名称\|all>` | 按分类目录与条目名整理世界书，自动更新引用、备份并校验内容不变；保留已有子目录 |
 | `pnpm card map <名称>` | 打印内容位置索引：创作入口、设置文件、正文文件与构建项，并列出已取消引用的原条目 |
 | `pnpm card help` | 打印用法、默认行为与模块清单 |
 | `pnpm inspect-card <JSON或PNG>` | 只读结构摘要；用 `--entries` 看索引，`--entry <id>` 等定点读取，避免全文读大卡 |
@@ -88,7 +91,7 @@
 
 - PowerShell 下模块列表要整体加引号：`pnpm card new my-card --modules "worldbook,regex,script,mvu,vue"`；不加引号时逗号会被 PowerShell 当成数组语法。
 - 命令输出 JSON，成功为 `ok: true`，失败为 `ok: false` 并返回退出码 1。命令的完整结构见 `tools/card.mjs`。
-- `card new` 的卡片名用位置参数；`split` 用 `--name`；`new` 与 `split` 不接受对方的选项；`check`、`build`、`diff`、`migrate`、`map` 不接受选项。
+- `card new` 的卡片名用位置参数；`split` 用 `--name`；`new` 与 `split` 不接受对方的选项；`check`、`build`、`diff`、`migrate`、`map`、`organize` 不接受选项。
 
 ## 备份与升级
 
@@ -106,7 +109,7 @@
 ## 写卡规则
 
 - 开工先明确卡名是否就是单一互动角色；`{{char}}` 是卡名宏，不代指多角色卡中的任意人物。默认用具体姓名或身份，单角色同名卡才按需用该宏。
-- 默认用简洁 YAML 缩进组织世界书正文。世界观与地理总览蓝灯常驻、地点绿灯按需；角色总览和角色条目通常放角色定义之后，机制规则用明确深度与角色的蓝灯。条目默认 `不可被递归激活: true`、`不可激活其他条目: true`；创作者需要其它布局或递归时明确设计，不能把默认偏好当宿主硬要求。
+- 默认用简洁 YAML 缩进组织世界书正文。世界观与地理总览蓝灯常驻、地点绿灯按需；角色总览和角色条目通常放角色定义之后，机制规则用明确深度的蓝灯，`角色` 默认 `系统`，有明确需求才选择用户或助手。条目默认 `不可被递归激活: true`、`不可激活其他条目: true`；创作者需要其它布局或递归时明确设计，不能把默认偏好当宿主硬要求。
 - 世界书主要承载事实、人物与机制；人称、文风、篇幅等通用叙事要求通常交给酒馆预设。关键词组合可表达树状范围，不要求递归；变量地点不会天然进入关键词扫描，进阶注入需先核对扫描路径。
 - MVU 先确定主 API 随正文更新或额外 API 请求更新；标记与请求分工见 [docs/MVU-MODES.md](docs/MVU-MODES.md)。标准状态栏使用 MVU 自动添加的 `<StatusPlaceHolderImpl/>`，不默认让模型输出占位符；特殊布局按创作者需求另设生产者。
 

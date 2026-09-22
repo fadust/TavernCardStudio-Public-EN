@@ -805,6 +805,11 @@ function renderActions(card) {
         ...(isExampleCard(card) ? [{ label: '复制成我的卡', run: () => openExampleDialog(card.name) }] : []),
         { label: '重命名', run: () => openRenameDialog(card) },
         { label: '复制卡', run: () => openDuplicateDialog(card) },
+        {
+          label: '整理世界书',
+          run: () => organizeCard(card.name),
+          title: '把世界书条目按分类目录与条目名归位，引用同步更新。开始前请先保存并关闭正在编辑这个工程的编辑器；工具会先备份原工程。',
+        },
       ],
     },
     {
@@ -833,6 +838,7 @@ function renderActions(card) {
         button(action.label, {
           class: 'btn' + (action.primary ? ' btn-primary' : '') + (action.small ? ' btn-small' : ''),
           disabled: action.disabled,
+          title: action.title,
           onClick: action.run,
         })
       );
@@ -1636,6 +1642,47 @@ async function openTarget(name, target, label) {
         status: 'success',
         summary: ['已请求系统文件管理器打开。'],
       });
+    });
+  });
+}
+
+async function organizeCard(name) {
+  const card = state.cards.find((item) => item.name === name);
+  const worldbookCount = card && card.counts ? Number(card.counts.worldbook) || 0 : 0;
+  await withFailureReport('整理世界书 · ' + name, async () => {
+    await run('正在整理「' + name + '」的世界书…', async () => {
+      const payload = await apiFetch('/api/organize', { method: 'POST', body: { name } });
+      const changes = Array.isArray(payload.changes) ? payload.changes : [];
+      const backup = typeof payload.backup === 'string' && payload.backup ? payload.backup : '';
+      const organized = payload.organized === true;
+      // 正文没动的条目只列设置路径，避免同一行出现两段一样的路径。
+      const entries = changes
+        .filter((change) => String(change.from) !== String(change.to))
+        .map((change) => String(change.from) + ' → ' + String(change.to));
+      const bodies = changes
+        .filter((change) => String(change.bodyFrom) !== String(change.bodyTo))
+        .map((change) => String(change.bodyFrom) + ' → ' + String(change.bodyTo));
+      const details = [];
+      if (entries.length) details.push({ label: '条目设置（' + entries.length + '）', text: entries.join('\n') });
+      if (bodies.length) details.push({ label: '条目正文（' + bodies.length + '）', text: bodies.join('\n') });
+      addResult({
+        title: '整理世界书 · ' + name,
+        status: organized ? 'success' : 'info',
+        summary: organized
+          ? [
+              '已整理 ' + changes.length + ' 项世界书：设置与正文按分类目录、条目名归位，引用同步更新，正文内容不变。',
+              backup ? '原工程备份：' + backup : '原工程备份在 work/layout-backups/ 下。',
+              '后续从新目录编辑即可；卡片内容、条目顺序与注入位置保持不变。',
+            ]
+          : [
+              '无需整理',
+              worldbookCount
+                ? '这张卡的世界书已经按分类目录与条目名组织，没有需要移动的文件。'
+                : '这张卡还没有世界书条目，整理不会改动任何文件。',
+            ],
+        details,
+      });
+      await loadCards({ silentBusy: true });
     });
   });
 }

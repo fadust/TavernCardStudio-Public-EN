@@ -274,7 +274,7 @@
         "角色": "系统",
         "文件": "src/worldbook/001-[initvar]初始变量.md"
       },
-      "file": "src/worldbook/001-[initvar]初始变量.yaml"
+      "file": "src/worldbook/变量/[initvar]初始变量.yaml"
     },
     "worldbook-2": {
       "kind": "worldbook",
@@ -320,7 +320,7 @@
         "角色": "系统",
         "文件": "src/worldbook/002-变量列表.md"
       },
-      "file": "src/worldbook/002-变量列表.yaml"
+      "file": "src/worldbook/变量/变量列表.yaml"
     },
     "worldbook-3": {
       "kind": "worldbook",
@@ -366,7 +366,7 @@
         "角色": "系统",
         "文件": "src/worldbook/003-[mvu_update]变量更新规则.md"
       },
-      "file": "src/worldbook/003-[mvu_update]变量更新规则.yaml"
+      "file": "src/worldbook/变量/[mvu_update]变量更新规则.yaml"
     },
     "worldbook-4": {
       "kind": "worldbook",
@@ -412,7 +412,7 @@
         "角色": "系统",
         "文件": "src/worldbook/004-[mvu_update]变量输出格式.md"
       },
-      "file": "src/worldbook/004-[mvu_update]变量输出格式.yaml"
+      "file": "src/worldbook/变量/[mvu_update]变量输出格式.yaml"
     },
     "worldbook-5": {
       "kind": "worldbook",

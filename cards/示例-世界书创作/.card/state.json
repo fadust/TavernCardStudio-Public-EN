@@ -158,7 +158,7 @@
       },
       "attachments": {},
       "pointer": "/data/character_book/entries/0",
-      "file": "src/worldbook/001-场景规则.yaml"
+      "file": "src/worldbook/世界设定/世界观.yaml"
     },
     "worldbook-2": {
       "kind": "worldbook",
@@ -210,7 +210,7 @@
       },
       "attachments": {},
       "pointer": "/data/character_book/entries/1",
-      "file": "src/worldbook/002-旧书店.yaml"
+      "file": "src/worldbook/地理/旧书店.yaml"
     },
     "regex-3": {
       "kind": "regex",
@@ -287,6 +287,172 @@
       "attachments": {},
       "pointer": "/data/extensions/tavern_helper/scripts/0",
       "file": "src/scripts/001-消息事件示例.yaml"
+    },
+    "worldbook-694777f0-5bd4-4247-b430-690ee80713fd": {
+      "kind": "worldbook",
+      "base": {
+        "id": 62603750988772,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "地理总览",
+        "content": "地理总览:\n  港口片区: 码头与周边商铺组成的沿海街区\n  通行: 日常往来以街道和步行为主\n  范围: 总览说明区域关系，具体地点细节按实际提及加载\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 110,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "vectorized": false,
+          "display_index": 1
+        }
+      },
+      "config": {
+        "名称": "地理总览",
+        "启用": true,
+        "激活": "蓝灯",
+        "关键词": [],
+        "位置": "角色定义之前",
+        "顺序": 110,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "文件": "src/worldbook/004-地理总览.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/1",
+      "file": "src/worldbook/地理/地理总览.yaml"
+    },
+    "worldbook-83245b4f-d60e-47e0-a7b2-db8e0c4057b3": {
+      "kind": "worldbook",
+      "base": {
+        "id": 664057668968,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "角色总览",
+        "content": "角色总览:\n  居民: 各自经营生计，与外来者的关系随实际互动发展\n  信息: 职业与身份不等于知晓全城事件\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 100,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "vectorized": false,
+          "display_index": 3
+        }
+      },
+      "config": {
+        "名称": "角色总览",
+        "启用": true,
+        "激活": "蓝灯",
+        "关键词": [],
+        "位置": "角色定义之后",
+        "顺序": 100,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "文件": "src/worldbook/005-角色总览.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/3",
+      "file": "src/worldbook/角色/角色总览.yaml"
+    },
+    "worldbook-8bd409e0-0e2c-4766-8e7d-1cdf08bc5c2d": {
+      "kind": "worldbook",
+      "base": {
+        "id": 3888839736624,
+        "keys": [
+          "书店老板",
+          "老板",
+          "旧书店"
+        ],
+        "secondary_keys": [],
+        "comment": "书店老板",
+        "content": "书店老板:\n  生计: 经营码头附近的旧书店\n  收书: 检查缺页与水渍，再在扉页内侧用铅笔标价\n  待客: 先听客人说完，不急着推荐贵书；忙时话少，熟客来时腾出柜台边的椅子\n  消息: 不确定就追问来源，不装作知道\n  关系: 与玩家是否相识由开场和已发生的互动决定，未交代的关系保持未知\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 110,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "vectorized": false,
+          "display_index": 4
+        }
+      },
+      "config": {
+        "名称": "书店老板",
+        "启用": true,
+        "激活": "绿灯",
+        "位置": "角色定义之后",
+        "顺序": 110,
+        "文件": "src/worldbook/003-书店老板.md",
+        "关键词": [
+          "书店老板",
+          "老板",
+          "旧书店"
+        ],
+        "不可被递归激活": true,
+        "不可激活其他条目": true
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/4",
+      "file": "src/worldbook/角色/书店老板.yaml"
+    },
+    "worldbook-3c51980b-9a9e-4ff2-9123-7a95468ac333": {
+      "kind": "worldbook",
+      "base": {
+        "id": 151922943866598,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "信息边界",
+        "content": "信息边界:\n  已知: 亲历、可靠告知或能从现场判断的事情\n  未知: 未交代的经历、关系与秘密保持未知\n  传闻: 标明来源，核实前不作为事实\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 100,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 4,
+          "depth": 1,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "vectorized": false,
+          "display_index": 5
+        }
+      },
+      "config": {
+        "名称": "信息边界",
+        "启用": true,
+        "激活": "蓝灯",
+        "关键词": [],
+        "位置": "指定深度",
+        "顺序": 100,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "文件": "src/worldbook/006-信息边界.md",
+        "深度": 1,
+        "角色": "系统"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/5",
+      "file": "src/worldbook/规则/信息边界.yaml"
     }
   },
   "groups": [

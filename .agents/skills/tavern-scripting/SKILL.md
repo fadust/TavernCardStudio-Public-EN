@@ -1,6 +1,6 @@
 ---
 name: tavern-scripting
-description: 编写或维护角色卡酒馆助手脚本与 EJS，处理事件、按钮、变量作用域、MVU 读写和生命周期；界面布局使用 tavern-frontend。
+description: 编写或维护角色卡酒馆助手脚本与 EJS，处理事件、按钮、变量作用域、MVU 读写和生命周期，以及世界书条目里的宏、EJS 与变量组合；界面布局使用 tavern-frontend。
 ---
 
 # 酒馆助手脚本与 EJS
@@ -38,6 +38,8 @@ description: 编写或维护角色卡酒馆助手脚本与 EJS，处理事件、
 按状态决定提示文本用 EJS；持续监听、按钮或数据写入用助手脚本。EJS 依赖 Prompt Template，生成和楼层渲染都可能执行，用 runType 区分 `generate/preparation/render/render_permanent`，不要假定只执行一次。
 
 宏 `{{user}}`/`{{char}}` 由宿主处理，不是 EJS。没有 Prompt Template 时 EJS 不会自行执行。把用户文本当数据，不拼成可执行模板；接口与阶段变量见脚本文档。
+
+- 条目正文把宿主宏、变量与 EJS 组合起来属于进阶用法：处理方不同，变量分多层作用域，取值要在生成与渲染阶段分别核对。约定与示例见 [世界书里的宏、EJS 与变量](../../../docs/WORLDBOOK-TEMPLATING.md)。变量不会自动进入世界书关键词扫描；要让状态驱动激活，先由脚本在扫描前注入。
 
 ## 验证
 

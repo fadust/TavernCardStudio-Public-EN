@@ -13,10 +13,10 @@
 群聊开场白: []
 世界书:
   条目:
-    - src/worldbook/001-[initvar]变量初始化勿开.yaml
-    - src/worldbook/002-变量列表.yaml
-    - src/worldbook/003-[mvu_update]变量更新规则.yaml
-    - src/worldbook/004-[mvu_update]变量输出格式.yaml
+    - src/worldbook/变量/[initvar]变量初始化勿开.yaml
+    - src/worldbook/变量/变量列表.yaml
+    - src/worldbook/变量/[mvu_update]变量更新规则.yaml
+    - src/worldbook/变量/[mvu_update]变量输出格式.yaml
   名称: 示例-MVU-Zod-Vue
 正则:
   - src/regex/001-折叠变量更新块（仅显示）.yaml

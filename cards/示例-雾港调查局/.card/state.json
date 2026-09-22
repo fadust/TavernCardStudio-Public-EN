@@ -505,7 +505,7 @@
       },
       "attachments": {},
       "pointer": "/data/character_book/entries/2",
-      "file": "src/worldbook/003-[initvar]变量初始化勿开.yaml"
+      "file": "src/worldbook/变量/[initvar]变量初始化勿开.yaml"
     },
     "worldbook-4": {
       "kind": "worldbook",
@@ -553,7 +553,7 @@
       },
       "attachments": {},
       "pointer": "/data/character_book/entries/3",
-      "file": "src/worldbook/004-变量列表.yaml"
+      "file": "src/worldbook/变量/变量列表.yaml"
     },
     "worldbook-5": {
       "kind": "worldbook",
@@ -601,7 +601,7 @@
       },
       "attachments": {},
       "pointer": "/data/character_book/entries/4",
-      "file": "src/worldbook/005-[mvu_update]变量更新规则.yaml"
+      "file": "src/worldbook/变量/[mvu_update]变量更新规则.yaml"
     },
     "worldbook-6": {
       "kind": "worldbook",
@@ -649,7 +649,7 @@
       },
       "attachments": {},
       "pointer": "/data/character_book/entries/5",
-      "file": "src/worldbook/006-[mvu_update]变量输出格式.yaml"
+      "file": "src/worldbook/变量/[mvu_update]变量输出格式.yaml"
     },
     "worldbook-7": {
       "kind": "worldbook",
@@ -1094,6 +1094,858 @@
       "attachments": {},
       "pointer": "/data/extensions/tavern_helper/scripts/2",
       "file": "src/scripts/003-变量结构（zod 注册）.yaml"
+    },
+    "worldbook-e8b242b5-1c09-4fd3-b13f-82d7ffdb54cc": {
+      "kind": "worldbook",
+      "base": {
+        "id": 99602703269498,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "世界观",
+        "content": "雾港:\n  概况: 长年有雾的港口城市，靠航道、鱼市、船坞与仓储维持运转\n  机构:\n    港务局: 管航道与出入港登记\n    警备队: 管治安与拘押\n    调查局: 查清事实，向市政厅提交结论\n  关系: 三个机构互不隶属\n雾季:\n  现象: 海雾从航道压进城区，出港船只减少\n  后果: 失踪、失窃与走私案同时增多\n雾况:\n  记法: 取 0 到 100 的数值，数值越高雾越重、可见范围越小\n  影响: 数值到 80 以上时，港区夜间作业基本停止\n潮汐:\n  涨潮: 旧船坞与潮汐巷下层通道进水，需要从上层绕行\n  退潮: 滩涂与船底露出，平时被水覆盖的痕迹可以看清\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 100,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 0
+        }
+      },
+      "config": {
+        "名称": "世界观",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 100,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/001-世界观.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/0",
+      "file": "src/worldbook/世界设定/世界观.yaml"
+    },
+    "worldbook-7ee76a96-dc70-4be3-adfc-e038c8ffc70c": {
+      "kind": "worldbook",
+      "base": {
+        "id": 219610160957377,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "地理总览",
+        "content": "地理总览:\n  范围: 港城沿港湾铺开，调查局出勤多集中在航道、防波堤、潮汐巷、旧船坞与钟塔街一带\n  片区:\n    北堤: 防波堤与灯塔所在的临海一段\n    潮汐巷: 鱼市所在的下层街巷\n    坞区: 旧船坞与滑道附近的通称\n    钟塔街: 调查局本部所在的街区\n  别称: 港上、港湾、港区都指这座港城\n  展开: 总览只交代范围与别称，具体地点在正文提到时按各自条目展开\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 110,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 1
+        }
+      },
+      "config": {
+        "名称": "地理总览",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 110,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/002-地理总览.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/1",
+      "file": "src/worldbook/地理/地理总览.yaml"
+    },
+    "worldbook-b0d008e7-0964-4c23-baa4-989297e9829d": {
+      "kind": "worldbook",
+      "base": {
+        "id": 50088405051826,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "调查局规程",
+        "content": "委托:\n  登记: 委托登记后获得形如 WG-07 的编号，同时记录名称与当前阶段\n  阶段: 待命、接案、勘查、核实、结案；前一阶段的目标达成后才推进，正式登记新委托时重新进入接案\n  接案: 确认委托方的身份、诉求与时间范围，把诉求原样登记\n  勘查: 到现场固定位置、时间、在场人与可见痕迹\n  核实: 用物证或证词支持或推翻已有线索\n  结案: 向市政厅提交结论，写明已核实的事实、已排除的可能与仍未解决的部分\n线索:\n  状态: 待核实、已核实、已排除\n人物档案:\n  立场: 搭档、合作、中立、回避、敌意、未知\n  信任: 0 到 100 的数值\n物证:\n  记录: 名称、说明与数量\n权限:\n  见习: 只查阅公开档案并跟随外勤\n  正式: 可以调阅在办委托的登记记录\n  特派: 对已结案卷宗有调阅权，并可在市政厅许可范围内单独出外勤\n办案边界:\n  拘押: 调查局没有拘押与审判权\n  执行: 取证、问话、封存物品由调查局执行；抓人、搜查民居与扣押船只由警备队出面，或在市政厅签发的书面许可下进行\n登记口径:\n  事实: 现场可观察到的现象、已封存的物证、当事人与证人的口述\n  待核实: 推测、传闻以及传闻的转述只登记为待核实的说法，不作为结论\n  未知: 事件没有交代过的部分保持未知\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 100,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 4,
+          "depth": 1,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 2
+        }
+      },
+      "config": {
+        "名称": "调查局规程",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 100,
+        "深度": 1,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "指定深度",
+        "角色": "系统",
+        "文件": "src/worldbook/003-调查局规程.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/2",
+      "file": "src/worldbook/规则/调查局规程.yaml"
+    },
+    "worldbook-6646a52e-0317-462b-b948-8523f61fc66c": {
+      "kind": "worldbook",
+      "base": {
+        "id": 67922352092995,
+        "keys": [
+          "北堤",
+          "灯塔"
+        ],
+        "secondary_keys": [],
+        "comment": "地点·北堤灯塔",
+        "content": "北堤灯塔:\n  位置: 防波堤尽头，用灯光标示航道入口，雾季整夜点亮\n  建筑: 塔下有值班室和一间堆放灯具零件的库房\n  值守: 佩里·道恩长住灯塔，负责点灯、记录点灯时刻与上报灯具损坏；来人出示调查局或港务局证件时才允许上塔，登塔由他陪同\n  记录: 点灯记录、灯泡更换记录与当夜的进出港登记，用来核对夜间船只的位置\n  异常: 没有申报而灯光中断，按异常事件同时上报港务局与调查局\n  通行: 北堤一带没有遮挡，起雾时可见范围很小；涨潮时海水漫过堤面下缘，通行要看潮位\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 200,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 3
+        }
+      },
+      "config": {
+        "名称": "地点·北堤灯塔",
+        "启用": true,
+        "关键词": [
+          "北堤",
+          "灯塔"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 200,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/010-地点-北堤灯塔.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/3",
+      "file": "src/worldbook/地理/北堤灯塔.yaml"
+    },
+    "worldbook-382dd0a9-649d-463d-b1af-72894b113f60": {
+      "kind": "worldbook",
+      "base": {
+        "id": 203139194549950,
+        "keys": [
+          "鱼市",
+          "潮汐巷"
+        ],
+        "secondary_keys": [],
+        "comment": "地点·潮汐巷鱼市",
+        "content": "潮汐巷鱼市:\n  位置: 雾港的水产交易场所，清晨开市，午后收摊；巷子下层的仓库在涨潮时进水\n  行会: 账房登记摊位、抽成与货款；摊主和搬运工按船只到港时间上工\n  记录: 进货单、账目与冰块用量反映船只到港情况，也用来说明摊位上货物的来路\n  异常: 缺斤短两、来路不明的货物与突然停摊都在行会的登记范围里\n  问话: 鱼市的人对外来面孔有戒心，通常要经熟识的摊主或搬运工引见才肯交谈；问话在摊位上记录，摊主收摊后往往当天不再回来\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 210,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 4
+        }
+      },
+      "config": {
+        "名称": "地点·潮汐巷鱼市",
+        "启用": true,
+        "关键词": [
+          "鱼市",
+          "潮汐巷"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 210,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/011-地点-潮汐巷鱼市.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/4",
+      "file": "src/worldbook/地理/潮汐巷鱼市.yaml"
+    },
+    "worldbook-977c8d74-27cf-4270-bed9-9e91afbfc6fe": {
+      "kind": "worldbook",
+      "base": {
+        "id": 13454744899201,
+        "keys": [
+          "船坞",
+          "干船坞",
+          "滑道"
+        ],
+        "secondary_keys": [],
+        "comment": "地点·旧船坞",
+        "content": "旧船坞:\n  位置: 港区西侧，干船坞与滑道用于检修中小型船只\n  管理: 坞主按次收租金，坞口有值夜的人看守\n  退潮: 船底与滑道露出，坞底与滩涂上的刮痕、残留物与脚印可以看清\n  记录: 入坞登记记录船名、修理项目与工期；入坞时间与工期对不上时，说明船在坞内停留期间另有安排\n  门禁: 坞区夜间没有照明，值夜的人只在来人报出坞主名号或出示调查局许可时开闸；未登记的船只不停留在坞内\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 220,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 5
+        }
+      },
+      "config": {
+        "名称": "地点·旧船坞",
+        "启用": true,
+        "关键词": [
+          "船坞",
+          "干船坞",
+          "滑道"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 220,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/012-地点-旧船坞.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/5",
+      "file": "src/worldbook/地理/旧船坞.yaml"
+    },
+    "worldbook-123aaa90-47dd-4684-bd41-5a4fe8ada72c": {
+      "kind": "worldbook",
+      "base": {
+        "id": 203458039624941,
+        "keys": [
+          "钟塔街",
+          "档案室",
+          "登记厅"
+        ],
+        "secondary_keys": [],
+        "comment": "地点·调查局本部",
+        "content": "调查局本部:\n  位置: 钟塔街的旧海关楼；一楼是登记厅与证物架，二楼是档案室与两间问话室\n  钟塔: 楼顶的钟在一次事故后停摆，没有修复\n  登记厅: 委托登记簿按编号排列，记录委托方、受理人与当前阶段\n  档案室: 保存已结案卷宗与在办委托的副本；见习权限只查阅公开档案，正式权限才能调阅在办委托的登记记录\n  问话室: 用来见委托方与证人，笔录由当班记录官抄录，双方在末尾签字\n  证物架: 按委托编号分层存放，取用与归还在登记簿上留名\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 230,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 6
+        }
+      },
+      "config": {
+        "名称": "地点·调查局本部",
+        "启用": true,
+        "关键词": [
+          "钟塔街",
+          "档案室",
+          "登记厅"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 230,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/013-地点-调查局本部.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/6",
+      "file": "src/worldbook/地理/调查局本部.yaml"
+    },
+    "worldbook-ca88bee8-0359-4ad3-817b-72abdec8ad3c": {
+      "kind": "worldbook",
+      "base": {
+        "id": 1619476633688,
+        "keys": [
+          "/灯灭|熄灭|灯塔停摆|灯光中断/"
+        ],
+        "secondary_keys": [],
+        "comment": "事件·灯塔停灯的排查",
+        "content": "灯塔停灯:\n  触发: 雾季夜间未按申报时间点灯，或点灯后中途熄灭，按异常事件处理\n  取证: 先向港务局调取当夜的点灯记录与进出港登记，再向值守人核对灯具的更换与报修记录\n  分辨: 灯灭前后的进出港记录与塔内痕迹，用来区分设备故障、值守失职与人为干预\n  涉及船只: 当夜有船在灯光中断期间进出航道时，把船名与船主登记为线索，请港务局核对登记信息\n  物证: 部件与痕迹为准；灯芯、透镜与锁具的损坏方式不同，封存前先拍照并登记发现位置\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 240,
+        "position": "before_char",
+        "use_regex": true,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 7
+        }
+      },
+      "config": {
+        "名称": "事件·灯塔停灯的排查",
+        "启用": true,
+        "关键词": [
+          "/灯灭|熄灭|灯塔停摆|灯光中断/"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": true,
+        "顺序": 240,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/018-事件-灯塔停灯的排查.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/7",
+      "file": "src/worldbook/事件/灯塔停灯的排查.yaml"
+    },
+    "worldbook-5347c21f-26d6-4d8e-8642-21c020ae5e62": {
+      "kind": "worldbook",
+      "base": {
+        "id": 179776279522590,
+        "keys": [
+          "失踪",
+          "报案"
+        ],
+        "secondary_keys": [
+          "雾季",
+          "港区"
+        ],
+        "comment": "事件·雾季失踪案的办理",
+        "content": "雾季失踪案:\n  办理: 雾季期间在港区登记的失踪案按失踪人口办理\n  第一步: 核对失踪人的身份、住址与日常活动范围\n  第二步: 核对最后被看到的时间、当天的出港登记与潮位\n  口述: 家属、雇主与邻居的说法分别记录，互相矛盾的部分不取平均值，按来源分开登记为待核实线索\n  范围: 潮位与出港登记用来判断失踪人是否已经离开港区；没有离港记录时，搜索范围以最后被看到的位置为起点向外扩展\n  涉及船只: 把船名、船主与当班船员登记为线索，请港务局核对进出港记录与船员名册\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 250,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "selectiveLogic": 0,
+          "vectorized": false,
+          "display_index": 8
+        }
+      },
+      "config": {
+        "名称": "事件·雾季失踪案的办理",
+        "启用": true,
+        "关键词": [
+          "失踪",
+          "报案"
+        ],
+        "次要关键词": [
+          "雾季",
+          "港区"
+        ],
+        "次要关键词逻辑": "任一匹配",
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 250,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/019-事件-雾季失踪案的办理.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/8",
+      "file": "src/worldbook/事件/雾季失踪案的办理.yaml"
+    },
+    "worldbook-06642cb3-1d45-400f-a6d0-6ee7fab06d49": {
+      "kind": "worldbook",
+      "base": {
+        "id": 32338986150760,
+        "keys": [
+          "行话",
+          "黑话",
+          "说法"
+        ],
+        "secondary_keys": [],
+        "comment": "行话·港上通用说法",
+        "content": "港上行话:\n  洗舱: 在靠港前后清理船舱里不想被人看到的东西\n  压舱: 用货物或水调整船身；也指用无关货物掩人耳目\n  挂单: 货物到港后不报关，先记在行会的临时账上\n  夜槽: 退潮后露出的坞底与滩涂交界处，也是常见的丢弃地点\n  走灯: 点灯记录被事后补记或改动\n  范围: 只在码头、鱼市与船坞使用；调查局本部与市政厅的文书里写通用说法\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 260,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 9
+        }
+      },
+      "config": {
+        "名称": "行话·港上通用说法",
+        "启用": true,
+        "关键词": [
+          "行话",
+          "黑话",
+          "说法"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 260,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/020-行话-港上通用说法.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/9",
+      "file": "src/worldbook/世界设定/港上通用说法.yaml"
+    },
+    "worldbook-7af8244b-1057-44ef-9494-da9644de3953": {
+      "kind": "worldbook",
+      "base": {
+        "id": 216839918528152,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "搭档·黛莉亚·克雷恩",
+        "content": "黛莉亚·克雷恩:\n  身份: 雾港调查局记录官，本次委托中与调查员搭档出外勤\n  职责: 登记委托、抄录证词、封存证物与归档结论\n  现场: 到现场后先固定位置、时间、在场人与可见痕迹，再讨论可能的原因\n  言行:\n    - 调查员的判断与登记内容不一致时当面指出差异，并按已登记的内容继续办事\n    - 在局长与市政厅面前按登记的书面口径复述；在码头、鱼市与旧船坞用港上通用的称呼与行话交谈，不摆文书腔\n    - 对无法核实的信息只登记为待核实，不替调查员下结论，也不把传闻写成事实\n  随身: 出外勤带记录本、封存证物的纸袋与油布；回局后按委托编号把当次的物证与线索归档\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 110,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 10
+        }
+      },
+      "config": {
+        "名称": "搭档·黛莉亚·克雷恩",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 110,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "角色定义之后",
+        "角色": "系统",
+        "文件": "src/worldbook/004-搭档-黛莉亚·克雷恩.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/10",
+      "file": "src/worldbook/角色/黛莉亚·克雷恩.yaml"
+    },
+    "worldbook-3001dcdf-5e0e-4ca5-a02d-3a2d0c63dcb2": {
+      "kind": "worldbook",
+      "base": {
+        "id": 664057668968,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "角色总览",
+        "content": "角色总览:\n  调查局: 局长莫兰·维斯受理委托、分配人手；记录官黛莉亚·克雷恩登记、归档并随同出外勤\n  常打交道: 验尸官奥托·兰姆出具检验记录；码头掮客海蒂经手零活与消息；灯塔值守人佩里·道恩看管北堤灯塔\n  已知范围: 各人只知道本岗位与亲历范围内的事，身份不等于了解全城事件\n",
+        "enabled": true,
+        "constant": true,
+        "selective": true,
+        "insertion_order": 100,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 11
+        }
+      },
+      "config": {
+        "名称": "角色总览",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 100,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "角色定义之后",
+        "角色": "系统",
+        "文件": "src/worldbook/005-角色总览.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/11",
+      "file": "src/worldbook/角色/角色总览.yaml"
+    },
+    "worldbook-3946498e-770f-4230-981e-0c4c310e885f": {
+      "kind": "worldbook",
+      "base": {
+        "id": 252542052748230,
+        "keys": [
+          "维斯",
+          "局长"
+        ],
+        "secondary_keys": [],
+        "comment": "人物·莫兰·维斯",
+        "content": "莫兰·维斯:\n  身份: 调查局局长，前任港务官；受理委托、分配人手并向市政厅提交结论\n  派案: 只交代已知事实与期限，不解释判断依据\n  报备: 下属遇到超出权限的行动，需要先报备再执行，例如搜查民居与扣押船只\n  结案要求: 事实与推测分开；已核实的事实要有物证或证词支撑，推测要注明依据与不确定的部分\n  压力: 证据不足时要求继续取证；市政厅施压时会压缩期限，但不要求改写已核实的事实\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 200,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 12
+        }
+      },
+      "config": {
+        "名称": "人物·莫兰·维斯",
+        "启用": true,
+        "关键词": [
+          "维斯",
+          "局长"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 200,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之后",
+        "角色": "系统",
+        "文件": "src/worldbook/014-人物-莫兰·维斯.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/12",
+      "file": "src/worldbook/角色/莫兰·维斯.yaml"
+    },
+    "worldbook-c4d843f7-260a-4b07-8a8e-9d7af7ddea9b": {
+      "kind": "worldbook",
+      "base": {
+        "id": 276250462795738,
+        "keys": [
+          "兰姆",
+          "验尸官",
+          "检验房"
+        ],
+        "secondary_keys": [],
+        "comment": "人物·奥托·兰姆",
+        "content": "奥托·兰姆:\n  身份: 市政厅聘用的验尸官，在钟塔街尽头的检验房工作，负责非正常死亡与身份辨认\n  出具: 接收调查局封存的遗物与样本，写简要检验记录：体表状况、随身物品、推断的死亡时间范围\n  边界: 超出检验范围的问题直接说明无法回答，不做推测\n  补样: 需要补充样本时写明数量与保存条件\n  回避: 案件涉及港务局或警备队人员时，先确认调查局的书面委托再开工\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 210,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 13
+        }
+      },
+      "config": {
+        "名称": "人物·奥托·兰姆",
+        "启用": true,
+        "关键词": [
+          "兰姆",
+          "验尸官",
+          "检验房"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 210,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之后",
+        "角色": "系统",
+        "文件": "src/worldbook/015-人物-奥托·兰姆.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/13",
+      "file": "src/worldbook/角色/奥托·兰姆.yaml"
+    },
+    "worldbook-1835a0ba-2d20-4b20-9e88-d07add405049": {
+      "kind": "worldbook",
+      "base": {
+        "id": 204211374691640,
+        "keys": [
+          "海蒂",
+          "掮客",
+          "线人"
+        ],
+        "secondary_keys": [],
+        "comment": "人物·海蒂",
+        "content": "海蒂:\n  身份: 码头掮客，在潮汐巷与旧船坞之间接零活，替船主找装卸人手，也替调查局打听港上的消息\n  条件: 只在有报酬或有交换条件时提供消息\n  来源: 给出的消息会说清是亲见、转述还是听来的风声\n  顾虑: 问话涉及船主与行会时，先确认会不会牵连自己的生意；得不到这个确认就只说已经公开的部分\n  用语: 在自己的地盘上用行话谈事，进调查局本部时改用普通说法\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 220,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 14
+        }
+      },
+      "config": {
+        "名称": "人物·海蒂",
+        "启用": true,
+        "关键词": [
+          "海蒂",
+          "掮客",
+          "线人"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 220,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之后",
+        "角色": "系统",
+        "文件": "src/worldbook/016-人物-海蒂.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/14",
+      "file": "src/worldbook/角色/海蒂.yaml"
+    },
+    "worldbook-fa8174ff-8bd6-439e-b8d0-32e31865af00": {
+      "kind": "worldbook",
+      "base": {
+        "id": 15001549670129,
+        "keys": [
+          "佩里",
+          "值守人",
+          "值守"
+        ],
+        "secondary_keys": [],
+        "comment": "人物·佩里·道恩",
+        "content": "佩里·道恩:\n  身份: 北堤灯塔的值守人，长住塔下值班室，负责点灯、更换灯芯与上报损坏；每月把点灯记录抄送港务局\n  核对: 以点灯记录、报修单与交接班记录为准；他记得的细节按他的口述登记，标注为值守人的说法\n  配合: 灯塔设备损坏或需要封锁现场时配合封存；调查局带走损坏部件要留下收据\n",
+        "enabled": true,
+        "constant": false,
+        "selective": true,
+        "insertion_order": 230,
+        "position": "after_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 1,
+          "depth": 4,
+          "role": 0,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "probability": 100,
+          "useProbability": true,
+          "vectorized": false,
+          "display_index": 15
+        }
+      },
+      "config": {
+        "名称": "人物·佩里·道恩",
+        "启用": true,
+        "关键词": [
+          "佩里",
+          "值守人",
+          "值守"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 230,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之后",
+        "角色": "系统",
+        "文件": "src/worldbook/017-人物-佩里·道恩.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/15",
+      "file": "src/worldbook/角色/佩里·道恩.yaml"
     }
   },
   "groups": [

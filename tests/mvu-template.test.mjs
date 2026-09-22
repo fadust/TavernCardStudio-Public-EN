@@ -8,6 +8,7 @@ import { ROOT, readJSON } from '../tools/lib/files.mjs';
 import { newCard } from '../tools/lib/templates.mjs';
 import { buildCard } from '../tools/lib/build.mjs';
 import { loadProject } from '../tools/lib/project.mjs';
+import { readYAML } from '../tools/lib/authoring.mjs';
 import { checkProject, applyRegexFixture } from '../tools/lib/validation.mjs';
 
 const TEMPLATE_DIR = path.join(ROOT, 'templates/modules/mvu');
@@ -79,12 +80,15 @@ test('mvu 模板生成四个标准条目、固定依赖与注册脚本', async t
   assert.ok(!scripts[1].content.includes('await'), '注册脚本不能 await');
   assert.ok(!scripts[1].content.includes('waitGlobalInitialized'), '注册不依赖 Mvu 初始化完成');
 
-  for (const name of ['schema.ts', 'variables/schema.json', 'worldbook/001-[initvar]变量初始化勿开.md', 'worldbook/002-变量列表.md', 'worldbook/003-[mvu_update]变量更新规则.md', 'worldbook/004-[mvu_update]变量输出格式.md']) {
-    await fs.stat(path.join(dir, 'src', name));
-  }
-  const variables = await fs.readFile(path.join(dir, 'src/worldbook/002-变量列表.md'), 'utf8');
+  for (const name of ['schema.ts', 'variables/schema.json']) await fs.stat(path.join(dir, 'src', name));
+  // 世界书正文的实际位置由 src/index.yaml 与条目配置决定，不在这里写死目录布局。
+  const worldbook = [];
+  for (const file of (await readYAML(dir, 'src/index.yaml')).世界书.条目) worldbook.push(await readYAML(dir, file));
+  assert.deepEqual(worldbook.map(config => config.名称), ENTRY_NAMES, '世界书条目顺序与模板一致');
+  for (const config of worldbook) await fs.stat(path.join(dir, config.文件));
+  const variables = await fs.readFile(path.join(dir, worldbook[1].文件), 'utf8');
   assert.match(variables, /\{\{format_message_variable::stat_data\}\}/);
-  const format = await fs.readFile(path.join(dir, 'src/worldbook/004-[mvu_update]变量输出格式.md'), 'utf8');
+  const format = await fs.readFile(path.join(dir, worldbook[3].文件), 'utf8');
   assert.match(format, /^变量输出格式:/m);
   assert.match(format, /^  rule:/m);
   assert.match(format, /^  format: \|-/m);

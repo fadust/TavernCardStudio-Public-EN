@@ -7,6 +7,7 @@ import { readCardPNG } from './png.mjs';
 import { writeAuthoring, loadAuthoring, helperScriptLists } from './authoring.mjs';
 import { publishDirectory } from './publish.mjs';
 import { archiveImport } from './imports.mjs';
+import { allocateWorldbook } from './worldbook-layout.mjs';
 
 export function assertCard(card) {
   if (!card || typeof card !== 'object' || Array.isArray(card)) throw new Error('角色卡必须是 JSON 对象。');
@@ -16,7 +17,7 @@ export function assertCard(card) {
 function label(text) {
   return String(text || '未命名').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').replace(/[. ]+$/g, '').slice(0, 45) || '未命名';
 }
-export async function extractFields(card, projectDir) {
+export async function extractFields(card, projectDir, { worldbookFolders = [] } = {}) {
   const base = structuredClone(card); const fields = [];
   const add = async (pointer, file) => {
     const value = getPointer(base, pointer);
@@ -34,9 +35,10 @@ export async function extractFields(card, projectDir) {
     if (Array.isArray(base.data[key])) for (let i = 0; i < base.data[key].length; i++) await add(`/data/${key}/${i}`, `src/greetings/${key}-${i + 1}.md`);
   }
   if (Array.isArray(base.data.character_book?.entries)) {
+    const occupied = new Set();
     for (let i = 0; i < base.data.character_book.entries.length; i++) {
       const entry = base.data.character_book.entries[i];
-      if (typeof entry?.content === 'string') await add(`/data/character_book/entries/${i}/content`, `src/worldbook/${String(i + 1).padStart(3, '0')}-${label(entry.comment || entry.name)}.md`);
+      if (typeof entry?.content === 'string') await add(`/data/character_book/entries/${i}/content`, allocateWorldbook(entry.comment || entry.name, { folder: worldbookFolders[i], occupied }) + '.md');
     }
   }
   for (const [root, ext] of [['/data/extensions', base.data.extensions], ['/extensions', base.extensions]]) {
@@ -63,7 +65,7 @@ export async function extractFields(card, projectDir) {
   return fields;
 }
 
-export async function createProject(card, name, { root = ROOT, originalBytes, originalExtension = '.json', image, setup, formatVersion = 2 } = {}) {
+export async function createProject(card, name, { root = ROOT, originalBytes, originalExtension = '.json', image, setup, formatVersion = 2, worldbookFolders } = {}) {
   assertCard(card); safeName(name);
   const cardsDir = path.join(root, 'cards'); await fs.mkdir(cardsDir, { recursive: true });
   const destination = path.join(cardsDir, name);
@@ -73,7 +75,7 @@ export async function createProject(card, name, { root = ROOT, originalBytes, or
     const baseline = jsonText(card);
     await write(path.join(temporary, 'original/card.json'), baseline);
     const project = {
-      schemaVersion: 1, name, modules: [], fields: await extractFields(card, temporary),
+      schemaVersion: 1, name, modules: [], fields: await extractFields(card, temporary, { worldbookFolders }),
       avatar: null, builds: [], dependencies: [], runtimeVerified: null,
       original: { baseline: 'original/card.json', baselineSha256: sha256(baseline) },
     };

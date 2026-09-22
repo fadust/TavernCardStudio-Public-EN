@@ -13,7 +13,7 @@
 群聊开场白: []
 世界书:
   条目:
-    - src/worldbook/001-状态栏输出位置.yaml
+    - src/worldbook/规则/状态栏输出位置.yaml
   名称: 示例-独立状态栏
 正则:
   - src/regex/001-内嵌状态栏.yaml

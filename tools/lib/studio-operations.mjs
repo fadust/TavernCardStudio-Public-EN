@@ -10,6 +10,7 @@ import { buildCard } from './build.mjs';
 import { checkProject } from './validation.mjs';
 import { parsePNG } from './png.mjs';
 import { publishDirectory } from './publish.mjs';
+import { organizeWorldbook } from './organize.mjs';
 
 export const MAX_UPLOAD = 64 * 1024 * 1024;
 function nameOf(value) {
@@ -183,6 +184,17 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
       const target = path.join(root, 'dist', name);
       if (await exists(target)) { await regularDirectory(target); await walk(target); }
       return buildCard(name, root);
+    },
+    async organizeCard({ name }) {
+      const dir = await projectDir(name); await walk(dir);
+      // organize 会在 cards/ 下建临时目录，并把原工程备份到 work/layout-backups/；两处都必须是真实目录，不能是链接。
+      await regularDirectory(path.join(root, 'work'), true);
+      await regularDirectory(path.join(root, 'work/layout-backups'), true);
+      const result = await organizeWorldbook(name, root);
+      const changes = Array.isArray(result.changes)
+        ? result.changes.map(change => ({ from: String(change.from), to: String(change.to), bodyFrom: String(change.bodyFrom), bodyTo: String(change.bodyTo) }))
+        : [];
+      return { ok: true, name, organized: result.organized === true, backup: typeof result.backup === 'string' ? result.backup : null, changes };
     },
     async open({ name, target }) {
       let dir;
