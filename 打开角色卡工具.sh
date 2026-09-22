@@ -9,7 +9,7 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd) || exit 1
 cd "$SCRIPT_DIR" || exit 1
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "[错误] 未找到 Node.js。请先安装 Node.js 22.12 或更高版本，再重新运行本文件。" >&2
+  echo "[错误] 未找到 Node.js。请先安装 Node.js 24（或满足 package.json 要求的版本），再重新运行本文件。" >&2
   echo "       下载地址：https://nodejs.org/" >&2
   if [ -t 0 ]; then printf '%s' "按回车键关闭..." >&2; read -r _ || true; fi
   exit 1

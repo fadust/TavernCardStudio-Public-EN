@@ -2,7 +2,7 @@
 
 双击仓库根目录的 **`打开角色卡工具.cmd`**，浏览器会打开工具。所有处理都在本机工作区进行，不需要账号，也不会把卡片上传到网站。
 
-第一次在新电脑使用时，需要 Node.js 22.12 或更高版本及 `package.json` 指定的 pnpm。装好两者后运行 `pnpm setup:workspace`，它检查版本与依赖，必要时调用 `pnpm install --frozen-lockfile`；再用 `pnpm doctor:workspace` 只读检查环境。双击启动器使用同一准备流程。详细步骤见 [README 的首次使用](../README.md#首次使用)。
+第一次在新电脑上使用，按 [安装说明](INSTALL.md) 准备 Node.js 与项目指定的 pnpm，或直接让 agent 帮忙。两者装好后双击根目录启动器即可：它检查版本与依赖，缺依赖或锁文件漂移时按锁文件安装一次，不会替你安装 Node.js 或 pnpm。
 
 Linux/macOS 使用 `sh 打开角色卡工具.sh` 或在安装依赖后运行 `pnpm studio`。Windows 启动与浏览器流程在本地验证；其它系统的脚本入口已提供，真实桌面打开行为需要在对应系统确认。
 

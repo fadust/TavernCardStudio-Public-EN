@@ -6,7 +6,7 @@ title TavernCardStudio
 
 where node >nul 2>nul
 if errorlevel 1 (
-  echo [错误] 未找到 Node.js。请先安装 Node.js 22.12 或更高版本，再重新双击本文件。
+  echo [错误] 未找到 Node.js。请先安装 Node.js 24（或满足 package.json 要求的版本），再重新双击本文件。
   echo        下载地址：https://nodejs.org/
   pause
   exit /b 1

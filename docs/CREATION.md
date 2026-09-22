@@ -1,6 +1,6 @@
 # 创作指南
 
-这一页写给准备写卡的人或 AI：先决定要做成什么，再决定用哪些模块，最后按顺序填内容。三条上手路径的入口见 [README](../README.md#三条上手路径)，模块之间怎么联动见 [复杂卡模块联动](COMPLEX-CARDS.md)。
+这一页写给写卡的人或 agent，按需参考即可：需要决定做成什么、用哪些模块、按什么顺序落内容时再查。用户直接在工作区对话里讲需求就能开工，不需要先填创作简报或准备开工指令。上手入口见 [README](../README.md#首次使用)，模块之间怎么联动见 [复杂卡模块联动](COMPLEX-CARDS.md)。
 
 ## 三条路径
 
@@ -102,4 +102,4 @@
 - [ ] `pnpm card check my-card` 通过，`pnpm card build my-card` 产出到 `dist/my-card/`，导入过的卡再跑 `pnpm card diff my-card`。
 - [ ] 读过 `dist/<名称>/build-report.json` 里的警告，并且没有把静态检查写成真实酒馆实测；未核实的状态保持 `runtimeVerified: null`。
 
-让 AI 代写时，把 [AI 开工指令](../templates/prompts/AI%20开工指令.md) 整段贴给它，并说明这次的路径、必须保留的内容和可自行决定的部分。
+让 agent 代写时，在对话里说明目标、必须保留的内容和可自行决定的部分即可，不需要另外准备或粘贴开工指令。
