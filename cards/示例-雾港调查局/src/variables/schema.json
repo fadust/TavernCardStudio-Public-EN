@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "雾港": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "时段": {
+          "default": "傍晚",
+          "type": "string"
+        },
+        "天气": {
+          "default": "浓雾",
+          "type": "string"
+        },
+        "雾况": {
+          "default": 45,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        }
+      }
+    },
+    "调查局": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "委托": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "编号": {
+              "default": "待挂案",
+              "type": "string"
+            },
+            "名称": {
+              "default": "暂无在办委托",
+              "type": "string"
+            },
+            "阶段": {
+              "default": "待命",
+              "type": "string",
+              "enum": [
+                "待命",
+                "接案",
+                "勘查",
+                "核实",
+                "结案"
+              ]
+            }
+          }
+        },
+        "线索": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "线索名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "状态": {
+                "default": "待核实",
+                "type": "string",
+                "enum": [
+                  "待核实",
+                  "已核实",
+                  "已排除"
+                ]
+              },
+              "说明": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "人物": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "人物名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "立场": {
+                "default": "未知",
+                "type": "string",
+                "enum": [
+                  "搭档",
+                  "合作",
+                  "中立",
+                  "回避",
+                  "敌意",
+                  "未知"
+                ]
+              },
+              "信任": {
+                "default": 0,
+                "minimum": 0,
+                "maximum": 100,
+                "type": "number"
+              },
+              "备注": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "物证": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "物证名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "说明": {
+                "default": "",
+                "type": "string"
+              },
+              "数量": {
+                "default": 1,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        },
+        "_进展": {
+          "default": "尚未建档",
+          "type": "string"
+        }
+      }
+    },
+    "调查员": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "精力": {
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        },
+        "权限": {
+          "default": "见习",
+          "type": "string",
+          "enum": [
+            "见习",
+            "正式",
+            "特派"
+          ]
+        },
+        "声望": {
+          "default": 20,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        }
+      }
+    }
+  },
+  "title": "雾港调查局变量结构（schema.json 是它的投影）",
+  "description": "结构真源是本文件，由变量结构脚本用 registerMvuSchema 注册到运行时；src/variables/schema.json 是它的参考投影，仅供人和编辑器查看，不参与运行时校验。"
+}

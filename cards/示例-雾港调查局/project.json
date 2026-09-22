@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "name": "示例-雾港调查局",
+  "modules": [
+    "worldbook",
+    "regex",
+    "script",
+    "mvu",
+    "vue"
+  ],
+  "avatar": null,
+  "dependencies": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate@3377b494cd7277230f3056230062124fe117f93f/artifact/bundle.js",
+      "purpose": "公开的 MVU 变量框架；要求酒馆助手已安装并启用卡内脚本。",
+      "version": "3377b494cd7277230f3056230062124fe117f93f"
+    },
+    {
+      "url": "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource@69abb272d46bed4057a0dfb31758f6164cb7ecef/dist/util/mvu_zod.js",
+      "purpose": "官方 registerMvuSchema：把 src/schema.ts 里的 zod 结构注册给 MVU，并顺带注册给酒馆助手变量管理器；脚本以固定提交外链导入。",
+      "version": "69abb272d46bed4057a0dfb31758f6164cb7ecef"
+    }
+  ],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "c61003567df28d891e08aff3752ba5c67aebcf213f1517668e81ebf50cd0fcbd"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "1fa3b0fea0f10886dc6e7f4eaa3739a7caf44edbf9c5e7f45a3f66776b7200dd"
+  }
+}

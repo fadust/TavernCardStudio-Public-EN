@@ -1,0 +1,300 @@
+{
+  "version": 2,
+  "card": {
+    "spec": "chara_card_v2",
+    "spec_version": "2.0",
+    "data": {
+      "name": "示例-世界书创作",
+      "description": "",
+      "personality": "",
+      "scenario": "",
+      "first_mes": "{{char}} 注意到你的到来，暂时放下手里的事情。\n\n“你好。今天想从哪里开始？”",
+      "mes_example": "",
+      "creator_notes": "创作骨架：请完善人物与场景后使用。",
+      "system_prompt": "",
+      "post_history_instructions": "",
+      "alternate_greetings": [],
+      "tags": [],
+      "creator": "",
+      "character_version": "0.1.0",
+      "extensions": {
+        "regex_scripts": [
+          {
+            "id": "733e3b70-ebe8-4db9-a211-0d2c7b7a5603",
+            "scriptName": "显示备注",
+            "findRegex": "/<note>([\\s\\S]*?)<\\/note>/g",
+            "replaceString": "<details><summary>备注</summary>$1</details>",
+            "trimStrings": [],
+            "placement": [
+              2
+            ],
+            "disabled": false,
+            "markdownOnly": true,
+            "promptOnly": false,
+            "runOnEdit": true,
+            "substituteRegex": 0,
+            "minDepth": null,
+            "maxDepth": null
+          }
+        ],
+        "tavern_helper": {
+          "scripts": [
+            {
+              "type": "script",
+              "enabled": true,
+              "name": "消息事件示例",
+              "id": "de069ad2-e5ff-4e88-8261-9de489e7d365",
+              "content": "// 只观察事件，不修改聊天记录。按需求替换此处的处理逻辑。\n$(() => {\n  const listener = eventOn(tavern_events.MESSAGE_RECEIVED, messageId => {\n    console.debug('[角色卡脚本] 收到消息', messageId);\n  });\n  window.addEventListener('pagehide', () => listener.stop(), { once: true });\n});\n",
+              "info": "",
+              "button": {
+                "enabled": false,
+                "buttons": []
+              },
+              "data": {}
+            }
+          ],
+          "variables": {}
+        }
+      },
+      "character_book": {
+        "name": "示例-世界书创作",
+        "entries": [
+          {
+            "id": 0,
+            "keys": [],
+            "secondary_keys": [],
+            "comment": "场景规则",
+            "content": "故事发生在一座普通的临海小城。角色只知道自己亲历、听说或能从现场判断的事情。\n未被交代的经历、关系和秘密保持未知，不以猜测替代事实。\n",
+            "constant": true,
+            "selective": true,
+            "enabled": true,
+            "insertion_order": 100,
+            "position": "before_char",
+            "use_regex": false,
+            "extensions": {
+              "position": 0,
+              "depth": 4,
+              "role": 0,
+              "probability": 100,
+              "useProbability": true,
+              "exclude_recursion": true,
+              "prevent_recursion": true,
+              "display_index": 0
+            }
+          },
+          {
+            "id": 1,
+            "keys": [
+              "旧书店"
+            ],
+            "secondary_keys": [],
+            "comment": "旧书店",
+            "content": "旧书店位于码头附近，门口的遮雨棚下摆着二手书箱。店主通常在傍晚关门，店内能听见隔壁修理铺的敲击声。\n",
+            "constant": false,
+            "selective": true,
+            "enabled": true,
+            "insertion_order": 101,
+            "position": "before_char",
+            "use_regex": false,
+            "extensions": {
+              "position": 0,
+              "depth": 4,
+              "role": 0,
+              "probability": 100,
+              "useProbability": true,
+              "exclude_recursion": true,
+              "prevent_recursion": true,
+              "display_index": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "records": {
+    "worldbook-1": {
+      "kind": "worldbook",
+      "base": {
+        "id": 0,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "场景规则",
+        "content": "故事发生在一座普通的临海小城。角色只知道自己亲历、听说或能从现场判断的事情。\n未被交代的经历、关系和秘密保持未知，不以猜测替代事实。\n",
+        "constant": true,
+        "selective": true,
+        "enabled": true,
+        "insertion_order": 100,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "probability": 100,
+          "useProbability": true,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "display_index": 0
+        }
+      },
+      "config": {
+        "关联": "worldbook-1",
+        "名称": "场景规则",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 100,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/001-场景规则.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/0",
+      "file": "src/worldbook/001-场景规则.yaml"
+    },
+    "worldbook-2": {
+      "kind": "worldbook",
+      "base": {
+        "id": 1,
+        "keys": [
+          "旧书店"
+        ],
+        "secondary_keys": [],
+        "comment": "旧书店",
+        "content": "旧书店位于码头附近，门口的遮雨棚下摆着二手书箱。店主通常在傍晚关门，店内能听见隔壁修理铺的敲击声。\n",
+        "constant": false,
+        "selective": true,
+        "enabled": true,
+        "insertion_order": 101,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "probability": 100,
+          "useProbability": true,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "display_index": 1
+        }
+      },
+      "config": {
+        "关联": "worldbook-2",
+        "名称": "旧书店",
+        "启用": true,
+        "关键词": [
+          "旧书店"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 101,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/002-旧书店.md"
+      },
+      "attachments": {},
+      "pointer": "/data/character_book/entries/1",
+      "file": "src/worldbook/002-旧书店.yaml"
+    },
+    "regex-3": {
+      "kind": "regex",
+      "base": {
+        "id": "733e3b70-ebe8-4db9-a211-0d2c7b7a5603",
+        "scriptName": "显示备注",
+        "findRegex": "/<note>([\\s\\S]*?)<\\/note>/g",
+        "replaceString": "<details><summary>备注</summary>$1</details>",
+        "trimStrings": [],
+        "placement": [
+          2
+        ],
+        "disabled": false,
+        "markdownOnly": true,
+        "promptOnly": false,
+        "runOnEdit": true,
+        "substituteRegex": 0,
+        "minDepth": null,
+        "maxDepth": null
+      },
+      "config": {
+        "关联": "regex-3",
+        "名称": "显示备注",
+        "查找": "/<note>([\\s\\S]*?)<\\/note>/g",
+        "裁剪": [],
+        "禁用": false,
+        "仅显示": true,
+        "仅提示词": false,
+        "编辑时运行": true,
+        "宏替换模式": 0,
+        "最小深度": null,
+        "最大深度": null,
+        "作用于": [
+          "AI输出"
+        ],
+        "替换文件": "src/regex/001-显示备注.txt"
+      },
+      "attachments": {},
+      "pointer": "/data/extensions/regex_scripts/0",
+      "file": "src/regex/001-显示备注.yaml"
+    },
+    "script-4": {
+      "kind": "script",
+      "base": {
+        "type": "script",
+        "enabled": true,
+        "name": "消息事件示例",
+        "id": "de069ad2-e5ff-4e88-8261-9de489e7d365",
+        "content": "// 只观察事件，不修改聊天记录。按需求替换此处的处理逻辑。\n$(() => {\n  const listener = eventOn(tavern_events.MESSAGE_RECEIVED, messageId => {\n    console.debug('[角色卡脚本] 收到消息', messageId);\n  });\n  window.addEventListener('pagehide', () => listener.stop(), { once: true });\n});\n",
+        "info": "",
+        "button": {
+          "enabled": false,
+          "buttons": []
+        },
+        "data": {}
+      },
+      "config": {
+        "关联": "script-4",
+        "名称": "消息事件示例",
+        "启用": true,
+        "说明": "",
+        "按钮": {
+          "enabled": false,
+          "buttons": []
+        },
+        "数据": {},
+        "类型": "脚本",
+        "文件": "src/scripts/001-消息事件示例.js",
+        "构建": {
+          "类型": "script",
+          "入口": "src/scripts/001-消息事件示例.js"
+        }
+      },
+      "attachments": {},
+      "pointer": "/data/extensions/tavern_helper/scripts/0",
+      "file": "src/scripts/001-消息事件示例.yaml"
+    }
+  },
+  "groups": [
+    {
+      "key": "group-1",
+      "pointer": "/data/extensions/tavern_helper/scripts",
+      "primary": true
+    }
+  ],
+  "text": {}
+}

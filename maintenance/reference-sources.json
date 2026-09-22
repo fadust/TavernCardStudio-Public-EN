@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "description": "TavernCardStudio 锁定的上游参考资料。这里的内容只作资料读取与检索，绝不执行。每个来源固定提交、记录逐文件 sha256 与许可证。",
+  "sources": [
+    {
+      "id": "tavern-helper",
+      "repository": "N0VI028/JS-Slash-Runner",
+      "ref": "main",
+      "dest": "tavern-helper",
+      "note": "酒馆助手运行时 API 类型。@types 描述的是旧版酒馆助手接口，MVU 相关接口以锁定的 mvu 来源为准。",
+      "license": null,
+      "files": [
+        "LICENSE",
+        "README.md",
+        "package.json",
+        "@types/function/:-> references/upstream/tavern-helper/@types/function",
+        "@types/iframe/:-> references/upstream/tavern-helper/@types/iframe"
+      ],
+      "include": [
+        "re:\\.d\\.ts$",
+        "re:(^|/)LICENSE$",
+        "re:(^|/)README\\.md$",
+        "re:(^|/)package\\.json$"
+      ],
+      "exclude": [],
+      "required": [
+        "LICENSE",
+        "@types/function/index.d.ts",
+        "@types/iframe/event.d.ts"
+      ],
+      "maxFiles": 60
+    },
+    {
+      "id": "tavern-helper-docs",
+      "repository": "N0VI028/JS-Slash-Runner-Doc",
+      "ref": "main",
+      "dest": "tavern-helper-docs",
+      "note": "酒馆助手中文文档。",
+      "license": {
+        "spdx": "NOASSERTION",
+        "source": "N0VI028/JS-Slash-Runner-Doc 在该提交没有 LICENSE 文件（GitHub license API 返回 404），许可证按上游实际情况记为 NOASSERTION"
+      },
+      "files": [
+        "README.md",
+        "src/guide/"
+      ],
+      "include": [
+        "re:\\.md$",
+        "re:(^|/)LICENSE$"
+      ],
+      "exclude": [],
+      "required": [
+        "README.md",
+        "src/guide/功能详情/请求生成.md"
+      ],
+      "maxFiles": 120
+    },
+    {
+      "id": "sillytavern",
+      "repository": "SillyTavern/SillyTavern",
+      "ref": "release",
+      "dest": "sillytavern",
+      "note": "SillyTavern 源码：角色卡解析、世界书、宏、斜杠命令、正则引擎。",
+      "license": null,
+      "files": [
+        "LICENSE",
+        "package.json",
+        "src/character-card-parser.js",
+        "src/charx.js",
+        "src/validator/TavernCardValidator.js",
+        "src/endpoints/characters.js",
+        "src/endpoints/worldinfo.js",
+        "public/scripts/world-info.js",
+        "public/scripts/macros.js",
+        "public/scripts/slash-commands.js",
+        "public/scripts/macros/definitions/",
+        "public/scripts/extensions/regex/engine.js",
+        "tests/tavern-card-validator.test.js"
+      ],
+      "include": [],
+      "exclude": [],
+      "required": [
+        "LICENSE",
+        "src/character-card-parser.js",
+        "public/scripts/world-info.js"
+      ],
+      "maxFiles": 40
+    },
+    {
+      "id": "sillytavern-docs",
+      "repository": "SillyTavern/SillyTavern-Docs",
+      "ref": "main",
+      "dest": "sillytavern-docs",
+      "note": "SillyTavern 官方文档：宏、世界书、角色、聊天、正则。",
+      "license": null,
+      "files": [
+        "Usage/macros.md",
+        "Usage/Prompts/prompt-manager.md",
+        "Usage/worldinfo.md",
+        "extensions/Regex.md",
+        "LicenseCredits.md",
+        "Usage/Characters/",
+        "Usage/Chatting/",
+        "LICENSE",
+        "readme.md"
+      ],
+      "include": [
+        "re:\\.md$",
+        "re:(^|/)LICENSE$"
+      ],
+      "exclude": [],
+      "required": [
+        "LICENSE",
+        "Usage/macros.md",
+        "Usage/Prompts/prompt-manager.md",
+        "Usage/worldinfo.md"
+      ],
+      "maxFiles": 40
+    },
+    {
+      "id": "prompt-template",
+      "repository": "zonde306/ST-Prompt-Template",
+      "ref": "main",
+      "dest": "prompt-template",
+      "note": "ST-Prompt-Template（EJS 模板渲染），用于兼容性核对。",
+      "license": null,
+      "files": [
+        "LICENSE",
+        "README_CN.md",
+        "docs/features_cn.md",
+        "docs/reference_cn.md",
+        "include/reference_cn.js",
+        "package.json",
+        "src/3rdparty/ejs.js",
+        "src/function/ejs.ts"
+      ],
+      "include": [],
+      "exclude": [],
+      "required": [
+        "LICENSE",
+        "docs/reference_cn.md",
+        "include/reference_cn.js"
+      ],
+      "maxFiles": 20
+    },
+    {
+      "id": "tavern-helper-template",
+      "repository": "StageDog/tavern_helper_template",
+      "ref": "main",
+      "dest": "tavern-helper-template",
+      "note": "StageDog tavern_helper_template：AGENTS.md、.agents 技能、模板与示例、MVU 类型声明、webpack 构建入口。上游 LICENSE 为 Aladdin Free Public License（AFPL）。",
+      "license": null,
+      "files": [
+        "AGENTS.md",
+        "README.md",
+        "LICENSE",
+        "package.json",
+        "global.d.ts",
+        "auto-imports.zod.d.ts",
+        "dump_schema.ts",
+        ".agents/skills/",
+        "初始模板/",
+        "示例/脚本示例/",
+        "示例/前端界面示例/",
+        "示例/流式楼层界面示例/",
+        "示例/角色卡示例/schema.json",
+        "示例/角色卡示例/schema.ts",
+        "示例/角色卡示例/index.yaml",
+        "示例/角色卡示例/更新日志.md",
+        "util/common.ts",
+        "util/mvu.ts",
+        "util/script.ts",
+        "util/streaming.ts",
+        "webpack.config.ts"
+      ],
+      "include": [
+        "re:\\.(md|txt|ts|js|mjs|json|yaml|yml|html|css|vue)$",
+        "re:(^|/)LICENSE$"
+      ],
+      "exclude": [
+        "/dist/",
+        "re:(^|/)pnpm-lock\\.yaml$"
+      ],
+      "required": [
+        "LICENSE",
+        "AGENTS.md",
+        ".agents/skills/mvu-character-card/SKILL.md",
+        "webpack.config.ts"
+      ],
+      "maxFiles": 120
+    },
+    {
+      "id": "mvu",
+      "repository": "MagicalAstrogy/MagVarUpdate",
+      "ref": "master",
+      "pinCommit": "3377b494cd7277230f3056230062124fe117f93f",
+      "dest": "mvu",
+      "note": "MVU 变量框架，锁定到与 jsDelivr 运行依赖 artifact/bundle.js 一致的固定提交。doc/tutorial.md 中的 _.set 写法只作为上游资料保留；该提交的 JsonPatch 语义以锁定的源码为准。",
+      "license": null,
+      "files": [
+        "LICENSE",
+        "README.md",
+        "CHANGELOG.md",
+        "package.json",
+        "global.d.ts",
+        "auto-imports.zod.d.ts",
+        "util/README.md",
+        "src/variable_def.ts",
+        "src/function/global/",
+        "src/function/update_variables.ts",
+        "src/function/function_call.ts",
+        "src/function/exported_events.ts",
+        "src/function/initvar/",
+        "src/function/request/",
+        "src/function/update/index.ts",
+        "src/function/schema.ts",
+        "src/prompts/",
+        "doc/",
+        "tests/helpers/json_patch_suite.ts",
+        "tests/helpers/schema_suite.ts",
+        "tests/variable_init.test.ts",
+        "tests/json_patch.test.ts",
+        "src/util.ts",
+        "src/store.ts"
+      ],
+      "include": [
+        "re:\\.(md|txt|ts|js|json|yaml|yml)$",
+        "re:(^|/)LICENSE$"
+      ],
+      "exclude": [
+        "/artifact/",
+        "re:\\.map$"
+      ],
+      "required": [
+        "LICENSE",
+        "doc/tutorial.md",
+        "src/function/global/index.ts",
+        "src/function/update_variables.ts",
+        "src/variable_def.ts",
+        "tests/helpers/json_patch_suite.ts"
+      ],
+      "maxFiles": 120
+    },
+    {
+      "id": "character-card-spec",
+      "repository": "malfoyslastname/character-card-spec-v2",
+      "ref": "main",
+      "dest": "character-card-spec",
+      "note": "社区角色卡规范 v2（chara_card_v2 字段）；该上游仓库没有 LICENSE 文件，许可证记为 NOASSERTION。v3 规范见独立来源 character-card-spec-v3。",
+      "license": {
+        "spdx": "NOASSERTION",
+        "source": "malfoyslastname/character-card-spec-v2 在该提交没有 LICENSE 文件（GitHub license API 返回 404），许可证按上游实际情况记为 NOASSERTION"
+      },
+      "files": [
+        "README.md",
+        "spec_v1.md",
+        "spec_v2.md",
+        "keyword_definitions.md"
+      ],
+      "include": [],
+      "exclude": [],
+      "required": [
+        "README.md"
+      ],
+      "maxFiles": 20
+    },
+    {
+      "id": "character-card-spec-v3",
+      "repository": "kwaroran/character-card-spec-v3",
+      "ref": "main",
+      "dest": "character-card-spec-v3",
+      "note": "角色卡规范 v3（chara_card_v3）权威文本；上游 LICENSE 为 MIT 风格文本，由工具按原文识别。",
+      "license": null,
+      "files": [
+        "README.md",
+        "SPEC_V3.md",
+        "concepts.md",
+        "LICENSE",
+        ".gitignore"
+      ],
+      "include": [],
+      "exclude": [],
+      "required": [
+        "SPEC_V3.md",
+        "LICENSE"
+      ],
+      "maxFiles": 20
+    },
+    {
+      "id": "tavern-resource",
+      "repository": "StageDog/tavern_resource",
+      "ref": "main",
+      "pinCommit": "69abb272d46bed4057a0dfb31758f6164cb7ecef",
+      "dest": "tavern-resource",
+      "note": "MVU Zod 注册适配器源码与产物，仅供查阅；运行依赖使用同一固定提交。",
+      "files": [
+        "LICENSE",
+        "package.json",
+        "util/mvu_zod.ts",
+        "util/common.ts",
+        "dist/util/mvu_zod.js"
+      ],
+      "include": [],
+      "exclude": [],
+      "required": [
+        "util/mvu_zod.ts",
+        "dist/util/mvu_zod.js"
+      ],
+      "maxFiles": 10,
+      "license": null
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+角色:
+  名称: 示例-世界书创作
+  作者: ""
+  版本: 0.1.0
+  标签: []
+文本:
+  第一条消息: src/text/first_mes.md
+  创作者备注: src/text/creator_notes.md
+备选开场白:
+  - src/greetings/001-归还旧书.md
+群聊开场白: []
+世界书:
+  条目:
+    - src/worldbook/001-场景规则.yaml
+    - src/worldbook/002-旧书店.yaml
+    - src/worldbook/003-书店老板.yaml
+  名称: 示例-世界书创作
+正则:
+  - src/regex/001-显示备注.yaml
+脚本:
+  - src/scripts/001-消息事件示例.yaml
+助手变量: {}

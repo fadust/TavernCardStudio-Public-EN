@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "name": "示例-独立状态栏",
+  "modules": [
+    "html"
+  ],
+  "avatar": null,
+  "dependencies": [],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "51fc2bfa4a10926f751fb16771b34d5f9e9e2c3dd579a52f46f3068d4a02d099"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "33ba733414f164f6e0ad229a4d0d15e4188192fb1f047f7b412c7b13badcc3d3"
+  }
+}

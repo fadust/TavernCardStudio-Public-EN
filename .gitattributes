@@ -1,0 +1,23 @@
+* text=auto
+*.mjs text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+*.md -text
+*.txt -text
+*.json -text
+*.png binary
+*.cmd text eol=crlf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+LICENSE text eol=lf
+package.json text eol=lf
+# Card payload strings and upstream checksums must survive cloning byte-for-byte.
+cards/**/src/** -text
+cards/**/original/** -text
+references/** -text

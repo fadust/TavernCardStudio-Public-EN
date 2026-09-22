@@ -1,0 +1,13 @@
+关联: script-17
+名称: 变量结构（zod 注册）
+启用: true
+说明: ""
+按钮:
+  enabled: false
+  buttons: []
+数据: {}
+类型: 脚本
+文件: src/scripts/003-变量结构（zod 注册）.js
+构建:
+  类型: script
+  入口: src/scripts/003-变量结构（zod 注册）.js

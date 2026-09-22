@@ -1,0 +1,39 @@
+{
+  "dependencies": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate@3377b494cd7277230f3056230062124fe117f93f/artifact/bundle.js",
+      "purpose": "公开的 MVU 变量框架；要求酒馆助手已安装并启用卡内脚本。",
+      "version": "3377b494cd7277230f3056230062124fe117f93f"
+    },
+    {
+      "url": "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource@69abb272d46bed4057a0dfb31758f6164cb7ecef/dist/util/mvu_zod.js",
+      "purpose": "官方 registerMvuSchema：把 src/schema.ts 里的 zod 结构注册给 MVU，并顺带注册给酒馆助手变量管理器；脚本以固定提交外链导入。",
+      "version": "69abb272d46bed4057a0dfb31758f6164cb7ecef"
+    }
+  ],
+  "scripts": [
+    { "name": "MVU 框架（固定提交）", "source": "loader.js" },
+    { "name": "变量结构（zod 注册）", "source": "register-schema.js", "bundle": true }
+  ],
+  "worldbook": [
+    { "comment": "[initvar]变量初始化勿开", "keys": [], "constant": true, "enabled": false, "position": "before_char", "insertion_order": 90, "exclude_recursion": true, "prevent_recursion": true, "contentFile": "initvar.json" },
+    { "comment": "变量列表", "keys": [], "constant": true, "position": "at_depth_as_system", "depth": 0, "insertion_order": 100, "exclude_recursion": true, "prevent_recursion": true, "contentFile": "variables.md" },
+    { "comment": "[mvu_update]变量更新规则", "keys": [], "constant": true, "position": "at_depth_as_system", "depth": 0, "insertion_order": 101, "exclude_recursion": true, "prevent_recursion": true, "contentFile": "rules.md" },
+    { "comment": "[mvu_update]变量输出格式", "keys": [], "constant": true, "position": "at_depth_as_system", "depth": 0, "insertion_order": 102, "exclude_recursion": true, "prevent_recursion": true, "contentFile": "format.md" }
+  ],
+  "regex": [
+    { "scriptName": "折叠变量更新块（仅显示）", "findRegex": "/<update(?:variable)?>\\s*([\\s\\S]*?)\\s*<\\/update(?:variable)?>/gi", "replacementFile": "regex/fold.txt", "placement": ["user_input", "ai_output"], "markdownOnly": true, "promptOnly": false },
+    { "scriptName": "折叠未闭合变量更新块（仅显示，流式）", "findRegex": "/<update(?:variable)?>(?![\\s\\S]*<\\/update(?:variable)?>)\\s*([\\s\\S]*)$/gi", "replacementFile": "regex/fold.txt", "placement": ["user_input", "ai_output"], "markdownOnly": true, "promptOnly": false },
+    { "scriptName": "屏蔽变量更新块（仅提示词）", "findRegex": "/<update(?:variable)?>[\\s\\S]*?<\\/update(?:variable)?>/gi", "replaceString": "", "placement": ["user_input", "ai_output"], "markdownOnly": false, "promptOnly": true },
+    { "scriptName": "屏蔽未闭合变量更新块（仅提示词，流式）", "findRegex": "/<update(?:variable)?>(?![\\s\\S]*<\\/update(?:variable)?>)[\\s\\S]*$/gi", "replaceString": "", "placement": ["user_input", "ai_output"], "markdownOnly": false, "promptOnly": true }
+  ],
+  "fixtures": [
+    { "name": "折叠变量更新块（仅显示）", "input": "{{char}} 点头。\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/角色/心情\",\"value\":\"放松\"}]</JSONPatch>\n</UpdateVariable>", "expected": "{{char}} 点头。\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/角色/心情\",\"value\":\"放松\"}]</JSONPatch>\n\n</details>" },
+    { "name": "折叠变量更新块（仅显示）", "input": "第一段\n<UpdateVariable><JSONPatch>[{\"op\":\"remove\",\"path\":\"/角色/心情\"}]</JSONPatch></UpdateVariable>\n第二段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>", "expected": "第一段\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"remove\",\"path\":\"/角色/心情\"}]</JSONPatch>\n\n</details>\n第二段\n<details><summary>变量更新</summary>\n\n<JSONPatch>[]</JSONPatch>\n\n</details>" },
+    { "name": "折叠未闭合变量更新块（仅显示，流式）", "input": "{{char}} 还在输出。\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/角色/信任\",\"value\":3}]", "expected": "{{char}} 还在输出。\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/角色/信任\",\"value\":3}]\n\n</details>" },
+    { "name": "折叠未闭合变量更新块（仅显示，流式）", "input": "第一段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\n第二段\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/角色/信任\",\"value\":1}]", "expected": "第一段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\n第二段\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/角色/信任\",\"value\":1}]\n\n</details>" },
+    { "name": "屏蔽变量更新块（仅提示词）", "input": "第一段\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/场景/地点\",\"value\":\"旧书店\"}]</JSONPatch>\n</UpdateVariable>\n第二段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\n结尾", "expected": "第一段\n\n第二段\n\n结尾" },
+    { "name": "屏蔽未闭合变量更新块（仅提示词，流式）", "input": "第一段\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/角色/信任\",\"value\":2}]", "expected": "第一段\n" }
+  ],
+  "files": { "schema.ts": "src/schema.ts", "schema.json": "src/variables/schema.json" }
+}

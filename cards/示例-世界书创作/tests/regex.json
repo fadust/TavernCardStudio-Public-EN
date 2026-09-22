@@ -1,0 +1,7 @@
+[
+  {
+    "name": "显示备注",
+    "input": "正文<note>窗外开始下雨。</note>",
+    "expected": "正文<details><summary>备注</summary>窗外开始下雨。</details>"
+  }
+]

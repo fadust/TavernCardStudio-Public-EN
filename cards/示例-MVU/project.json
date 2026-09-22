@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "name": "示例-MVU",
+  "modules": [
+    "mvu"
+  ],
+  "avatar": null,
+  "dependencies": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate@3377b494cd7277230f3056230062124fe117f93f/artifact/bundle.js",
+      "purpose": "公开的 MVU 框架；要求酒馆助手已安装并启用卡内脚本。",
+      "version": "3377b494cd7277230f3056230062124fe117f93f"
+    }
+  ],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "b509fba17ed882c53dc9a7db14aa718e1e57dac182db0397c53ca06c3fa73c6e"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "a31f5ad5429970cd7a7f102ff838be1353516321fe80cb9468c2d4e50a151511"
+  }
+}

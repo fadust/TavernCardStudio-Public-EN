@@ -1,0 +1,6 @@
+{
+  "worldbook": [
+    { "comment": "场景规则", "keys": [], "constant": true, "contentFile": "setting.md" },
+    { "comment": "旧书店", "keys": ["旧书店"], "constant": false, "contentFile": "bookshop.md" }
+  ]
+}

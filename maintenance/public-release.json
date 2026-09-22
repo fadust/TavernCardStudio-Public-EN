@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    ".gitattributes", ".gitignore", "AGENTS.md", "README.md", "LICENSE",
+    "THIRD_PARTY_NOTICES.md", "CHANGELOG.md", "CONTRIBUTING.md",
+    "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml",
+    "打开角色卡工具.cmd", "打开角色卡工具.sh",
+    "maintenance/public-release.json", "maintenance/reference-sources.json", "maintenance/references.lock.json"
+  ],
+  "directories": [".agents/skills", ".github/workflows", "docs", "templates", "tools", "tests"],
+  "examples": [
+    "示例-纯文字", "示例-世界书创作", "示例-世界书正则", "示例-脚本",
+    "示例-独立状态栏", "示例-Vue", "示例-MVU", "示例-MVU-Vue",
+    "示例-MVU-Zod-Vue", "示例-雾港调查局"
+  ],
+  "emptyDirectories": ["imports", "dist", "work", "references"]
+}

@@ -1,0 +1,46 @@
+node_modules/
+dist/*
+!dist/.gitkeep
+work/*
+!work/.gitkeep
+imports/*
+!imports/.gitkeep
+.env
+.env.*
+!.env.example
+*.local.json
+*.local.yaml
+.DS_Store
+Thumbs.db
+playwright-report/
+test-results/
+cards/.tmp-*/
+references/.tmp-*/
+references/.staging-*/
+references/.backup-*/
+
+# 本地资料缓存：按 maintenance/references.lock.json 恢复，不随公开包分发。
+references/upstream/
+references/index.json
+
+# 新建作品默认留在本机；需要版本管理时，按 docs/UPDATING.md 主动加入。
+cards/*
+!cards/示例-纯文字/
+!cards/示例-独立状态栏/
+!cards/示例-脚本/
+!cards/示例-世界书创作/
+!cards/示例-世界书正则/
+!cards/示例-MVU/
+!cards/示例-MVU-Vue/
+!cards/示例-MVU-Zod-Vue/
+!cards/示例-Vue/
+!cards/示例-雾港调查局/
+
+# agent 的本地会话与个人设置不属于共享技能。
+.workbuddy/
+.codex/
+.claude/
+.cursor/
+.vscode/
+AGENTS.local.md
+*.log

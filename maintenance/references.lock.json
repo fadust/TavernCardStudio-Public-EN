@@ -1,0 +1,1470 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "tavern-helper": {
+      "repository": "N0VI028/JS-Slash-Runner",
+      "ref": "main",
+      "commit": "00f714a07315540baf738dad9cd3bb17585a56b4",
+      "fetchedAt": "2026-09-18T15:24:00.379Z",
+      "license": {
+        "spdx": "AFPL",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "酒馆助手运行时 API 类型。@types 描述的是旧版酒馆助手接口，MVU 相关接口以锁定的 mvu 来源为准。",
+      "files": {
+        "@types/function/audio.d.ts": {
+          "sha256": "02c7ace1acbb1949037aca6f2156e4f109212dd6b9642a63d06934316b24c908",
+          "local": "references/upstream/tavern-helper/@types/function/audio.d.ts",
+          "bytes": 4072
+        },
+        "@types/function/builtin.d.ts": {
+          "sha256": "cc2d1006b92c6ab07266ea38271f5355a07195cb68417243446a30194aa73a8d",
+          "local": "references/upstream/tavern-helper/@types/function/builtin.d.ts",
+          "bytes": 2766
+        },
+        "@types/function/character.d.ts": {
+          "sha256": "00b088ac8f85c8efc9afa8de9e71340dae666a07bf110564d5df903f8ccbf147",
+          "local": "references/upstream/tavern-helper/@types/function/character.d.ts",
+          "bytes": 6176
+        },
+        "@types/function/chat_message.d.ts": {
+          "sha256": "302930d6cc697321d0e1514d096dcd272a465fbc418f2190b41ddcffafc19327",
+          "local": "references/upstream/tavern-helper/@types/function/chat_message.d.ts",
+          "bytes": 9679
+        },
+        "@types/function/displayed_message.d.ts": {
+          "sha256": "fec1e5463e931e788c787d2a7263e24570ae42429ba04f4648779afe9a161bb1",
+          "local": "references/upstream/tavern-helper/@types/function/displayed_message.d.ts",
+          "bytes": 3026
+        },
+        "@types/function/extension.d.ts": {
+          "sha256": "8f465ba49481eec9786526e90c58321d7e4ae813b9732a77b64e51e64274593c",
+          "local": "references/upstream/tavern-helper/@types/function/extension.d.ts",
+          "bytes": 3513
+        },
+        "@types/function/generate.d.ts": {
+          "sha256": "23beee3f299e0816c86bbb1a899780d067b186ba3810dfc57d2ced363c5870b8",
+          "local": "references/upstream/tavern-helper/@types/function/generate.d.ts",
+          "bytes": 19334
+        },
+        "@types/function/global.d.ts": {
+          "sha256": "d80f189038ab1aba7385764f629760fe7c7c8f0436024f06cbb52c39c2daabdd",
+          "local": "references/upstream/tavern-helper/@types/function/global.d.ts",
+          "bytes": 1169
+        },
+        "@types/function/import_raw.d.ts": {
+          "sha256": "436bd0f69cc9f1633389172fed30258eb402c9a9af45eef12411a2aa4cbffaa9",
+          "local": "references/upstream/tavern-helper/@types/function/import_raw.d.ts",
+          "bytes": 2252
+        },
+        "@types/function/index.d.ts": {
+          "sha256": "efc360240795db754b068d803ddd65a2f99f66dd78516d6de0bdf819496b9d36",
+          "local": "references/upstream/tavern-helper/@types/function/index.d.ts",
+          "bytes": 8542
+        },
+        "@types/function/inject.d.ts": {
+          "sha256": "315bbd3329cea8fe269e1d396948bd98f5c916787d9bd8c4f8cd0359015d71b0",
+          "local": "references/upstream/tavern-helper/@types/function/inject.d.ts",
+          "bytes": 1464
+        },
+        "@types/function/lorebook.d.ts": {
+          "sha256": "da35836080d2d95a63b7217f9c2550d29e843ec33012953a0fc3b296799c7883",
+          "local": "references/upstream/tavern-helper/@types/function/lorebook.d.ts",
+          "bytes": 2204
+        },
+        "@types/function/lorebook_entry.d.ts": {
+          "sha256": "e47a25ec0daa12124ef6304ee49f93ab23353673295c5da046a9aa1c0538555d",
+          "local": "references/upstream/tavern-helper/@types/function/lorebook_entry.d.ts",
+          "bytes": 2545
+        },
+        "@types/function/macro_like.d.ts": {
+          "sha256": "0b9bd09646f2e2692f51dbfdd9eade9c0efbb10f092d86de5ed681a1972eda0b",
+          "local": "references/upstream/tavern-helper/@types/function/macro_like.d.ts",
+          "bytes": 863
+        },
+        "@types/function/persona.d.ts": {
+          "sha256": "edcc00eff62629c2029a2d618ef5b3550939d3aad4fd16a231e51951304dfa26",
+          "local": "references/upstream/tavern-helper/@types/function/persona.d.ts",
+          "bytes": 5341
+        },
+        "@types/function/preset.d.ts": {
+          "sha256": "442ee5198e2135ad4fb3e689fbeeac1458f6c813dfc8a60e3d1e00157e0a5ea5",
+          "local": "references/upstream/tavern-helper/@types/function/preset.d.ts",
+          "bytes": 13672
+        },
+        "@types/function/raw_character.d.ts": {
+          "sha256": "8a1f41833c846f5345b7d40588a1f1bcfbc68d129fa56cc92511366c71bf5410",
+          "local": "references/upstream/tavern-helper/@types/function/raw_character.d.ts",
+          "bytes": 3671
+        },
+        "@types/function/script.d.ts": {
+          "sha256": "85212926bc42224ae82ffca2dd86063cdc351863b3ae2e18ef407026e9b263d9",
+          "local": "references/upstream/tavern-helper/@types/function/script.d.ts",
+          "bytes": 2446
+        },
+        "@types/function/slash.d.ts": {
+          "sha256": "773543ca4ac5e231e7ba8dc1d22c779f980755bf57601b946369b63a718c4285",
+          "local": "references/upstream/tavern-helper/@types/function/slash.d.ts",
+          "bytes": 1208
+        },
+        "@types/function/tavern_regex.d.ts": {
+          "sha256": "43616428cd19241d8e015d7dffed695488e4d091f15e1a3994bf80518a372fe4",
+          "local": "references/upstream/tavern-helper/@types/function/tavern_regex.d.ts",
+          "bytes": 4592
+        },
+        "@types/function/util.d.ts": {
+          "sha256": "12ad465ff717f86b259bb49cf32cc915fa938b3f632a980192edbea19419fd2b",
+          "local": "references/upstream/tavern-helper/@types/function/util.d.ts",
+          "bytes": 1233
+        },
+        "@types/function/variables.d.ts": {
+          "sha256": "45bc282ef55a070edcd6d659313f609fe38dae0650897c2fcf9243b00041ce1b",
+          "local": "references/upstream/tavern-helper/@types/function/variables.d.ts",
+          "bytes": 7404
+        },
+        "@types/function/version.d.ts": {
+          "sha256": "f512d3d436b96ccd1b17a4c67e6ac2912cd4b1121d8a9ce02315b9593667e0b7",
+          "local": "references/upstream/tavern-helper/@types/function/version.d.ts",
+          "bytes": 169
+        },
+        "@types/function/worldbook.d.ts": {
+          "sha256": "ec7c2b0f935b114c47f19c57505f9ccef213e25fc4917e61ba7f39290065c81a",
+          "local": "references/upstream/tavern-helper/@types/function/worldbook.d.ts",
+          "bytes": 12019
+        },
+        "@types/iframe/event.d.ts": {
+          "sha256": "33deb24c14916ff0958898b7890ab69bd584d33261297dc0a57448011760cd8e",
+          "local": "references/upstream/tavern-helper/@types/iframe/event.d.ts",
+          "bytes": 21830
+        },
+        "@types/iframe/exported.ejstemplate.d.ts": {
+          "sha256": "55dc38589c2a01a01e162411af321c536d6cd142a18ce3ffb207d699d14fabe8",
+          "local": "references/upstream/tavern-helper/@types/iframe/exported.ejstemplate.d.ts",
+          "bytes": 4448
+        },
+        "@types/iframe/exported.mvu.d.ts": {
+          "sha256": "3590b3a1d74b1e021a1bc54953b66284c4c860918ec98c8418a54cac8069ef16",
+          "local": "references/upstream/tavern-helper/@types/iframe/exported.mvu.d.ts",
+          "bytes": 8070
+        },
+        "@types/iframe/exported.sillytavern.d.ts": {
+          "sha256": "eae4ed517b5ff493afca4581e191b212020088ad12577d699297efd0eb5ab0bb",
+          "local": "references/upstream/tavern-helper/@types/iframe/exported.sillytavern.d.ts",
+          "bytes": 26567
+        },
+        "@types/iframe/exported.tavernhelper.d.ts": {
+          "sha256": "3ce05ebcbedee09da964156f506ac1191fa1477b7e07b876b705aa58891e69a3",
+          "local": "references/upstream/tavern-helper/@types/iframe/exported.tavernhelper.d.ts",
+          "bytes": 296
+        },
+        "@types/iframe/script.d.ts": {
+          "sha256": "b3eefce598b3eefe03aa598e2d76b97922b058a3551a8fdd37265743fc8e9f11",
+          "local": "references/upstream/tavern-helper/@types/iframe/script.d.ts",
+          "bytes": 2719
+        },
+        "@types/iframe/util.d.ts": {
+          "sha256": "57939734be3b0728bf502f0c6713727920391dfa3c3f7ad834dc8ee8a2523ab0",
+          "local": "references/upstream/tavern-helper/@types/iframe/util.d.ts",
+          "bytes": 1621
+        },
+        "@types/iframe/variables.d.ts": {
+          "sha256": "b85166d18310f84d6fcd68ff5a9957170a53d655a507e97587a15f79d720c902",
+          "local": "references/upstream/tavern-helper/@types/iframe/variables.d.ts",
+          "bytes": 510
+        },
+        "LICENSE": {
+          "sha256": "676ad37b8ba9003804ab83aebce60fd46cd2c8fcbb1446fa1dd6de2c6f22ef03",
+          "local": "references/upstream/tavern-helper/LICENSE",
+          "bytes": 13838
+        },
+        "README.md": {
+          "sha256": "7ecda822a0dd559518f6e8af5be808bbe9873b66e5f7e1036caa575177d35576",
+          "local": "references/upstream/tavern-helper/README.md",
+          "bytes": 3016
+        },
+        "package.json": {
+          "sha256": "af9443605cd4f5c332184b7745ba9524eace06db744188d9a6e1f3fdded7a6f4",
+          "local": "references/upstream/tavern-helper/package.json",
+          "bytes": 2762
+        }
+      }
+    },
+    "tavern-helper-docs": {
+      "repository": "N0VI028/JS-Slash-Runner-Doc",
+      "ref": "main",
+      "commit": "4bc11060ecc79dc8015f77d4e2afdf730f9463c4",
+      "fetchedAt": "2026-09-18T15:17:34.224Z",
+      "license": {
+        "spdx": "NOASSERTION",
+        "source": "N0VI028/JS-Slash-Runner-Doc 在该提交没有 LICENSE 文件（GitHub license API 返回 404），许可证按上游实际情况记为 NOASSERTION"
+      },
+      "licenseFile": null,
+      "note": "酒馆助手中文文档。",
+      "files": {
+        "README.md": {
+          "sha256": "a441e1b67d818a55b4dbbadffc9db2441a13cf201cac1ef2320c699e6e30cc15",
+          "local": "references/upstream/tavern-helper-docs/README.md",
+          "bytes": 25
+        },
+        "src/guide/关于酒馆助手/介绍.md": {
+          "sha256": "01f51625b20e4f4eac80284475628113178ecf7211206e5a41250334e6d15193",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/介绍.md",
+          "bytes": 2460
+        },
+        "src/guide/关于酒馆助手/参与贡献.md": {
+          "sha256": "c7404a1d5b10f6355840f7cd0487924412bdf2f3d79ac5e7c0a225eea023fbf2",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/参与贡献.md",
+          "bytes": 1277
+        },
+        "src/guide/关于酒馆助手/安装与更新.md": {
+          "sha256": "ba0546348c2855a54fc2a9a2d618694d7e45e6f2992c546436574f47172f8731",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/安装与更新.md",
+          "bytes": 2882
+        },
+        "src/guide/关于酒馆助手/常见问题/前端编写问题.md": {
+          "sha256": "402853304a82b8ab1136d5c0eb580766919c933db8964589a13ecda678894e7a",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/常见问题/前端编写问题.md",
+          "bytes": 1218
+        },
+        "src/guide/关于酒馆助手/常见问题/安装与更新问题.md": {
+          "sha256": "819e2f04d763baea66a37a374ef32d104bb1a42b71d1b8bc473b5a998ce88291",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/常见问题/安装与更新问题.md",
+          "bytes": 8912
+        },
+        "src/guide/关于酒馆助手/常见问题/游玩常见问题.md": {
+          "sha256": "27e2e4c0ddf30f57d48154c5e53067119e0a1f83ea1699a601adf6d925228e82",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/常见问题/游玩常见问题.md",
+          "bytes": 6318
+        },
+        "src/guide/关于酒馆助手/更新日志.md": {
+          "sha256": "373f319866615c598e04d11afcfda6744f208eaf973203993e87dfd68cc4e5ba",
+          "local": "references/upstream/tavern-helper-docs/src/guide/关于酒馆助手/更新日志.md",
+          "bytes": 67999
+        },
+        "src/guide/功能详情/世界书/修改世界书.md": {
+          "sha256": "b115fa25ef2bfa1b62c722d8425200b0f4263b672e32b87e14e801f0b2b5d33d",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/世界书/修改世界书.md",
+          "bytes": 7310
+        },
+        "src/guide/功能详情/世界书/创建世界书.md": {
+          "sha256": "596c8caa821d680ee747c1a269787ae8d1316f1fddf98affaad0a43bb6283ca3",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/世界书/创建世界书.md",
+          "bytes": 1804
+        },
+        "src/guide/功能详情/世界书/删除世界书.md": {
+          "sha256": "b8b1dc99017011a49040b7ec2be809f1079ee5adcec7530c74ac1a9e7d591e1f",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/世界书/删除世界书.md",
+          "bytes": 693
+        },
+        "src/guide/功能详情/世界书/导入或更新世界书.md": {
+          "sha256": "2517796108eb60cabb4100c9ece5282349915d74db450d352478c1aec706d084",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/世界书/导入或更新世界书.md",
+          "bytes": 946
+        },
+        "src/guide/功能详情/世界书/获取世界书.md": {
+          "sha256": "e6c54db6994f91da639ae33c1394147bd9bb1741036d6513ece4ee6ee7739ad9",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/世界书/获取世界书.md",
+          "bytes": 5738
+        },
+        "src/guide/功能详情/其他工具函数.md": {
+          "sha256": "527ea0a689a99f579a694ad2236dcec58b1f781c245e321b735c7176abb65700",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/其他工具函数.md",
+          "bytes": 3742
+        },
+        "src/guide/功能详情/内置第三方库.md": {
+          "sha256": "e4d4a8502fd7894cb390d678c62d984fa12535431f39ca4517673ac7b0413dec",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/内置第三方库.md",
+          "bytes": 4646
+        },
+        "src/guide/功能详情/分享接口.md": {
+          "sha256": "d05aaac6c1fd6e4b400ca20f7a58b61cbddceb2e406e8215284a14911aea85c3",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/分享接口.md",
+          "bytes": 2101
+        },
+        "src/guide/功能详情/变量/变量类型.md": {
+          "sha256": "5c30fc64a60b866fdf4d017a578fbb28137338879e73b9d8d7cf40a956d62291",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/变量/变量类型.md",
+          "bytes": 4529
+        },
+        "src/guide/功能详情/变量/替换或修改变量.md": {
+          "sha256": "f3ee80cf1f8f652fe1b4f7bc7abcb801250132bfa95b2d90421f1a8c8aee8db2",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/变量/替换或修改变量.md",
+          "bytes": 4900
+        },
+        "src/guide/功能详情/变量/注册变量结构.md": {
+          "sha256": "d8609225088b3c56c414d552480e895307d565f4764839ae2610fff1ae002ece",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/变量/注册变量结构.md",
+          "bytes": 1582
+        },
+        "src/guide/功能详情/变量/获取变量.md": {
+          "sha256": "039585e45c415a5d2bc1b032632b2765a20158deae71b04ada1f044b89531b2b",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/变量/获取变量.md",
+          "bytes": 3184
+        },
+        "src/guide/功能详情/安装酒馆扩展.md": {
+          "sha256": "5c7319452299d05397f2f90c3a6e2ea752484be916a28123a68ff6f742ec1557",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/安装酒馆扩展.md",
+          "bytes": 5456
+        },
+        "src/guide/功能详情/导入或更新酒馆数据.md": {
+          "sha256": "789dc798b99514df1e3cf257da5b65edd81c845806cdb373f7805456406ac9e8",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/导入或更新酒馆数据.md",
+          "bytes": 3355
+        },
+        "src/guide/功能详情/播放音频/播放列表.md": {
+          "sha256": "e6bed7c3b987c230153915b67bc016e6414cb5e5cdf64078502417150fc45745",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/播放音频/播放列表.md",
+          "bytes": 2183
+        },
+        "src/guide/功能详情/播放音频/播放状态.md": {
+          "sha256": "24cb617bcc2667fe5a82fe97464371b88e10b7def9e7587dd998d43893a2d970",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/播放音频/播放状态.md",
+          "bytes": 2767
+        },
+        "src/guide/功能详情/播放音频/播放设置.md": {
+          "sha256": "1d47db7e9b5985190965cb20f79935af184ccffc76ba4e3e09de9c3d83a9e799",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/播放音频/播放设置.md",
+          "bytes": 2015
+        },
+        "src/guide/功能详情/查询版本.md": {
+          "sha256": "ed877a152336bff22ba1fde5c37fd29fa9a15edfdc7575132da129faa9f5dbc6",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/查询版本.md",
+          "bytes": 669
+        },
+        "src/guide/功能详情/楼层消息/修改消息.md": {
+          "sha256": "36b63fe92b543bf725c33dcffd0ea423b9ef837839bfc5605dcff338bcc405fe",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/楼层消息/修改消息.md",
+          "bytes": 4002
+        },
+        "src/guide/功能详情/楼层消息/创建消息.md": {
+          "sha256": "a69a2d6b2e4e3439ff2a8a74ffa45a24cf99fe31a94065c3f74d6ba376cb77ab",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/楼层消息/创建消息.md",
+          "bytes": 2612
+        },
+        "src/guide/功能详情/楼层消息/删除消息.md": {
+          "sha256": "b408b8dd6664002e389377e856b94afa8e7b1ce0606b78cde39d27796fa688cd",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/楼层消息/删除消息.md",
+          "bytes": 1555
+        },
+        "src/guide/功能详情/楼层消息/渲染消息.md": {
+          "sha256": "c5b48da419f153081f78b3d74633011d781a9316307b967b3f6f69fc482a0ebe",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/楼层消息/渲染消息.md",
+          "bytes": 5788
+        },
+        "src/guide/功能详情/楼层消息/获取消息.md": {
+          "sha256": "4d72c554b9245f4301685eb5c47e8930b73793a0ad270a23bf63a174f350119a",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/楼层消息/获取消息.md",
+          "bytes": 3625
+        },
+        "src/guide/功能详情/注入提示词.md": {
+          "sha256": "f899c335a4b1ccd5e45043fa133224dd79d8f63cdd917b071e99dbcf784a0358",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/注入提示词.md",
+          "bytes": 2077
+        },
+        "src/guide/功能详情/用户人设/修改用户人设.md": {
+          "sha256": "9c0b36dd82916cfe00a37c8f3434e45e02d5657dff610722d60fdfeb8fa111ce",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/用户人设/修改用户人设.md",
+          "bytes": 3188
+        },
+        "src/guide/功能详情/用户人设/创建用户人设.md": {
+          "sha256": "3fc84698807e77d986a3ea081fb0f5706c14bc651afe5dfbc4b9a2a788d1d1ec",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/用户人设/创建用户人设.md",
+          "bytes": 2473
+        },
+        "src/guide/功能详情/用户人设/删除用户人设.md": {
+          "sha256": "c79b5158d82041101065ea25c43ad3df0f7c4813bac554dd8aff2fbd1bd2e8c9",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/用户人设/删除用户人设.md",
+          "bytes": 816
+        },
+        "src/guide/功能详情/用户人设/获取用户人设.md": {
+          "sha256": "cfd713db0d412a431374f4af4a5d3110064ddf8fe70f48c08de2ff0fdd1f4ee0",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/用户人设/获取用户人设.md",
+          "bytes": 2388
+        },
+        "src/guide/功能详情/监听和发送事件.md": {
+          "sha256": "de45af959643eeb01f6021aff066dff2836c9eac9749645447a1958aed0a0327",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/监听和发送事件.md",
+          "bytes": 8823
+        },
+        "src/guide/功能详情/角色卡/修改角色卡.md": {
+          "sha256": "39e17fc139e0d48f50528c8e89809e223f731654a61c95cc8c6ab61512d4a682",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/角色卡/修改角色卡.md",
+          "bytes": 3888
+        },
+        "src/guide/功能详情/角色卡/创建角色卡.md": {
+          "sha256": "55ce7400086d8b570f0b8f0f1bd8bd5dfc076928652dc232f885249fcaa6b446",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/角色卡/创建角色卡.md",
+          "bytes": 2058
+        },
+        "src/guide/功能详情/角色卡/删除角色卡.md": {
+          "sha256": "f3e6f38bee21a81dde1ed77d283c89d0d27090f55e8c4ee7420dc4ddeeffae97",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/角色卡/删除角色卡.md",
+          "bytes": 902
+        },
+        "src/guide/功能详情/角色卡/导入或更新角色卡.md": {
+          "sha256": "6cc58a911997f346ed492e443883805ba9aa6ca00e10c3868f4e0c7d334958b4",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/角色卡/导入或更新角色卡.md",
+          "bytes": 948
+        },
+        "src/guide/功能详情/角色卡/获取角色卡.md": {
+          "sha256": "09cd96e63eb0d1509240d9edc4a4fa9c11fb1d4a2165e3876d95887c189a43e2",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/角色卡/获取角色卡.md",
+          "bytes": 1886
+        },
+        "src/guide/功能详情/角色卡/获取角色卡其他信息.md": {
+          "sha256": "808d248077a0f3955856621573d7a9a431973c9bb829c0deb783adceb2c8eaf0",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/角色卡/获取角色卡其他信息.md",
+          "bytes": 11138
+        },
+        "src/guide/功能详情/触发快速回复命令.md": {
+          "sha256": "13b8b999c01ebf52b4b970c55256145eee0581905bdf3e62a75628db12529a8a",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/触发快速回复命令.md",
+          "bytes": 2307
+        },
+        "src/guide/功能详情/访问酒馆接口或其他插件.md": {
+          "sha256": "67a5ec0b78ba1bfdaac668b0e788741a9e55eef070e8f89d308c9cc2a61e2f99",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/访问酒馆接口或其他插件.md",
+          "bytes": 3852
+        },
+        "src/guide/功能详情/请求生成.md": {
+          "sha256": "5475fa22966419852d20d1c44d4aee835b4b3427a411cfa0954a20e88a1f52c1",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/请求生成.md",
+          "bytes": 21908
+        },
+        "src/guide/功能详情/酒馆助手宏.md": {
+          "sha256": "e17e351107d238c0955d151221e6199f8dbe4a023ba92b78704eab8cca1e4ff4",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/酒馆助手宏.md",
+          "bytes": 3942
+        },
+        "src/guide/功能详情/酒馆助手脚本/创建和修改脚本.md": {
+          "sha256": "dc076efdeb4a481979a15716cbd82f6b58fa7198d9a335a136e461cb8ee3d4bb",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/酒馆助手脚本/创建和修改脚本.md",
+          "bytes": 9901
+        },
+        "src/guide/功能详情/酒馆助手脚本/获取脚本.md": {
+          "sha256": "2bbf1efab0d58c82bb24e30b7819fe9be682dd1e353857cacd1592ed7a30a9d3",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/酒馆助手脚本/获取脚本.md",
+          "bytes": 5925
+        },
+        "src/guide/功能详情/酒馆正则/创建和修改正则.md": {
+          "sha256": "186c4e3ed22a931368fb6e566da9b49c7bfa9f3a3de7f9d16a4b79899600eaa8",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/酒馆正则/创建和修改正则.md",
+          "bytes": 7564
+        },
+        "src/guide/功能详情/酒馆正则/获取正则.md": {
+          "sha256": "9f7d12942b07fdc992cec2a3dee03f379c84d36a72556a6704abcd7ce3dbc6ff",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/酒馆正则/获取正则.md",
+          "bytes": 6537
+        },
+        "src/guide/功能详情/预设/修改预设.md": {
+          "sha256": "91a2f1fbd4b738e8cacaf827897460a8cebc01f976b08ce14876e14101fcdb96",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/预设/修改预设.md",
+          "bytes": 6852
+        },
+        "src/guide/功能详情/预设/创建预设.md": {
+          "sha256": "ce9c8fcfe870c41f695a053fd861753f4386c15e0015ff3af9501960a705b704",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/预设/创建预设.md",
+          "bytes": 1896
+        },
+        "src/guide/功能详情/预设/删除预设.md": {
+          "sha256": "500f05ba703097e961b8d6de2f494ab773db92f832eed1a98054c3c4967a6e9a",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/预设/删除预设.md",
+          "bytes": 679
+        },
+        "src/guide/功能详情/预设/导入或更新预设.md": {
+          "sha256": "b4ff64435ce6b1c2710680b65d202e6d4ae66809113581005b5a0ad2857116ec",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/预设/导入或更新预设.md",
+          "bytes": 909
+        },
+        "src/guide/功能详情/预设/获取预设.md": {
+          "sha256": "98d09f9ffb695f60fd17c24a88a7cdc288d2f08d995e629eff0ff5f6f95cbdd1",
+          "local": "references/upstream/tavern-helper-docs/src/guide/功能详情/预设/获取预设.md",
+          "bytes": 9852
+        },
+        "src/guide/基本用法/变量管理器.md": {
+          "sha256": "1be3bc893d89037dfba1c806c589d34a06e7cb152c91fe821f594f0594db4b54",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/变量管理器.md",
+          "bytes": 1019
+        },
+        "src/guide/基本用法/如何正确使用酒馆助手.md": {
+          "sha256": "317256830d2536156a7c865f7ec446b6baa46d01dc8200f3bfd672137f9ab81a",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/如何正确使用酒馆助手.md",
+          "bytes": 466
+        },
+        "src/guide/基本用法/开发其他插件时使用.md": {
+          "sha256": "7e0c3b271d438874cab58dbd113c31b0c8ba12341b1296c2b755c244f5bc78f8",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/开发其他插件时使用.md",
+          "bytes": 873
+        },
+        "src/guide/基本用法/提示词查看器.md": {
+          "sha256": "4f79fc3c58b77f8193fb8bb61547b75a57579811f1915b4852bf32f40492d94a",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/提示词查看器.md",
+          "bytes": 2810
+        },
+        "src/guide/基本用法/日志查看器.md": {
+          "sha256": "5c8950ba51aa68f843b4ad1e46e6d173aa4e4403739ec9e5c1724fe34ac52d50",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/日志查看器.md",
+          "bytes": 386
+        },
+        "src/guide/基本用法/渲染器.md": {
+          "sha256": "a685e604f7159a34df84a8b3552e6108d3a3e0589a0801f69505af54b4fb051e",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/渲染器.md",
+          "bytes": 4112
+        },
+        "src/guide/基本用法/脚本库.md": {
+          "sha256": "189a1e156fe8d33701a7a35642ab63cf13171e917ddc9e0406d6abcc153e02c7",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/脚本库.md",
+          "bytes": 2763
+        },
+        "src/guide/基本用法/酒馆体验优化.md": {
+          "sha256": "ac31b84e0886cf75932d529b32c2c8eedeb14dad6f9d26e8b6f63d2d419d64b8",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/酒馆体验优化.md",
+          "bytes": 3914
+        },
+        "src/guide/基本用法/音频播放器.md": {
+          "sha256": "16a459065d39e97d61174243f438e5bc243fafa4497ce71fe6c5b02566363757",
+          "local": "references/upstream/tavern-helper-docs/src/guide/基本用法/音频播放器.md",
+          "bytes": 817
+        }
+      }
+    },
+    "sillytavern": {
+      "repository": "SillyTavern/SillyTavern",
+      "ref": "release",
+      "commit": "06bde939fb1e9c4c8d8641d810f0a916b5bce127",
+      "fetchedAt": "2026-09-18T15:24:43.101Z",
+      "license": {
+        "spdx": "AGPL-3.0",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "SillyTavern 源码：角色卡解析、世界书、宏、斜杠命令、正则引擎。",
+      "files": {
+        "LICENSE": {
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+          "local": "references/upstream/sillytavern/LICENSE",
+          "bytes": 34523
+        },
+        "package.json": {
+          "sha256": "5b6e0634a63872c33603bf803217613a388f2e5dbd5990f7b30d254bfbf027c2",
+          "local": "references/upstream/sillytavern/package.json",
+          "bytes": 5941
+        },
+        "public/scripts/extensions/regex/engine.js": {
+          "sha256": "091bb3402a12552cf1754d6e4d2b44df38d3553aa374539896c716e78905d350",
+          "local": "references/upstream/sillytavern/public/scripts/extensions/regex/engine.js",
+          "bytes": 16189
+        },
+        "public/scripts/macros.js": {
+          "sha256": "1926c394e22a35827f594a4c4bfb044ed4c80dcc911680875991a880f8e53f11",
+          "local": "references/upstream/sillytavern/public/scripts/macros.js",
+          "bytes": 27109
+        },
+        "public/scripts/macros/definitions/chat-macros.js": {
+          "sha256": "0e5c005533b64e8a93bc0cff4e58bc33a9710db49b5cb279b2e1451e9d31f4e0",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/chat-macros.js",
+          "bytes": 5207
+        },
+        "public/scripts/macros/definitions/core-macros.js": {
+          "sha256": "a45ced11240d0174b75f1cc31a17c4670236e96be92a7d2264cf9a0802c37a7f",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/core-macros.js",
+          "bytes": 21290
+        },
+        "public/scripts/macros/definitions/env-macros.js": {
+          "sha256": "14ff92d8ee9fe12d3ded8914b714cea239342d458dbe6f5be32f00c6d2f1da58",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/env-macros.js",
+          "bytes": 8485
+        },
+        "public/scripts/macros/definitions/instruct-macros.js": {
+          "sha256": "2c2bce3ec27ca24469ee2eb6ea09077e79e98037e3dc42940951f5a81743b75f",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/instruct-macros.js",
+          "bytes": 4957
+        },
+        "public/scripts/macros/definitions/state-macros.js": {
+          "sha256": "6e21a98c580e4c79e95aafa2ffec048f3296f2a7a5c0ff3a60bcae3a7e5073b8",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/state-macros.js",
+          "bytes": 2180
+        },
+        "public/scripts/macros/definitions/time-macros.js": {
+          "sha256": "cee858a3549285f2b4239c8941b54eb02863bea0dbc8ccfc07aec40ba83f3e06",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/time-macros.js",
+          "bytes": 5534
+        },
+        "public/scripts/macros/definitions/variable-macros.js": {
+          "sha256": "ea6ce2cc4595440c55e7921147cff1a17004236241ad5add4a84d82372ed179c",
+          "local": "references/upstream/sillytavern/public/scripts/macros/definitions/variable-macros.js",
+          "bytes": 16951
+        },
+        "public/scripts/slash-commands.js": {
+          "sha256": "3da6aa888a52d09fd5d54eadee1724b7c3b7dbc208a3d56fe98c7d23d86fcde3",
+          "local": "references/upstream/sillytavern/public/scripts/slash-commands.js",
+          "bytes": 295254
+        },
+        "public/scripts/world-info.js": {
+          "sha256": "111c7f47945839e75b021e09bdbb112a54f0a9b7857d2b95435f573efc7cd9a5",
+          "local": "references/upstream/sillytavern/public/scripts/world-info.js",
+          "bytes": 265081
+        },
+        "src/character-card-parser.js": {
+          "sha256": "b74541cd54bb3fe3ab39b3e040f6dba824b263ed9344e4dcf98363e4e148e07c",
+          "local": "references/upstream/sillytavern/src/character-card-parser.js",
+          "bytes": 3284
+        },
+        "src/charx.js": {
+          "sha256": "92e0045ff69691057cca55b7514f2bdd3615cf5ab35bf11be3231709669e6680",
+          "local": "references/upstream/sillytavern/src/charx.js",
+          "bytes": 14377
+        },
+        "src/endpoints/characters.js": {
+          "sha256": "3235555529e9ff17ecc2ebe9168b0af77fe6ef5947f3d1f7de3df6d5f2567d89",
+          "local": "references/upstream/sillytavern/src/endpoints/characters.js",
+          "bytes": 68637
+        },
+        "src/endpoints/worldinfo.js": {
+          "sha256": "1c7bcf4fc54b41beaaa69a88f0398978be048d735a15891e93691930d31991d2",
+          "local": "references/upstream/sillytavern/src/endpoints/worldinfo.js",
+          "bytes": 5336
+        },
+        "src/validator/TavernCardValidator.js": {
+          "sha256": "a0eba17805b004f5ab6927393e1f16fc1b4b6cd128d905046ece72f66673e1d4",
+          "local": "references/upstream/sillytavern/src/validator/TavernCardValidator.js",
+          "bytes": 4561
+        },
+        "tests/tavern-card-validator.test.js": {
+          "sha256": "74cb00078f2ab7bb4f2a27712edf50bf071395015442f96503fb6d895cb962e7",
+          "local": "references/upstream/sillytavern/tests/tavern-card-validator.test.js",
+          "bytes": 8835
+        }
+      }
+    },
+    "sillytavern-docs": {
+      "repository": "SillyTavern/SillyTavern-Docs",
+      "ref": "main",
+      "commit": "70e5e4d3c239253fca4692fe82e3936cb9c4b1b1",
+      "fetchedAt": "2026-09-18T15:17:34.276Z",
+      "license": {
+        "spdx": "AGPL-3.0",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "SillyTavern 官方文档：宏、世界书、角色、聊天、正则。",
+      "files": {
+        "LICENSE": {
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+          "local": "references/upstream/sillytavern-docs/LICENSE",
+          "bytes": 34523
+        },
+        "LicenseCredits.md": {
+          "sha256": "00e301fd89b498fe628ce3e2d3ed041c0b110ddc599856104e3ad885881b57ce",
+          "local": "references/upstream/sillytavern-docs/LicenseCredits.md",
+          "bytes": 1002
+        },
+        "Usage/Characters/Author's-Note.md": {
+          "sha256": "f0579fb343d39d920246513d5241fc744246edca1318c96939f4324639255b6c",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/Author's-Note.md",
+          "bytes": 2687
+        },
+        "Usage/Characters/characterdesign.md": {
+          "sha256": "20ff6cdbb2f405cdc62fa1406ff955ac5c1f47ddcabc32e7ceb6b2f22d41b3ed",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/characterdesign.md",
+          "bytes": 10860
+        },
+        "Usage/Characters/chatfilemanagement.md": {
+          "sha256": "3a747be3ad998fe260b0a99d3857dbe3149de4deca2d398c85f45fd3a14e2bdc",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/chatfilemanagement.md",
+          "bytes": 2897
+        },
+        "Usage/Characters/data-bank.md": {
+          "sha256": "e6125eb63ac3183a73fcad53b2d525d6660f36c819f9f513f5107ae3295c309d",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/data-bank.md",
+          "bytes": 14803
+        },
+        "Usage/Characters/groupchats.md": {
+          "sha256": "a727f87a112d79ba0972bcdebe94e713dae18f525e1bd2e493e21e1a150c8c0b",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/groupchats.md",
+          "bytes": 5931
+        },
+        "Usage/Characters/index.md": {
+          "sha256": "918dac3f3044e0f13131995604c0746723e3fed39d46cc0123c3185e084dc437",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/index.md",
+          "bytes": 4918
+        },
+        "Usage/Characters/tags.md": {
+          "sha256": "ed925234120fd82be429802095459881a352050caaff59155b28f3b33ac33d51",
+          "local": "references/upstream/sillytavern-docs/Usage/Characters/tags.md",
+          "bytes": 4419
+        },
+        "Usage/Chatting/hotkeys.md": {
+          "sha256": "52538a7e20679790f0027edeb5e7c603b0de8fc48df6b61b699549e271a47f81",
+          "local": "references/upstream/sillytavern-docs/Usage/Chatting/hotkeys.md",
+          "bytes": 1084
+        },
+        "Usage/Chatting/index.md": {
+          "sha256": "364341923fdc5bec860edc6ec2c25bc660c5d07aad22ab8e247a98d24288a2d0",
+          "local": "references/upstream/sillytavern-docs/Usage/Chatting/index.md",
+          "bytes": 9927
+        },
+        "Usage/Chatting/slashcommands.md": {
+          "sha256": "6d118635ad1a0a76ce62d8fb324784333d875f712c445be103cf443c8b566c14",
+          "local": "references/upstream/sillytavern-docs/Usage/Chatting/slashcommands.md",
+          "bytes": 829
+        },
+        "Usage/Prompts/prompt-manager.md": {
+          "sha256": "c78738b914215b16795d410b3f96bc6294450486b52be3c84da0605dcc355697",
+          "local": "references/upstream/sillytavern-docs/Usage/Prompts/prompt-manager.md",
+          "bytes": 10504
+        },
+        "Usage/macros.md": {
+          "sha256": "866dee2ec613f56e9c1c8d3008f93e936f2ee5c79fdf48a89537b71a326c6fc3",
+          "local": "references/upstream/sillytavern-docs/Usage/macros.md",
+          "bytes": 28372
+        },
+        "Usage/worldinfo.md": {
+          "sha256": "edbecf10ae920985d759f996af9f5ea9df720770ce5ebbb1c10ecd06a5396282",
+          "local": "references/upstream/sillytavern-docs/Usage/worldinfo.md",
+          "bytes": 30199
+        },
+        "extensions/Regex.md": {
+          "sha256": "a27a38bf0cb6bca5aefd8a5e655aa22cc9d3b99a177c5d844e631f994fe8f0bd",
+          "local": "references/upstream/sillytavern-docs/extensions/Regex.md",
+          "bytes": 11049
+        },
+        "readme.md": {
+          "sha256": "61fb86de39b266f29bf6a03d132ce13e4f905579c754c9c0c7e42aba82ecc198",
+          "local": "references/upstream/sillytavern-docs/readme.md",
+          "bytes": 6362
+        }
+      }
+    },
+    "prompt-template": {
+      "repository": "zonde306/ST-Prompt-Template",
+      "ref": "main",
+      "commit": "d6f520d149aba146305b0b781ddd691d449c28d2",
+      "fetchedAt": "2026-09-18T15:17:34.287Z",
+      "license": {
+        "spdx": "AGPL-3.0",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "ST-Prompt-Template（EJS 模板渲染），用于兼容性核对。",
+      "files": {
+        "LICENSE": {
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+          "local": "references/upstream/prompt-template/LICENSE",
+          "bytes": 34523
+        },
+        "README_CN.md": {
+          "sha256": "31b59a7dad77d0ba38999ec367bf8e96c6de04a7efa6f771361378238904ddcd",
+          "local": "references/upstream/prompt-template/README_CN.md",
+          "bytes": 3626
+        },
+        "docs/features_cn.md": {
+          "sha256": "600c7465e03e3b3f75361b95fbe7bbbeb4225fdf8055045711fd178f3044ed98",
+          "local": "references/upstream/prompt-template/docs/features_cn.md",
+          "bytes": 37929
+        },
+        "docs/reference_cn.md": {
+          "sha256": "aedb3310b107111372e8de7fed5eaac13df7f6f9a8bbc6291b567d4082b98e65",
+          "local": "references/upstream/prompt-template/docs/reference_cn.md",
+          "bytes": 40360
+        },
+        "include/reference_cn.js": {
+          "sha256": "37707077bb6cd00273a59a4de9d61a87c47e7de5df1a48342e370aec458ccc57",
+          "local": "references/upstream/prompt-template/include/reference_cn.js",
+          "bytes": 25145
+        },
+        "package.json": {
+          "sha256": "8c859650ab3d22a8e31af557c9a12c3196ab4413e6632c26133aa6548e0c3d00",
+          "local": "references/upstream/prompt-template/package.json",
+          "bytes": 1262
+        },
+        "src/3rdparty/ejs.js": {
+          "sha256": "66b3c84f33adbf154950e18cb55704062e3fa5e2f4e69001f6df296d11548d54",
+          "local": "references/upstream/prompt-template/src/3rdparty/ejs.js",
+          "bytes": 63459
+        },
+        "src/function/ejs.ts": {
+          "sha256": "a5b1e8e45687fb53d128cdf817fe098d73e40b1a3d20d60f4fdc2c08f1aee69f",
+          "local": "references/upstream/prompt-template/src/function/ejs.ts",
+          "bytes": 26960
+        }
+      }
+    },
+    "tavern-helper-template": {
+      "repository": "StageDog/tavern_helper_template",
+      "ref": "main",
+      "commit": "d77edb7121650f80c9a1a62357d549925d1336ad",
+      "fetchedAt": "2026-09-18T15:17:34.328Z",
+      "license": {
+        "spdx": "AFPL",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "StageDog tavern_helper_template：AGENTS.md、.agents 技能、模板与示例、MVU 类型声明、webpack 构建入口。上游 LICENSE 为 Aladdin Free Public License（AFPL）。",
+      "files": {
+        ".agents/skills/mvu-character-card/SKILL.md": {
+          "sha256": "57e1d7de5909e14d020034900831898e005df3898615fdd19e17c589e3a08b79",
+          "local": "references/upstream/tavern-helper-template/.agents/skills/mvu-character-card/SKILL.md",
+          "bytes": 14733
+        },
+        ".agents/skills/mvu-variable-framework/SKILL.md": {
+          "sha256": "0273e2a93083e2209b305e6fd2710fce2929fac164d37c3bfd1980bbb6d8ee67",
+          "local": "references/upstream/tavern-helper-template/.agents/skills/mvu-variable-framework/SKILL.md",
+          "bytes": 9906
+        },
+        ".agents/skills/tavern-helper-frontend/SKILL.md": {
+          "sha256": "36751f47d28b1cc1b172fded7a29995a92dc6b2ee605a6681d112a8968b05e3d",
+          "local": "references/upstream/tavern-helper-template/.agents/skills/tavern-helper-frontend/SKILL.md",
+          "bytes": 2868
+        },
+        ".agents/skills/tavern-helper-script/SKILL.md": {
+          "sha256": "aa856e4e63bae0044598e52d18b7965a0c4beb02e62ac0435dfe6b06a2d6daa1",
+          "local": "references/upstream/tavern-helper-template/.agents/skills/tavern-helper-script/SKILL.md",
+          "bytes": 4146
+        },
+        "AGENTS.md": {
+          "sha256": "e16e81e6b370292ec925e525d33cb976e4d5d2e5eb438488509e1c18728adb4c",
+          "local": "references/upstream/tavern-helper-template/AGENTS.md",
+          "bytes": 18527
+        },
+        "LICENSE": {
+          "sha256": "676ad37b8ba9003804ab83aebce60fd46cd2c8fcbb1446fa1dd6de2c6f22ef03",
+          "local": "references/upstream/tavern-helper-template/LICENSE",
+          "bytes": 13838
+        },
+        "README.md": {
+          "sha256": "755ad9a894e13b03f51572411b1e3a55b8c4cdb70db2942923818e2d04c94e4c",
+          "local": "references/upstream/tavern-helper-template/README.md",
+          "bytes": 4747
+        },
+        "auto-imports.zod.d.ts": {
+          "sha256": "be8f95e71f0a917fd959ddc9b8666625312186aaaa2a24f0cf45cda9e0daf8cf",
+          "local": "references/upstream/tavern-helper-template/auto-imports.zod.d.ts",
+          "bytes": 272
+        },
+        "dump_schema.ts": {
+          "sha256": "21f55e6b27055fcbf0129218c1c9522977a5b786e928993b5185d8e72f4629e4",
+          "local": "references/upstream/tavern-helper-template/dump_schema.ts",
+          "bytes": 840
+        },
+        "global.d.ts": {
+          "sha256": "8ac905ce41549c014fdded8e4c9381896f3d3f4f7fd1ca9b7b83645692a35d44",
+          "local": "references/upstream/tavern-helper-template/global.d.ts",
+          "bytes": 1091
+        },
+        "package.json": {
+          "sha256": "c4cd33cec633f9c1c86380157ef9ed6c47a4fc6298c85cb4aa905b528daebb97",
+          "local": "references/upstream/tavern-helper-template/package.json",
+          "bytes": 3627
+        },
+        "util/common.ts": {
+          "sha256": "f313371c90f3750431bd013413fa34b04e27d0ebda8209b6006df89941900349",
+          "local": "references/upstream/tavern-helper-template/util/common.ts",
+          "bytes": 4110
+        },
+        "util/mvu.ts": {
+          "sha256": "d6940fa5401520e33cea4f1e0d8a5a4f85818ecc3601148b4b195d29fb144fa7",
+          "local": "references/upstream/tavern-helper-template/util/mvu.ts",
+          "bytes": 1955
+        },
+        "util/script.ts": {
+          "sha256": "f38e0c9168712a79e45cd37b84c98801c77b75d808b29ac916563dc80d118c0c",
+          "local": "references/upstream/tavern-helper-template/util/script.ts",
+          "bytes": 1291
+        },
+        "util/streaming.ts": {
+          "sha256": "c1941af514f7158186d2a4929afd1be3ce3d32b77207378427a68433edccfa2b",
+          "local": "references/upstream/tavern-helper-template/util/streaming.ts",
+          "bytes": 8456
+        },
+        "webpack.config.ts": {
+          "sha256": "9e4315a4d41a3ffe575c342adaa3b77db546f5c707bcfbcbe9a7a4c9db4baf78",
+          "local": "references/upstream/tavern-helper-template/webpack.config.ts",
+          "bytes": 18716
+        },
+        "初始模板/前端界面/导入到酒馆中/界面-实时修改.json": {
+          "sha256": "213709c043dcc7c798e8fd2562141251c2a14685af519e66dad8b6c924f0f8c2",
+          "local": "references/upstream/tavern-helper-template/初始模板/前端界面/导入到酒馆中/界面-实时修改.json",
+          "bytes": 459
+        },
+        "初始模板/前端界面/新建为src文件夹中的文件夹/App.vue": {
+          "sha256": "5f0c3cd17949fe9a143406047e1ffb3e9d61fe27773a90b6f8484196cb280825",
+          "local": "references/upstream/tavern-helper-template/初始模板/前端界面/新建为src文件夹中的文件夹/App.vue",
+          "bytes": 108
+        },
+        "初始模板/前端界面/新建为src文件夹中的文件夹/index.html": {
+          "sha256": "84897aa8c03bbb8955487b528890da53cff6203afa79fafeb2a236d323185461",
+          "local": "references/upstream/tavern-helper-template/初始模板/前端界面/新建为src文件夹中的文件夹/index.html",
+          "bytes": 52
+        },
+        "初始模板/前端界面/新建为src文件夹中的文件夹/index.ts": {
+          "sha256": "4717b63c217ac767ee7ab0f2b475dd6c3319898aade5d66ea3243effa49de0d5",
+          "local": "references/upstream/tavern-helper-template/初始模板/前端界面/新建为src文件夹中的文件夹/index.ts",
+          "bytes": 196
+        },
+        "初始模板/流式楼层界面/导入到酒馆中/流式楼层界面脚本-实时修改.json": {
+          "sha256": "44a98002dcab7583d49185bbc1a3b61d9c9c3f9af7422ad99aefda7e58a9c651",
+          "local": "references/upstream/tavern-helper-template/初始模板/流式楼层界面/导入到酒馆中/流式楼层界面脚本-实时修改.json",
+          "bytes": 237
+        },
+        "初始模板/流式楼层界面/新建为src文件夹中的文件夹/App.vue": {
+          "sha256": "a55deb81ea3586f896f2835dee484e74393d5817813a20763c54eee02023f04b",
+          "local": "references/upstream/tavern-helper-template/初始模板/流式楼层界面/新建为src文件夹中的文件夹/App.vue",
+          "bytes": 237
+        },
+        "初始模板/流式楼层界面/新建为src文件夹中的文件夹/index.ts": {
+          "sha256": "9deda545002524683763aff33f64fee36e49b5fc32e54f4aaca81d851da0afae",
+          "local": "references/upstream/tavern-helper-template/初始模板/流式楼层界面/新建为src文件夹中的文件夹/index.ts",
+          "bytes": 252
+        },
+        "初始模板/流式楼层界面/新建为src文件夹中的文件夹/store.ts": {
+          "sha256": "5ed4bb09e177f7010ca9df56e259bf1bb02b727754e81123d651c21ad832381e",
+          "local": "references/upstream/tavern-helper-template/初始模板/流式楼层界面/新建为src文件夹中的文件夹/store.ts",
+          "bytes": 118
+        },
+        "初始模板/脚本/导入到酒馆中/脚本-实时修改.json": {
+          "sha256": "be41bad818401e7d1cb52de4a9360c9623172c1e4e56def616ed618c0c10c891",
+          "local": "references/upstream/tavern-helper-template/初始模板/脚本/导入到酒馆中/脚本-实时修改.json",
+          "bytes": 201
+        },
+        "初始模板/脚本/新建为src文件夹中的文件夹/index.ts": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "local": "references/upstream/tavern-helper-template/初始模板/脚本/新建为src文件夹中的文件夹/index.ts",
+          "bytes": 0
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/index.yaml": {
+          "sha256": "4562428d6699bd9d8333a9dcc8eb43d4b587ef83499b2777291a007f53f258ae",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/index.yaml",
+          "bytes": 4855
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/schema.ts": {
+          "sha256": "53ab2589421b4c562ee3fdc4994914034edae32fa275f04d22eea9c9b3b3fb11",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/schema.ts",
+          "bytes": 83
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/initvar.yaml": {
+          "sha256": "7c7d12c5e8e26c82a31410492adf4d92b2a1a7c34e3d84468f93faa52ff2f4e3",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/initvar.yaml",
+          "bytes": 185
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/变量列表.txt": {
+          "sha256": "f60d56238794c1f0a34c972e15eb7fdc83c2d771eb35ab47c3d458475c7f4890",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/变量列表.txt",
+          "bytes": 96
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/变量更新规则.yaml": {
+          "sha256": "9d67d57ee9ce14040c1b15768507cdc3fedb1f96b1b954121892be643ea98f79",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/变量更新规则.yaml",
+          "bytes": 24
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/变量输出格式.yaml": {
+          "sha256": "48acf5d993aa509fd9eaefa12bf1c988732fbf4632e4e4caa9455d84d77521d6",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/世界书/变量/变量输出格式.yaml",
+          "bytes": 1716
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/App.vue": {
+          "sha256": "660b93a467448e8a780ced716ae2c21873180683dd84b404987bba3ffbdc5ad0",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/App.vue",
+          "bytes": 72
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/global.css": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/global.css",
+          "bytes": 0
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/index.html": {
+          "sha256": "84897aa8c03bbb8955487b528890da53cff6203afa79fafeb2a236d323185461",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/index.html",
+          "bytes": 52
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/index.ts": {
+          "sha256": "8f01cc5f9e2bd89d0c08394a326a31e0e252d7829709de3a9877130f02290f84",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/index.ts",
+          "bytes": 288
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/store.ts": {
+          "sha256": "62157f0a8adaffcd53565ee772aa579bc3b03aa7a62d666a590ae4d124c43ff1",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/界面/状态栏/store.ts",
+          "bytes": 200
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/第一条消息/0.txt": {
+          "sha256": "42b1eaa9ed65d8afe2c1472ccacad91e7b964928142a3428fbcf306ee7c447ec",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/第一条消息/0.txt",
+          "bytes": 22
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/脚本/MVU/index.ts": {
+          "sha256": "16e4dc809f2c904aae4ab2e5251a1942e2b33b842ffa9171fb54fc6fa25bf87b",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/脚本/MVU/index.ts",
+          "bytes": 91
+        },
+        "初始模板/角色卡/新建为src文件夹中的文件夹/脚本/变量结构/index.ts": {
+          "sha256": "f244cf8bf05ad1835c269c93474e7f15cb9b0517325d8e34340482dc6fbea991",
+          "local": "references/upstream/tavern-helper-template/初始模板/角色卡/新建为src文件夹中的文件夹/脚本/变量结构/index.ts",
+          "bytes": 200
+        },
+        "示例/前端界面示例/index.html": {
+          "sha256": "84897aa8c03bbb8955487b528890da53cff6203afa79fafeb2a236d323185461",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/index.html",
+          "bytes": 52
+        },
+        "示例/前端界面示例/index.ts": {
+          "sha256": "6dfd09beb195673e6918314df7df7b9da2e17747492ff7931058d25738304651",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/index.ts",
+          "bytes": 62
+        },
+        "示例/前端界面示例/加载和卸载时执行函数.ts": {
+          "sha256": "7f5b27bc4e787b3aa22d02787958ceb4e35c7fe2d1af374661e0cd6fc3d7b928",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/加载和卸载时执行函数.ts",
+          "bytes": 370
+        },
+        "示例/前端界面示例/日记.vue": {
+          "sha256": "ff981464d7d8a1ff29bd15c2d2ad08e1fe416efe85e347f04dbe00424253e202",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/日记.vue",
+          "bytes": 2906
+        },
+        "示例/前端界面示例/界面.ts": {
+          "sha256": "e25786272d240f4dcf7c8e6ee820616d482d3b1270da3455b7f43eef8b468a2d",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/界面.ts",
+          "bytes": 542
+        },
+        "示例/前端界面示例/界面.vue": {
+          "sha256": "0b8a4870148802a2a9b3037b443fb2cd1019b3b8855fc17cb656ae9ab8ac3838",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/界面.vue",
+          "bytes": 40
+        },
+        "示例/前端界面示例/选择框.vue": {
+          "sha256": "d83e9134efed4663a429fb678ddc50aca422134f7e43876c77d031ab97d16aaf",
+          "local": "references/upstream/tavern-helper-template/示例/前端界面示例/选择框.vue",
+          "bytes": 4653
+        },
+        "示例/流式楼层界面示例/App.vue": {
+          "sha256": "1c5f011eaf23ab3618bed921ec2c6daadbffe0b8643fa405f5b390e8570aa599",
+          "local": "references/upstream/tavern-helper-template/示例/流式楼层界面示例/App.vue",
+          "bytes": 1966
+        },
+        "示例/流式楼层界面示例/index.ts": {
+          "sha256": "a8e391cf1b4ad26394e96fe1f5b37d6c08163186615ee04fcf960e0b253564b3",
+          "local": "references/upstream/tavern-helper-template/示例/流式楼层界面示例/index.ts",
+          "bytes": 232
+        },
+        "示例/流式楼层界面示例/分段.vue": {
+          "sha256": "af1b41ed1e64cec66adc05dd7a8205f4763f1a25914b9ec453f3958420ea11b8",
+          "local": "references/upstream/tavern-helper-template/示例/流式楼层界面示例/分段.vue",
+          "bytes": 1960
+        },
+        "示例/流式楼层界面示例/搜索框.vue": {
+          "sha256": "04a17e823d09e16392488f7b77399a0b5a7e903f601605799195a659f2735d14",
+          "local": "references/upstream/tavern-helper-template/示例/流式楼层界面示例/搜索框.vue",
+          "bytes": 2824
+        },
+        "示例/流式楼层界面示例/高亮.vue": {
+          "sha256": "803f88195e062ec1fb37470354255945a61e5f2a056864ed863b05ef5b3e14f1",
+          "local": "references/upstream/tavern-helper-template/示例/流式楼层界面示例/高亮.vue",
+          "bytes": 547
+        },
+        "示例/脚本示例/index.ts": {
+          "sha256": "3e82c679b9a203ac946fd0b1576e7cc7866f2317bbff6bb2f9dcb231fd544499",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/index.ts",
+          "bytes": 222
+        },
+        "示例/脚本示例/settings.ts": {
+          "sha256": "b1f5c25cc688aad4497c67e235e467c9452667c3a03c8c2732b55a4876a649cd",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/settings.ts",
+          "bytes": 422
+        },
+        "示例/脚本示例/加载和卸载时执行函数.ts": {
+          "sha256": "a971606fd0095654a50d33a891d2f5b4fa1ae55e34ef1882ea8f4b533feb2906",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/加载和卸载时执行函数.ts",
+          "bytes": 260
+        },
+        "示例/脚本示例/添加按钮和注册按钮事件.ts": {
+          "sha256": "283e228c438cef3fb0372af7ab95b97ca13f482015ef2cc7e3e069ac51eaf66a",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/添加按钮和注册按钮事件.ts",
+          "bytes": 170
+        },
+        "示例/脚本示例/监听消息修改.ts": {
+          "sha256": "d5e751cf4251b61b2d538342e5bb2b5ffc8810753f23abd4d5f2f5c44614604a",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/监听消息修改.ts",
+          "bytes": 152
+        },
+        "示例/脚本示例/聊天文件变更时重载脚本.ts": {
+          "sha256": "2e588a60cd1e30d1cd7759a1b2c9b036bcdf700cde9066247987c067fe0f8b7d",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/聊天文件变更时重载脚本.ts",
+          "bytes": 74
+        },
+        "示例/脚本示例/设置界面.ts": {
+          "sha256": "c693a7ff716244708ea63488f121c8fb0334fe1ae9687c0422d94872d7ecdfb9",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/设置界面.ts",
+          "bytes": 401
+        },
+        "示例/脚本示例/设置界面.vue": {
+          "sha256": "0bd5ebcf635bd1d3a923f25d8aeb1a8eee54fab253b8bd434eb2f837629ea500",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/设置界面.vue",
+          "bytes": 1068
+        },
+        "示例/脚本示例/调整消息楼层.ts": {
+          "sha256": "84ffec4b12a84b9d655e007201d6e8ae1c7e04641f6f9e3990bba28a90fb9233",
+          "local": "references/upstream/tavern-helper-template/示例/脚本示例/调整消息楼层.ts",
+          "bytes": 2176
+        },
+        "示例/角色卡示例/index.yaml": {
+          "sha256": "86bb7e38fc871caf97112f2859fc38a044e03b8237337f3067d28493cbb74e4d",
+          "local": "references/upstream/tavern-helper-template/示例/角色卡示例/index.yaml",
+          "bytes": 8711
+        },
+        "示例/角色卡示例/schema.json": {
+          "sha256": "a4fe44f87cdbfc5860f7595254fdbd1bbbf012cdd8bae42683a2f2d16267d749",
+          "local": "references/upstream/tavern-helper-template/示例/角色卡示例/schema.json",
+          "bytes": 2785
+        },
+        "示例/角色卡示例/schema.ts": {
+          "sha256": "0ab3a71f506538d7f7144bebd1c402e9ebc89e749daaf82e65225e9152902238",
+          "local": "references/upstream/tavern-helper-template/示例/角色卡示例/schema.ts",
+          "bytes": 1491
+        },
+        "示例/角色卡示例/更新日志.md": {
+          "sha256": "69f1394b536129e388af66e841da02ccfe2d2e21b164bc05c1844728fe46f9f7",
+          "local": "references/upstream/tavern-helper-template/示例/角色卡示例/更新日志.md",
+          "bytes": 57
+        }
+      }
+    },
+    "mvu": {
+      "repository": "MagicalAstrogy/MagVarUpdate",
+      "ref": "master",
+      "commit": "3377b494cd7277230f3056230062124fe117f93f",
+      "fetchedAt": "2026-09-18T15:17:34.362Z",
+      "license": {
+        "spdx": "MIT",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "MVU 变量框架，锁定到与 jsDelivr 运行依赖 artifact/bundle.js 一致的固定提交。doc/tutorial.md 中的 _.set 写法只作为上游资料保留；该提交的 JsonPatch 语义以锁定的源码为准。",
+      "files": {
+        "CHANGELOG.md": {
+          "sha256": "32b0bacd905359ecec4055a15bc519cd65bb39ea7221fe8339f8e8bb6c3117e0",
+          "local": "references/upstream/mvu/CHANGELOG.md",
+          "bytes": 22817
+        },
+        "LICENSE": {
+          "sha256": "47f7767a9980ac6664216671b531088a796df557a6bdffd23f4d8bac6af73c55",
+          "local": "references/upstream/mvu/LICENSE",
+          "bytes": 1070
+        },
+        "README.md": {
+          "sha256": "57e42b0d728020170b6aa33a9e0dd0bd450457bd33a1f935c20fb326981dbe5d",
+          "local": "references/upstream/mvu/README.md",
+          "bytes": 1283
+        },
+        "auto-imports.zod.d.ts": {
+          "sha256": "be8f95e71f0a917fd959ddc9b8666625312186aaaa2a24f0cf45cda9e0daf8cf",
+          "local": "references/upstream/mvu/auto-imports.zod.d.ts",
+          "bytes": 272
+        },
+        "doc/generate.md": {
+          "sha256": "baae9e4c32f06af9d598d83a08f9b9aeb5347a6bcdd1831c2ee0620017e6b600",
+          "local": "references/upstream/mvu/doc/generate.md",
+          "bytes": 28822
+        },
+        "doc/pi_multiprovider_integration.md": {
+          "sha256": "4303e8073e0c75bba49206f4f24a9c81365b61064205fa854156575df5d55cec",
+          "local": "references/upstream/mvu/doc/pi_multiprovider_integration.md",
+          "bytes": 48316
+        },
+        "doc/request_scoped_worldinfo_filter.md": {
+          "sha256": "5491c9f250d0e0e7c85cdbc2325ca4f9f75b093149b8604f7f104a99276a1e8b",
+          "local": "references/upstream/mvu/doc/request_scoped_worldinfo_filter.md",
+          "bytes": 6046
+        },
+        "doc/stat_var.md": {
+          "sha256": "63d5956a4376e2ff90aad12cca24e57fd675af9a103bfc7e8498680e8e3564ad",
+          "local": "references/upstream/mvu/doc/stat_var.md",
+          "bytes": 8246
+        },
+        "doc/supplementary-tutorial.md": {
+          "sha256": "1b78038b8e481f46443dd9f6d88ba9ffae4bf7ed2006f29f7d56580e61a78f43",
+          "local": "references/upstream/mvu/doc/supplementary-tutorial.md",
+          "bytes": 35194
+        },
+        "doc/template.md": {
+          "sha256": "30b366c6c9c868d9793ce141b35bbef5ab4b2bbeac1d112bf7923b5f6784da2d",
+          "local": "references/upstream/mvu/doc/template.md",
+          "bytes": 11850
+        },
+        "doc/tutorial.md": {
+          "sha256": "3de93567236627e7750d02a1a8674571cc3eb7f9d8485b50c8515ffedf7fad54",
+          "local": "references/upstream/mvu/doc/tutorial.md",
+          "bytes": 17130
+        },
+        "global.d.ts": {
+          "sha256": "4bb2470b847a7a9174770f4d556ea2e5001a87027a2d34fbedd24b78d0291575",
+          "local": "references/upstream/mvu/global.d.ts",
+          "bytes": 1152
+        },
+        "package.json": {
+          "sha256": "4bcb7ddefb2ee47c5f9b46b738efe7c6c266ddd55eb891b532779c9db833ce17",
+          "local": "references/upstream/mvu/package.json",
+          "bytes": 4974
+        },
+        "src/function/exported_events.ts": {
+          "sha256": "b7fa2a2a92643b894476c5ca8153a1a1178185fa505511a7b0a62f2c86023d9f",
+          "local": "references/upstream/mvu/src/function/exported_events.ts",
+          "bytes": 993
+        },
+        "src/function/function_call.ts": {
+          "sha256": "ea0a2f7c8daf1c207ec38542d0cdfc916fe6e608f2337e3a7c1b7299371c1cc0",
+          "local": "references/upstream/mvu/src/function/function_call.ts",
+          "bytes": 20976
+        },
+        "src/function/global/index.ts": {
+          "sha256": "536308d4fb2297cd5c949a4acbd7a8af5088e8e409710e9450b707efaefde8db",
+          "local": "references/upstream/mvu/src/function/global/index.ts",
+          "bytes": 7805
+        },
+        "src/function/initvar/index.ts": {
+          "sha256": "23028baa3707f3c4e22147d84081f398969fefbdf138081e3bff14cd3292c727",
+          "local": "references/upstream/mvu/src/function/initvar/index.ts",
+          "bytes": 590
+        },
+        "src/function/initvar/variable_init.ts": {
+          "sha256": "d2b730788fc74723f9df29ebd02085cd142e1f7289c3b25fb85cbebab51470bf",
+          "local": "references/upstream/mvu/src/function/initvar/variable_init.ts",
+          "bytes": 15882
+        },
+        "src/function/request/entry_comment_regex.ts": {
+          "sha256": "72994e44d53c26e108663d6a584cbc29dc09bccd298b8a4fab5a2eedec32e33d",
+          "local": "references/upstream/mvu/src/function/request/entry_comment_regex.ts",
+          "bytes": 2062
+        },
+        "src/function/request/extra_model_request_override.ts": {
+          "sha256": "b4d3577c11393419789a46461724c12014fdfa9d3e6dcd9186bfc61c15f6eeb6",
+          "local": "references/upstream/mvu/src/function/request/extra_model_request_override.ts",
+          "bytes": 1263
+        },
+        "src/function/request/filter_entries.ts": {
+          "sha256": "51fe3a45477771380fa4aa592bac485869373c83615eb8e1d8014e8940fb3d23",
+          "local": "references/upstream/mvu/src/function/request/filter_entries.ts",
+          "bytes": 11403
+        },
+        "src/function/request/filter_prompts.ts": {
+          "sha256": "8a1b78b3723d7583b4a5bdcbbe0cb08ba8aefeb1944efb33ac42ca5fa64d463c",
+          "local": "references/upstream/mvu/src/function/request/filter_prompts.ts",
+          "bytes": 1086
+        },
+        "src/function/request/index.ts": {
+          "sha256": "d72f36fc74d6a100091279cb2f766e7ac90ab60124f810bc43f5979231a0c690",
+          "local": "references/upstream/mvu/src/function/request/index.ts",
+          "bytes": 1754
+        },
+        "src/function/request/worldinfo_request.ts": {
+          "sha256": "fad0d5d6a8a3da616a734422a7bd1ad2e619cb2fc553d4cb38588b7da9171b61",
+          "local": "references/upstream/mvu/src/function/request/worldinfo_request.ts",
+          "bytes": 6975
+        },
+        "src/function/request/worldinfo_scan.ts": {
+          "sha256": "d3e1d6c14701b99e9b622a024ca108b0f9745db716fe1603fa0b3955162f5110",
+          "local": "references/upstream/mvu/src/function/request/worldinfo_scan.ts",
+          "bytes": 9384
+        },
+        "src/function/schema.ts": {
+          "sha256": "e4b17f6f3f682fdc0e6f996706fbe39eb75875471215dd1ea48e56f422d1ae84",
+          "local": "references/upstream/mvu/src/function/schema.ts",
+          "bytes": 12755
+        },
+        "src/function/update/index.ts": {
+          "sha256": "597a9d7301bdf6ce2b99577d2aa39e3314ef2f8af046f3224ee36b7b9c9bec7e",
+          "local": "references/upstream/mvu/src/function/update/index.ts",
+          "bytes": 1482
+        },
+        "src/function/update_variables.ts": {
+          "sha256": "50fab56b167b5e620744b35f0b10038b78de281187de846320d43c0b02b51264",
+          "local": "references/upstream/mvu/src/function/update_variables.ts",
+          "bytes": 73620
+        },
+        "src/prompts/README.md": {
+          "sha256": "c5308d59c879726d69a3cea5d1af56322fcb2747dabe5d2449a9a92b5f5b22cc",
+          "local": "references/upstream/mvu/src/prompts/README.md",
+          "bytes": 117
+        },
+        "src/prompts/claude_head.txt": {
+          "sha256": "f603fe2ee75cf84c1c284bb6571e986e3c8173cbf24296cb31df33c337c5c88f",
+          "local": "references/upstream/mvu/src/prompts/claude_head.txt",
+          "bytes": 2965
+        },
+        "src/prompts/claude_tail.txt": {
+          "sha256": "d5759f9978af90dce2e124794f758d8052c44050b583391841d41ccdff10178f",
+          "local": "references/upstream/mvu/src/prompts/claude_tail.txt",
+          "bytes": 777
+        },
+        "src/prompts/extra_model_task.txt": {
+          "sha256": "29196eea4834f3f9f719736650a1362d8ab9078d69270d6c41bd9f530c74a8df",
+          "local": "references/upstream/mvu/src/prompts/extra_model_task.txt",
+          "bytes": 1089
+        },
+        "src/prompts/gemini_head.txt": {
+          "sha256": "c99e4060a99cd4a00a16c78bd2216aa61dd7a323b9ecf4bb970d6c7a798291f4",
+          "local": "references/upstream/mvu/src/prompts/gemini_head.txt",
+          "bytes": 3185
+        },
+        "src/prompts/gemini_tail.txt": {
+          "sha256": "b004c484eb10e8b364bab1029e49e3661da9cf8ecf35472199cefd1e2b8bc634",
+          "local": "references/upstream/mvu/src/prompts/gemini_tail.txt",
+          "bytes": 493
+        },
+        "src/store.ts": {
+          "sha256": "29d9f55348c0578cc0e5c9a28a537c4ac856f9cef970ea2ee5c1e23f21ca58ac",
+          "local": "references/upstream/mvu/src/store.ts",
+          "bytes": 20550
+        },
+        "src/util.ts": {
+          "sha256": "35689f41f401478455eff417fa62fe4439aa1c6a6326b4fa3533a3633d8ade4b",
+          "local": "references/upstream/mvu/src/util.ts",
+          "bytes": 2177
+        },
+        "src/variable_def.ts": {
+          "sha256": "8ba03ce3d02a2b21ff5af214f01823bbec88e6f2cc33cf831c34a53ecbf3b21e",
+          "local": "references/upstream/mvu/src/variable_def.ts",
+          "bytes": 10415
+        },
+        "tests/helpers/json_patch_suite.ts": {
+          "sha256": "c73265c67af1f96fe1f670826163fb7a9f3d4c23e433997c8230783a019c6e07",
+          "local": "references/upstream/mvu/tests/helpers/json_patch_suite.ts",
+          "bytes": 11610
+        },
+        "tests/helpers/schema_suite.ts": {
+          "sha256": "5a0e853ca5898d7ed7cf8ded9c2b5ac4cc03534297a45cd48fe39b964fe6d549",
+          "local": "references/upstream/mvu/tests/helpers/schema_suite.ts",
+          "bytes": 36167
+        },
+        "tests/json_patch.test.ts": {
+          "sha256": "4c095a60276bd872bc84a65ed15cc9398e27eab9855b45135d4a89f6e25e3822",
+          "local": "references/upstream/mvu/tests/json_patch.test.ts",
+          "bytes": 165
+        },
+        "tests/variable_init.test.ts": {
+          "sha256": "f53a75ef55d1a7d3d1bc6c0d720119b466929d6d38334e3432b08c907b5c81ba",
+          "local": "references/upstream/mvu/tests/variable_init.test.ts",
+          "bytes": 7931
+        },
+        "util/README.md": {
+          "sha256": "1a495545cff3a41d0c00714ea1f62d96e57d534d85e168fe3f375a71fe89f0ca",
+          "local": "references/upstream/mvu/util/README.md",
+          "bytes": 131
+        }
+      }
+    },
+    "character-card-spec": {
+      "repository": "malfoyslastname/character-card-spec-v2",
+      "ref": "main",
+      "commit": "8083fb388615ccbce768e97cbbd49d2b3214632c",
+      "fetchedAt": "2026-09-18T15:17:34.372Z",
+      "license": {
+        "spdx": "NOASSERTION",
+        "source": "malfoyslastname/character-card-spec-v2 在该提交没有 LICENSE 文件（GitHub license API 返回 404），许可证按上游实际情况记为 NOASSERTION"
+      },
+      "licenseFile": null,
+      "note": "社区角色卡规范 v2（chara_card_v2 字段）；该上游仓库没有 LICENSE 文件，许可证记为 NOASSERTION。v3 规范见独立来源 character-card-spec-v3。",
+      "files": {
+        "README.md": {
+          "sha256": "72121594c79626680ffcb0410a6c54273db2a01e05ffd64d855821b30afc7285",
+          "local": "references/upstream/character-card-spec/README.md",
+          "bytes": 17568
+        },
+        "keyword_definitions.md": {
+          "sha256": "6834ac5bc26f79d4a7001c28f6b4ba7d142bd34e1066f448c540196c672ae0a5",
+          "local": "references/upstream/character-card-spec/keyword_definitions.md",
+          "bytes": 335
+        },
+        "spec_v1.md": {
+          "sha256": "65a11460e8733f1529f87cacc47a27301dfe0392ea8a99f2a97099348a98e759",
+          "local": "references/upstream/character-card-spec/spec_v1.md",
+          "bytes": 3038
+        },
+        "spec_v2.md": {
+          "sha256": "e39e1da4f7a912c965af373846f4ac5c6cfb6207ea3fd5d542060905631acb46",
+          "local": "references/upstream/character-card-spec/spec_v2.md",
+          "bytes": 7446
+        }
+      }
+    },
+    "character-card-spec-v3": {
+      "repository": "kwaroran/character-card-spec-v3",
+      "ref": "main",
+      "commit": "f3a86af019fbd99f788f7a1155f399655b34ab35",
+      "fetchedAt": "2026-09-18T15:17:34.375Z",
+      "license": {
+        "spdx": "MIT",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "角色卡规范 v3（chara_card_v3）权威文本；上游 LICENSE 为 MIT 风格文本，由工具按原文识别。",
+      "files": {
+        ".gitignore": {
+          "sha256": "9a57a6b644c9603f48704e7a9b34e4d34fd07234c36715d75be2e203d9f43013",
+          "local": "references/upstream/character-card-spec-v3/.gitignore",
+          "bytes": 23
+        },
+        "LICENSE": {
+          "sha256": "9805dc6bf59dcf8d9eaedc8987f2798dc434bc3c8e6dafbbf23eb2147d74db95",
+          "local": "references/upstream/character-card-spec-v3/LICENSE",
+          "bytes": 1051
+        },
+        "README.md": {
+          "sha256": "6341479450f9095c39ee8b013bb38480e28d300a4beb3ea419e6424e912b4ff5",
+          "local": "references/upstream/character-card-spec-v3/README.md",
+          "bytes": 955
+        },
+        "SPEC_V3.md": {
+          "sha256": "3c472a16eeda5d018837e90d30fce2816b0982f07f4dba14c8fcc89aa11fe76c",
+          "local": "references/upstream/character-card-spec-v3/SPEC_V3.md",
+          "bytes": 48247
+        },
+        "concepts.md": {
+          "sha256": "1eee6af98f4ec4c8115bed3f23587373d5bceb927fe47930d9028d1b6a0dd7b3",
+          "local": "references/upstream/character-card-spec-v3/concepts.md",
+          "bytes": 9851
+        }
+      }
+    },
+    "tavern-resource": {
+      "repository": "StageDog/tavern_resource",
+      "ref": "main",
+      "commit": "69abb272d46bed4057a0dfb31758f6164cb7ecef",
+      "fetchedAt": "2026-09-18T16:02:09.518Z",
+      "license": {
+        "spdx": "AFPL",
+        "source": "LICENSE"
+      },
+      "licenseFile": "LICENSE",
+      "note": "MVU Zod 注册适配器源码与产物，仅供查阅；运行依赖使用同一固定提交。",
+      "files": {
+        "LICENSE": {
+          "sha256": "676ad37b8ba9003804ab83aebce60fd46cd2c8fcbb1446fa1dd6de2c6f22ef03",
+          "local": "references/upstream/tavern-resource/LICENSE",
+          "bytes": 13838
+        },
+        "dist/util/mvu_zod.js": {
+          "sha256": "78c40f52d81022d9d769a923a49e673b8babb562656051a7d0410b6b19f45184",
+          "local": "references/upstream/tavern-resource/dist/util/mvu_zod.js",
+          "bytes": 4705
+        },
+        "package.json": {
+          "sha256": "23038c1c8401ab6f2ca8947080a0c302d1fef4be80b7a122fa8ffde45ca7d0a9",
+          "local": "references/upstream/tavern-resource/package.json",
+          "bytes": 3697
+        },
+        "util/common.ts": {
+          "sha256": "22f33f9501c3317d593b8aad4a8784fd67c62e7394042e5f04c6d78ce3b0e5ea",
+          "local": "references/upstream/tavern-resource/util/common.ts",
+          "bytes": 4544
+        },
+        "util/mvu_zod.ts": {
+          "sha256": "7bfc6befba039a907b576d4d04472be4cb374ef9e23a2821635b5bf70a4f27f9",
+          "local": "references/upstream/tavern-resource/util/mvu_zod.ts",
+          "bytes": 10478
+        }
+      }
+    }
+  }
+}

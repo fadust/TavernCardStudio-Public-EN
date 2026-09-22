@@ -1,0 +1,3 @@
+<status_current_variable>
+{{format_message_variable::stat_data}}
+</status_current_variable>

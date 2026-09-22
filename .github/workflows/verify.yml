@@ -1,0 +1,31 @@
+name: Verify workspace
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install the repository pnpm version
+        shell: bash
+        run: npm install --global "$(node -p 'require("./package.json").packageManager')"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+      - if: runner.os == 'Linux'
+        run: pnpm exec playwright install --with-deps chromium
+      - if: runner.os != 'Linux'
+        run: pnpm exec playwright install chromium
+      - name: Check local studio interface
+        run: pnpm test:studio-ui
+        env:
+          TAVERN_TEST_BROWSER: chromium

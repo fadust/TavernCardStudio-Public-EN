@@ -1,0 +1,41 @@
+{
+  "name": "tavern-card-studio",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "packageManager": "pnpm@11.17.0",
+  "scripts": {
+    "studio": "node tools/studio.mjs --open",
+    "card": "node tools/card.mjs",
+    "inspect-card": "node tools/inspect-card.mjs",
+    "refs": "node tools/refs.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:ui": "node tools/test-ui.mjs",
+    "test:studio-ui": "node tools/test-studio-ui.mjs",
+    "verify": "pnpm test && pnpm verify:examples && pnpm release:check",
+    "doctor:workspace": "node tools/doctor.mjs",
+    "verify:examples": "node tools/verify-examples.mjs",
+    "verify:refs": "node tools/refs.mjs check",
+    "release:check": "node tools/release.mjs check",
+    "release:export": "node tools/release.mjs export",
+    "setup:workspace": "node tools/setup.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "6.0.9",
+    "acorn": "8.18.0",
+    "ejs": "6.0.1",
+    "esbuild": "0.28.2",
+    "vite": "8.3.0",
+    "vite-plugin-singlefile": "2.3.3",
+    "vue": "3.5.43",
+    "yaml": "2.8.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "zod": "4.4.3"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

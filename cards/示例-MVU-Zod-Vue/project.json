@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "name": "示例-MVU-Zod-Vue",
+  "modules": [
+    "mvu",
+    "vue"
+  ],
+  "avatar": null,
+  "dependencies": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate@3377b494cd7277230f3056230062124fe117f93f/artifact/bundle.js",
+      "purpose": "公开的 MVU 变量框架；要求酒馆助手已安装并启用卡内脚本。",
+      "version": "3377b494cd7277230f3056230062124fe117f93f"
+    },
+    {
+      "url": "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource@69abb272d46bed4057a0dfb31758f6164cb7ecef/dist/util/mvu_zod.js",
+      "purpose": "官方 registerMvuSchema：把 src/schema.ts 里的 zod 结构注册给 MVU，并顺带注册给酒馆助手变量管理器；脚本以固定提交外链导入。",
+      "version": "69abb272d46bed4057a0dfb31758f6164cb7ecef"
+    }
+  ],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "71f94dcad046bb321506bd0d4f2ba4bf2394419d7246c9b91af3dc18f112212b"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "0dc35b3434d5a301ba48ac7f395991b13dd034c57c8af454d9a24e61b2a5fa9f"
+  }
+}

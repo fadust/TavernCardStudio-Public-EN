@@ -1,0 +1,234 @@
+{
+  "version": 2,
+  "card": {
+    "spec": "chara_card_v2",
+    "spec_version": "2.0",
+    "data": {
+      "name": "示例-世界书正则",
+      "description": "{{char}} 是故事中的主要角色。请在这里补充身份、经历、目标，以及与 {{user}} 的关系。",
+      "personality": "请用具体的行为、说话方式和做决定时的偏好描述性格。",
+      "scenario": "请在这里说明故事开始的时间、地点和双方当前的处境。",
+      "first_mes": "{{char}} 注意到你的到来，暂时放下手里的事情。\n\n“你好。今天想从哪里开始？”",
+      "mes_example": "",
+      "creator_notes": "创作骨架：请完善人物与场景后使用。",
+      "system_prompt": "",
+      "post_history_instructions": "",
+      "alternate_greetings": [],
+      "tags": [],
+      "creator": "",
+      "character_version": "0.1.0",
+      "extensions": {
+        "regex_scripts": [
+          {
+            "id": "9ca1f364-c35a-4207-bcf0-c540237cd534",
+            "scriptName": "显示备注",
+            "findRegex": "/<note>([\\s\\S]*?)<\\/note>/g",
+            "replaceString": "<details><summary>备注</summary>$1</details>",
+            "trimStrings": [],
+            "placement": [
+              2
+            ],
+            "disabled": false,
+            "markdownOnly": true,
+            "promptOnly": false,
+            "runOnEdit": true,
+            "substituteRegex": 0,
+            "minDepth": null,
+            "maxDepth": null
+          }
+        ]
+      },
+      "character_book": {
+        "name": "示例-世界书正则",
+        "entries": [
+          {
+            "id": 0,
+            "keys": [],
+            "secondary_keys": [],
+            "comment": "场景规则",
+            "content": "故事发生在一座普通的临海小城。角色只知道自己亲历、听说或能从现场判断的事情。\n未被交代的经历、关系和秘密保持未知，不以猜测替代事实。\n",
+            "constant": true,
+            "selective": true,
+            "enabled": true,
+            "insertion_order": 100,
+            "position": "before_char",
+            "use_regex": false,
+            "extensions": {
+              "position": 0,
+              "depth": 4,
+              "role": 0,
+              "probability": 100,
+              "useProbability": true,
+              "exclude_recursion": true,
+              "prevent_recursion": true,
+              "display_index": 0
+            }
+          },
+          {
+            "id": 1,
+            "keys": [
+              "旧书店"
+            ],
+            "secondary_keys": [],
+            "comment": "旧书店",
+            "content": "旧书店位于码头附近，门口的遮雨棚下摆着二手书箱。店主通常在傍晚关门，店内能听见隔壁修理铺的敲击声。\n",
+            "constant": false,
+            "selective": true,
+            "enabled": true,
+            "insertion_order": 101,
+            "position": "before_char",
+            "use_regex": false,
+            "extensions": {
+              "position": 0,
+              "depth": 4,
+              "role": 0,
+              "probability": 100,
+              "useProbability": true,
+              "exclude_recursion": true,
+              "prevent_recursion": true,
+              "display_index": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "records": {
+    "worldbook-1": {
+      "kind": "worldbook",
+      "base": {
+        "id": 0,
+        "keys": [],
+        "secondary_keys": [],
+        "comment": "场景规则",
+        "content": "故事发生在一座普通的临海小城。角色只知道自己亲历、听说或能从现场判断的事情。\n未被交代的经历、关系和秘密保持未知，不以猜测替代事实。\n",
+        "constant": true,
+        "selective": true,
+        "enabled": true,
+        "insertion_order": 100,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "probability": 100,
+          "useProbability": true,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "display_index": 0
+        }
+      },
+      "config": {
+        "关联": "worldbook-1",
+        "名称": "场景规则",
+        "启用": true,
+        "关键词": [],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 100,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "蓝灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/001-场景规则.md"
+      },
+      "file": "src/worldbook/001-场景规则.yaml"
+    },
+    "worldbook-2": {
+      "kind": "worldbook",
+      "base": {
+        "id": 1,
+        "keys": [
+          "旧书店"
+        ],
+        "secondary_keys": [],
+        "comment": "旧书店",
+        "content": "旧书店位于码头附近，门口的遮雨棚下摆着二手书箱。店主通常在傍晚关门，店内能听见隔壁修理铺的敲击声。\n",
+        "constant": false,
+        "selective": true,
+        "enabled": true,
+        "insertion_order": 101,
+        "position": "before_char",
+        "use_regex": false,
+        "extensions": {
+          "position": 0,
+          "depth": 4,
+          "role": 0,
+          "probability": 100,
+          "useProbability": true,
+          "exclude_recursion": true,
+          "prevent_recursion": true,
+          "display_index": 1
+        }
+      },
+      "config": {
+        "关联": "worldbook-2",
+        "名称": "旧书店",
+        "启用": true,
+        "关键词": [
+          "旧书店"
+        ],
+        "次要关键词": [],
+        "使用次要关键词": true,
+        "关键词使用正则": false,
+        "顺序": 101,
+        "深度": 4,
+        "概率": 100,
+        "使用概率": true,
+        "不可被递归激活": true,
+        "不可激活其他条目": true,
+        "激活": "绿灯",
+        "位置": "角色定义之前",
+        "角色": "系统",
+        "文件": "src/worldbook/002-旧书店.md"
+      },
+      "file": "src/worldbook/002-旧书店.yaml"
+    },
+    "regex-3": {
+      "kind": "regex",
+      "base": {
+        "id": "9ca1f364-c35a-4207-bcf0-c540237cd534",
+        "scriptName": "显示备注",
+        "findRegex": "/<note>([\\s\\S]*?)<\\/note>/g",
+        "replaceString": "<details><summary>备注</summary>$1</details>",
+        "trimStrings": [],
+        "placement": [
+          2
+        ],
+        "disabled": false,
+        "markdownOnly": true,
+        "promptOnly": false,
+        "runOnEdit": true,
+        "substituteRegex": 0,
+        "minDepth": null,
+        "maxDepth": null
+      },
+      "config": {
+        "关联": "regex-3",
+        "名称": "显示备注",
+        "查找": "/<note>([\\s\\S]*?)<\\/note>/g",
+        "裁剪": [],
+        "禁用": false,
+        "仅显示": true,
+        "仅提示词": false,
+        "编辑时运行": true,
+        "宏替换模式": 0,
+        "最小深度": null,
+        "最大深度": null,
+        "作用于": [
+          "AI输出"
+        ],
+        "替换文件": "src/regex/001-显示备注.txt"
+      },
+      "file": "src/regex/001-显示备注.yaml"
+    }
+  },
+  "groups": [],
+  "text": {}
+}

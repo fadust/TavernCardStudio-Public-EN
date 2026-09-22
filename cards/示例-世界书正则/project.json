@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "name": "示例-世界书正则",
+  "modules": [
+    "worldbook",
+    "regex"
+  ],
+  "avatar": null,
+  "dependencies": [],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "04838b6ac7463f7158cbb9f77bf374b3522940af7139dfa0c0997a28dc58e676"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "57fd2249aaf59ca93fea59e786974cad03c7ba89b25e614fa22ada339d392e78"
+  }
+}

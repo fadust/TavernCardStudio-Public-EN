@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "name": "示例-Vue",
+  "modules": [
+    "vue"
+  ],
+  "avatar": null,
+  "dependencies": [],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "92452ed22e360cdb802ffeb3b8398a1d99b5470ba6d4c6e6ce73af476452cfc0"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "270c3d007880e03f050187f47b2442189744ff7725a51e36ed35d23e7205b115"
+  }
+}

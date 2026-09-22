@@ -1,0 +1,20 @@
+{
+  "spec": "chara_card_v2",
+  "spec_version": "2.0",
+  "data": {
+    "name": "__CARD_NAME__",
+    "description": "",
+    "personality": "",
+    "scenario": "",
+    "first_mes": "{{char}} 注意到你的到来，暂时放下手里的事情。\n\n“你好。今天想从哪里开始？”",
+    "mes_example": "",
+    "creator_notes": "创作骨架：请完善人物与场景后使用。",
+    "system_prompt": "",
+    "post_history_instructions": "",
+    "alternate_greetings": [],
+    "tags": [],
+    "creator": "",
+    "character_version": "0.1.0",
+    "extensions": {}
+  }
+}

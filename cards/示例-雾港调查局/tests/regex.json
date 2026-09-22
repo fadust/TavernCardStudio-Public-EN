@@ -1,0 +1,47 @@
+[
+  {
+    "name": "折叠变量更新块（仅显示）",
+    "input": "{{char}} 把现场情况登记完。\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/调查局/委托/阶段\",\"value\":\"核实\"}]</JSONPatch>\n</UpdateVariable>",
+    "expected": "{{char}} 把现场情况登记完。\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/调查局/委托/阶段\",\"value\":\"核实\"}]</JSONPatch>\n\n</details>"
+  },
+  {
+    "name": "折叠变量更新块（仅显示）",
+    "input": "第一段\n<UpdateVariable><JSONPatch>[{\"op\":\"insert\",\"path\":\"/调查局/线索/入坞登记\",\"value\":{\"状态\":\"待核实\",\"说明\":\"工期与停留时间不符\"}}]</JSONPatch></UpdateVariable>\n第二段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>",
+    "expected": "第一段\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"insert\",\"path\":\"/调查局/线索/入坞登记\",\"value\":{\"状态\":\"待核实\",\"说明\":\"工期与停留时间不符\"}}]</JSONPatch>\n\n</details>\n第二段\n<details><summary>变量更新</summary>\n\n<JSONPatch>[]</JSONPatch>\n\n</details>"
+  },
+  {
+    "name": "折叠未闭合变量更新块（仅显示，流式）",
+    "input": "{{char}} 还在往下写。\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/雾港/雾况\",\"value\":8}]",
+    "expected": "{{char}} 还在往下写。\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/雾港/雾况\",\"value\":8}]\n\n</details>"
+  },
+  {
+    "name": "折叠未闭合变量更新块（仅显示，流式）",
+    "input": "第一段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\n第二段\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/调查员/精力\",\"value\":-5}]",
+    "expected": "第一段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\n第二段\n<details><summary>变量更新</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/调查员/精力\",\"value\":-5}]\n\n</details>"
+  },
+  {
+    "name": "屏蔽变量更新块（仅提示词）",
+    "input": "第一段\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/调查局/委托/阶段\",\"value\":\"结案\"}]</JSONPatch>\n</UpdateVariable>\n第二段\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\n结尾",
+    "expected": "第一段\n\n第二段\n\n结尾"
+  },
+  {
+    "name": "屏蔽未闭合变量更新块（仅提示词，流式）",
+    "input": "第一段\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/调查员/声望\",\"value\":5}]",
+    "expected": "第一段\n"
+  },
+  {
+    "name": "隐藏开场初始变量（仅显示）",
+    "input": "<initvar>\n{\"雾港\":{\"时段\":\"深夜\",\"雾况\":78}}\n</initvar>\n\n<CardStatus/>",
+    "expected": "\n\n<CardStatus/>"
+  },
+  {
+    "name": "隐藏开场初始变量（仅显示）",
+    "input": "正文一\n<initvar>{\"调查员\":{\"权限\":\"见习\"}}</initvar>\n正文二",
+    "expected": "正文一\n\n正文二"
+  },
+  {
+    "name": "移除开场初始变量（仅提示词）",
+    "input": "<initvar>{\"雾港\":{\"雾况\":25}}</initvar>\n\n<CardStatus/>",
+    "expected": "\n\n<CardStatus/>"
+  }
+]
