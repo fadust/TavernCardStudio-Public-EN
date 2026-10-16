@@ -1,0 +1,12 @@
+name: Knowledge boundaries
+enabled: true
+activation: constant
+keys: []
+position: at_depth
+order: 6
+exclude_recursion: true
+prevent_recursion: true
+file: src/worldbook/rules/knowledge-boundaries.md
+depth: 1
+role: system
+link: worldbook-3c51980b-9a9e-4ff2-9123-7a95468ac333

@@ -1,0 +1,22 @@
+name: Events·Fog-season missing-person cases
+enabled: true
+keys:
+  - missing
+  - report
+secondary_keys:
+  - fog season
+  - harbor
+selective_logic: any
+selective: true
+use_regex: false
+order: 8
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: before_character
+role: system
+file: src/worldbook/events/fog-season-missing-person-cases.md
+link: worldbook-5347c21f-26d6-4d8e-8642-21c020ae5e62

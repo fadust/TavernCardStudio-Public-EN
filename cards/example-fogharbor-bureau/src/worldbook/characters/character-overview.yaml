@@ -1,0 +1,17 @@
+name: Character overview
+enabled: true
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 10
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: after_character
+role: system
+file: src/worldbook/characters/character-overview.md
+link: worldbook-3001dcdf-5e0e-4ca5-a02d-3a2d0c63dcb2

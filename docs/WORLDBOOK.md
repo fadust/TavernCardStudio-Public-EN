@@ -1,245 +1,103 @@
-# 世界书
+# Worldbooks
 
-世界书条目决定"什么内容在什么条件下进入提示词"。字段名分两层：卡内条目用一套简化字段，宿主内部用另一套完整字段，导入导出时互相转换。
+Worldbook entries determine what content becomes a prompt candidate and under which conditions. Authoring YAML maps into simplified card fields and complete host extension fields; see [Field mapping](ARCHITECTURE.md#authoring-field-mapping). Write the actual prose using [Worldbook writing](WORLDBOOK-WRITING.md).
 
-正文写法见 [世界书条目提示词](WORLDBOOK-WRITING.md)。蓝绿灯、分类和注入位置应分别设计，不用编辑器里看起来相邻代替运行时条件。
+## Activation, enabled state, and category
 
-## 蓝绿灯、开关与分类
-
-| UI/概念 | 实际字段 | 注意 |
+| Concept | Native field | Meaning |
 | --- | --- | --- |
-| 蓝灯 | `constant: true` | 不需要关键词，但仍受启用、概率、预算等约束 |
-| 绿灯 | `constant: false` 且 `extensions.vectorized` 不为 true | 走关键词路径；没有 keys 的绿灯通常不能自行激活 |
-| 向量策略 | `extensions.vectorized: true`（通常 constant 为 false） | 需要宿主向量扩展参与 |
-| 启用/禁用 | `enabled` | 独立于灯色；禁用蓝灯仍可被 MVU 等插件专门读取 |
-| 次关键词开关 | `selective` | 决定是否检查次关键词，不是“是否绿灯” |
-| 人工分类 | 创作 YAML 的 `分类`、源文件目录、comment 前缀 | 不会自动改变激活、顺序或权限 |
-| 互斥候选组 | `extensions.group` | 多条同组候选按权重/评分等选择，不能当纯分类标签使用 |
+| Constant (blue light) | constant: true | no keyword requirement; enabled state, probability, budget, delay, and filtering still apply |
+| Keyword (green light) | constant: false, not vectorized | any primary keyword must match before optional secondary logic |
+| Vector | extensions.vectorized: true | host vector support required |
+| Enabled | enabled | independent of activation; plugins such as MVU can read disabled entries specially |
+| Secondary logic | selective | enables secondary-keyword conditions; does not mean keyword activation |
+| Local category | authoring category/directories/title conventions | file organization only |
+| Runtime group | extensions.group | candidate selection by group weight/scoring, not a folder label |
 
-新卡不同时设置 constant 和 vectorized。导入异常组合时保留数据并核对来源，不静默“修复”。分隔符条目可用禁用空正文，也可只在源目录组织；不要为小卡平添一组空条目。
+New entries do not combine constant and vectorized. Preserve unusual imported combinations until their meaning is reviewed. Empty disabled separators are optional; small cards do not need artificial empty entries.
 
-## 新卡默认布局（推荐）
+## Recommended new-card layout
 
-新卡可以按下面的分布起步，按创作目标调整。分类、触发方式与注入位置是三个独立选择，下面列的是用途示例，不是固定分类法；模板只包含一组小型起步条目。大世界的可选主题、关系与树状组织见 [世界设计](WORLD-DESIGN.md)。
+Use a small constant overview for essential world foundations, geography, institutions, or relationships; use keyword entries for topical details. Before-character often suits background, while after-character can suit current circumstances/relationships, but content type does not mandate position. Rules needing recent context can use at_depth with explicit depth and role: system by default. Choose depth by useful proximity, not a fixed number from another card.
 
-| 内容 | 激活 | 默认位置 |
-| --- | --- | --- |
-| 世界基础、种族、历史、政治制度、社会风俗等背景 | 必需总纲蓝灯，主题细节可绿灯 | 常放角色定义之前，也可按使用路径调整 |
-| 地理总览（区域骨架、相邻关系、通行方式） | 蓝灯 | 角色定义之前 |
-| 具体地点 | 绿灯，关键词 | 角色定义之前 |
-| 人物与组织关系、当前处境、契约和互动所需背景等 | 必需总览蓝灯，条件细节可绿灯 | 常放角色定义之后，不限于人物 |
-| 具体角色 | 绿灯，关键词 | 角色定义之后 |
-| 规则类（输出协议、更新规则、系统约束） | 蓝灯 | 指定深度（`@D`） |
+General narration person, voice, rhythm, and length normally belong to the preset. Keep card-level requirements once and check for conflicts. Worldbook versus traditional description/personality/scenario/mes_example is an authoring choice; avoid duplicating prose. See [Creation](CREATION.md) and [World design](WORLD-DESIGN.md).
 
-蓝灯受预算限制，只放缺失会破坏体验或协议的内容；世界观与地理总览同在角色定义之前时，先后顺序用 `顺序` 决定。内容放定义前还是定义后，取决于希望模型如何读懂设定及宿主布局；政治可以是前置世界基础，也可以是后置的当前组织处境。目录名不替创作者决定位置。
+The worldbook template emits a small starter set; the generated YAML is authoritative. MVU adds its four standard entries. Check warns about enabled nonconstant, nonvector entries with no keys, since ordinary scans cannot activate them; script-forced activation needs separate evidence.
 
-规则类条目用指定深度时，`深度` 与 `角色` 要一起给：深度决定它离最新消息多远，角色决定它以哪种消息角色注入，默认使用 `角色: 系统`；创作者有明确需要时才改成用户或助手。需要贴近本轮上下文的规则可放指定深度；属于世界基础的制度与法则也可留在前置设定，不依据“规则”这个分类名自动选位置。
+Embedded worldbooks live in data.character_book and travel with the card. Standalone worldbooks are separately bound by the player. Duplicate names do not automatically deduplicate content across books.
 
-叙事人称、称呼、视角和节奏通常由酒馆预设或卡文本字段统一设置，世界书不重复同一件事；只有创作目标要求由世界书规定时才在本卡写一处，并检查预设与条目是否互相矛盾。
+## Native entry fields
 
-## 模板生成的世界书
-
-`pnpm card new my-card --modules "worldbook"` 会生成一组示例条目；具体条目、激活与位置以生成的 `src/index.yaml` 与条目 YAML 为准，推荐分布见上一节。带 `mvu` 时再额外生成四个变量相关条目。模板逐条定义激活方式、位置与顺序；不要靠文件名推断设置。
-
-人物设定、性格与场景可以写在世界书条目（新卡推荐：能按触发条件注入、便于逐条增删），也可以写进 `角色描述`、`性格`、`场景`、`对话示例` 四个卡字段。两组位置选一组为主，同一段设定不要两边都写；通用文风与叙事视角通常交给预设，见 [创作指南](CREATION.md)。
-
-条目的中文键与卡 JSON 字段对照见 [架构与操作](ARCHITECTURE.md#中文键对照)。
-
-`pnpm card check` 会检查条目的 `content` 与 `keys` 类型，并对“已启用、既非常驻、又没有关键字、也没有向量化”的条目给出警告，因为在常规关键词扫描下它不会触发；脚本或自动化强制激活是另一条路径，需要单独核实。
-
-## 两种世界书
-
-- **卡内世界书**：写在卡的 `data.character_book` 里，随卡分发，玩家导入即可用。写卡时默认用这种。
-- **独立世界书**：单独的文件，玩家自己绑定到角色或聊天。适合跨卡共用的资料，不随卡分发。
-
-同一张卡里同时出现两者时，条目重名不会自动去重，注意不要写重复设定。
-
-## 条目字段
-
-卡内 `data.character_book.entries[]` 的字段：
-
-| 字段 | 含义 |
+| Field | Meaning |
 | --- | --- |
-| `id` | 条目 ID，导入时保留；与文件名无关 |
-| `keys` | 主关键字 |
-| `secondary_keys` | 次关键字，配合匹配逻辑使用 |
-| `comment` | 条目名，只给人看，不进入提示词 |
-| `content` | 条目正文，进入提示词的是这一项 |
-| `enabled` | 是否启用 |
-| `constant` | 常驻注入，不需要关键字命中（仍受启用、概率与预算约束） |
-| `selective` | 主关键词命中后，是否应用次关键词逻辑 |
-| `insertion_order` | 排序键，见下文 |
-| `position` | 顶层简化位置，只有 `before_char` 和 `after_char` 两个值 |
-| `use_regex` | 卡规范字段；锁定的 SillyTavern 匹配代码不读取它，正则关键词写成 `/表达式/flags` |
-| `extensions` | 完整扩展字段，位置、概率、递归等都在这里 |
+| id | stable entry ID, unrelated to filename |
+| keys / secondary_keys | primary/secondary keywords |
+| comment | entry name, normally not prompt content; may contain plugin markers |
+| content | injected prose |
+| enabled / constant / selective | independent switches described above |
+| insertion_order | prompt order and budget priority |
+| position | simplified before_char/after_char value |
+| use_regex | specification field; pinned matching implementation does not read it to recognize regex keywords |
+| extensions | full position/depth/role, probability, scanning, recursion, grouping, timing, and display settings |
 
-`extensions` 中常用的字段：
+Common extensions include position, depth, role, probability/useProbability, group/group_weight/group_override/use_group_scoring, prevent_recursion, exclude_recursion, delay_until_recursion, scan_depth, case_sensitive, match_whole_words, vectorized, sticky, cooldown, delay, automation_id, and display_index. Full authoring names are documented in Architecture.
 
-| 字段 | 含义 |
-| --- | --- |
-| `position` | 真实注入位置，数字枚举，见下文 |
-| `depth` | 深度，仅 `position` 为指定深度时生效 |
-| `role` | 深度注入的消息角色 |
-| `probability` | 触发概率（0–100） |
-| `useProbability` | 是否启用概率 |
-| `group` / `group_weight` / `group_override` | 条目分组与组内权重 |
-| `prevent_recursion` | 该条目不触发其它条目 |
-| `exclude_recursion` | 该条目不被其它条目触发 |
-| `delay_until_recursion` | 延迟到指定递归层级后才允许触发 |
-| `scan_depth` | 关键字扫描的聊天深度 |
-| `case_sensitive` | 大小写敏感 |
-| `match_whole_words` | 全词匹配 |
-| `use_group_scoring` | 组评分 |
-| `vectorized` | 使用向量检索 |
-| `sticky` / `cooldown` / `delay` | 粘性、冷却、延迟触发 |
-| `automation_id` | 由自动化创建时留下的标识 |
-| `display_index` | 列表显示顺序 |
+## Primary and secondary keywords
 
-## 触发策略
+Primary keywords are OR: any matching primary permits secondary checks. With selective enabled, selective_logic applies only to secondary keywords:
 
-三条主线：
-
-1. **常驻**（`constant: true`）：不需要关键字命中，扫描时直接进入候选。它仍然受启用开关、概率、token 预算、延迟／冷却和装饰器约束，不是“必然注入”。适合核心文风、输出格式、全局规则。
-2. **关键字**（非常驻、非向量条目配置 `keys`）：任一主关键词命中后才继续判断；`selective: true` 且配了次关键词时，再按下面的匹配逻辑决定是否注入。适合人物、地点、事件。
-3. **向量**（`extensions.vectorized: true`）：按语义相似度检索。需要宿主开启向量化，不要在没确认时依赖它。
-
-常驻条目真正进入提示词前还要过几道闸门：`enabled: false` 直接跳过；延迟、冷却、`delay_until_recursion`、`exclude_recursion` 与 `@@dont_activate` 装饰器会拦下它；`useProbability` 为真时按 `probability` 摇一次；最后受世界书 token 预算限制，预算用尽后后面的条目不再加入（设置 `ignoreBudget` 的条目可以豁免）。所以“常驻”只表示不依赖关键字。
-
-关键字条目的匹配逻辑用 `extensions.selectiveLogic`。**主关键词命中是前置条件**，下面四种逻辑只在**次关键词**上生效；条目 YAML 写中文值，卡 JSON 是数字，导入卡里的数字也兼容：
-
-| `次要关键词逻辑` | 值 | 含义 |
+| English YAML | Numeric JSON | Logic |
 | --- | --- | --- |
-| `任一匹配` | 0 | AND ANY：任意一个次关键词命中即触发 |
-| `不全部匹配` | 1 | NOT ALL：任意一个次关键词未命中即触发 |
-| `全部不匹配` | 2 | NOT ANY：所有次关键词都没命中才触发 |
-| `全部匹配` | 3 | AND ALL：全部次关键词都命中才触发 |
+| any | 0 | AND ANY: at least one secondary matches |
+| not_all | 1 | NOT ALL: at least one secondary does not match |
+| none | 2 | NOT ANY: no secondary matches |
+| all | 3 | AND ALL: every secondary matches |
 
-例如人物条目的主关键词为 `钟表匠, 老店主`，次关键词为 `夜港`，用 AND ANY 限定只在夜港语境激活；若次关键词是 `夜港, 钟楼区` 且两者都必须出现，则用 AND ALL。不能把主关键词列表当作“全部同时命中”。正则关键词直接写 `/夜港(?:钟楼|港口)/u`，普通词仍按字符串处理；不要仅设置 `use_regex: true` 后写裸正则。
+For a clockmaker scoped to Night Harbor, use primary keys such as clockmaker/old shopkeeper and secondary Night Harbor with any. For two required scope terms use all. Do not treat primary keys as an AND list. Regex keywords must include slash delimiters/flags, such as /Night Harbor(?: Tower| Docks)/u; setting use_regex alone does not turn a bare string into a regex in the pinned implementation.
 
-## 关键词组合与范围限定
-
-树状结构可组织种族及支系、国家及制度、组织及部门、社会风俗、人物及关系等，也可以组织地点。常见方案是蓝灯总览承载必要骨架，绿灯条目按关键词提供细节；多层分支仍分别设计触发条件。主关键词可收主题词与下层名称，次要关键词用 `任一匹配` 收上层范围名，不需要靠条目正文互相触发。
-
-以下用地理举例，同样可换成其他主题。同一条目里，主关键词写会真实出现在文本里的词：主题词（`地理`、`气候`、`政治`、`外交`）与下层地名；次要关键词写该地区的上层范围名或中心地名，逻辑用 `任一匹配`。满足主关键词和范围词两个条件时才激活，不必给每个子地点复制一份主题词。主关键词之间始终是“任意一个命中”，`任一匹配` 只作用于次关键词。
-
-树形目录只是组织关系：父条目激活不保证子条目激活，子条目也不会自动带上父条目。必要的父级信息要有可靠注入路径，避免依赖一条可能缺席的绿灯。范围词和主题词可以来自同一扫描窗口的不同消息，关键词组合并不表示“当前只属于这个地区/种族/组织”，交叉主题和切换场景都要测试。
-
-父区域条目写父区域，子地点条目写子地点，用关键词的作用范围区分层级；组合写在同一层，不是条目之间的递归链。靠条目正文去触发另一条，会比关键词组合多受全局递归开关、递归层数与预算影响。
-
-示例是通用片段，不来自任何具体卡片：
+Scope combinations can represent geography, peoples, institutions, technologies, or social relationships. Primary keys include actual topic/child names; secondary keys restrict the parent scope. They match independently within the same scan window, potentially across different messages. Parent activation does not guarantee a child, nor does child activation guarantee its parent. A directory tree adds no runtime dependency.
 
 ```yaml
-名称: 地理-雾岭
-启用: true
-激活: 绿灯
-位置: 角色定义之前
-关键词:
-  - 地理
-  - 气候
-  - 地形
-  - 商道
-  - 灰渡口
-  - 雾岭镇
-次要关键词:
-  - 雾岭
-使用次要关键词: true
-次要关键词逻辑: 任一匹配
-顺序: 3
-不可被递归激活: true
-不可激活其他条目: true
-文件: src/worldbook/地理/雾岭.md
+name: Geography - Mist Ridge
+enabled: true
+activation: keyword
+position: before_character
+keys: [geography, climate, terrain, trade route, Gray Ferry, Mist Ridge Town]
+secondary_keys: [Mist Ridge]
+selective: true
+selective_logic: any
+order: 3
+exclude_recursion: true
+prevent_recursion: true
+file: src/worldbook/geography/mist-ridge.md
 ```
 
-本仓库条目 YAML 使用 `关键词`／`次要关键词`／`次要关键词逻辑: 任一匹配`；从其它工具迁移时，先核对字段对照再填写。
+## Scanning and state
 
-## 当前地点、变量与扫描文本
+WorldInfoBuffer.get scans chat messages within scan_depth, explicitly selected card fields (description, personality, depth prompt, scenario, creator notes), scannable extension injections, and recursive buffers. Variables, UI state, and unchecked fields are not automatically included.
 
-关键词只在本轮的扫描文本里匹配。锁定的实现里，扫描文本由按 `扫描深度` 截取的聊天消息组成，再加上条目显式勾选的角色描述、性格、深度提示、场景与创作者备注，以及允许世界书扫描的扩展注入和递归缓冲（`WorldInfoBuffer.get`）。变量、界面状态和没有勾选的那些卡字段都不在其中。
+A location stored in stat_data cannot activate a location entry by itself. A variable-list macro can make state visible to the model without making it available before keyword scanning. State-driven activation needs a reliable pre-scan injection or another reviewed activation path. Document that path and test movement between regions. See [Scope scan reference](../.agents/skills/tavern-worldbook/references/location-scan.md).
 
-所以只把“当前地点”保存在变量里（例如 MVU 的 `stat_data`）不会自动触发地点条目。要让地点参与命中，需要脚本在本次扫描之前，把地点文本可靠提供给允许扫描的注入位置。变量列表宏可能让模型读到状态，但“模型收到状态”和“状态进入关键词扫描”是不同路径；只画在界面上的信息也不能假定已注入。
+## Position and order
 
-地点由变量驱动时，把注入路径写进创作说明，并按“移动到另一个地区后条目是否切换”实测一次。变量不在扫描文本里，和条目正文是否进入提示词是两件事。
+Position enum values 0–7 are before_character, after_character, before_author_note, after_author_note, at_depth, before_example_messages, after_example_messages, and outlet. Extensions.position takes precedence over simplified position on import. At_depth requires depth and role; role values 0/1/2 are system/user/assistant. Depth 0 is near newest context; larger depths move into history. Scan_depth is a separate scanning range; null inherits host settings.
 
-多层范围关键词的命中例子，以及 `injectPrompts` 的扫描专用注入片段见 [地点扫描与树状设定](../.agents/skills/tavern-worldbook/references/location-scan.md)。这属于按需的进阶用法，不自动加入普通新卡。
+Insertion_order has two effects. The pinned implementation processes descending order for probability/budget, so larger values normally claim budget sooner. It then prepends into each injection block, making final block text ascending: lower values read first. This applies only within the same position and, at depth, the same depth/role. Constant/sticky/source/group strategy also affects selection; equal order should not enforce strict dependencies.
 
-## 注入位置与顺序
+New cards align the index with continuous global order 1..N: before_character → after_character → at_depth, deepest first. Disabled entries form a maintenance tail. Within a shared depth the pinned host's final role order is assistant → user → system, based on doChatInject/populationInjectionPrompts; cached documentation differs, so recheck after upgrades. Default depth entries still use system.
 
-`extensions.position` 的数字枚举：
+The index controls storage/display; display_index is not prompt priority. Use `pnpm card arrange <name>` to deliberately update index/order/display together with a backup. Split/build/organize do not renumber. For custom author-note/example/outlet layouts, inspect the actual preset, arrange the index manually, then use --order index. Renumbering changes budget priority; validate in the host.
 
-| 值 | 位置 |
-| --- | --- |
-| 0 | 角色定义之前 |
-| 1 | 角色定义之后 |
-| 2 | 作者注释之前 |
-| 3 | 作者注释之后 |
-| 4 | 指定深度 |
-| 5 | 示例对话之前 |
-| 6 | 示例对话之后 |
-| 7 | 出口（outlet） |
+## Recursion
 
-使用 4 时要同时给 `depth` 和 `role`；`role` 的有效值是 0（system）、1（user）、2（assistant）。
+Exclude_recursion prevents this entry from being activated by recursive content. Prevent_recursion prevents its body from activating others. Both default true for predictability. Deliberate chains require the host's global recursive scan, necessary entry switches, depth/budget/cycle review, and real activation checks.
 
-导入卡时 `extensions.position` 优先于顶层 `position`。指定深度 0 表示靠近最新上下文的注入位置，1、2 等向历史方向移动；它不负责关键词扫描。`extensions.scan_depth` 才是扫描范围，null 表示继承宿主配置，不是深度 0。来源里的默认数字或个别卡的 D1/D2 都不是所有卡的固定要求。
+Pinned checkWorldInfo enters recursion only when the global world_info_recursive switch is enabled (default false). The card specification's worldbook.recursive_scanning field is retained by convertCharacterBook but is not itself used to control that global runtime path. Do not infer runtime support from a preserved JSON field.
 
-`insertion_order` 同时影响两件事，而且方向相反：
+## Activation verification
 
-- **区块内的文本顺序**：构建提示词时先按 `order` 降序处理（`(a, b) => b.order - a.order`），再逐条 `unshift` 到所属区块，所以最终拼出的文本是**升序**，数值小的排在区块靠前位置。
-- **预算优先级**：概率检查与 token 预算阶段用同一套降序列表处理，**数值大的先摇概率、先占预算**；预算耗尽后，排在后面的条目会被跳过。
+Test no keywords, a parent scope name, a child name, two scopes/topics in one round, variable-driven state with/without injection, global recursion off/on, aliases, exclusions, competing group members, and insufficient budget. Old scope terms remaining in history can activate multiple branches. Inspect actual activated entries and final prompts; static check cannot prove matches, macro values, or budgets.
 
-本仓库新卡采用全局连续编号 `1..N`，总索引也按同一阅读顺序排列：角色定义前 → 角色定义后 → 指定深度由大到小。编号跨位置继续递增，不为每个位置重置起点。禁用条目放末尾作为维护区。插入条目后统一整理，无须预留大段空号；改编号会影响预算优先级，因此已有卡使用单独的 `pnpm card arrange <名称>` 操作并保留备份。
+Keep constant content small, names separate from prose, and depth entries aware that same-depth/same-role content merges into one text block. Review MVU-specific layout before changing initialization/list/rule entries.
 
-在锁定的 SillyTavern 提交中，同一深度不同角色的最终消息顺序是助手 → 用户 → 系统；`script.js` 的 `doChatInject` 与 `openai.js` 的 `populationInjectionPrompts` 都先按系统、用户、助手插入再反转消息列表。此处按源码路径核对，与当前缓存文档中的角色次序描述不一致，升级时应重新核对。普通深度条目仍默认系统角色。
-
-上述文本升序只针对同一注入区块（指定深度还需同 depth/role）。常驻、粘性、来源策略、分组等也会影响候选与预算，不能只比较两个不同类型条目的 order 就预测谁一定入选。相同 order 不宜承担严格的先后依赖；`display_index` 只管理编辑列表，不是提示词顺序。
-
-`src/index.yaml` 的 `世界书.条目` 列表用于存储与显示。`arrange` 同时调整它、条目 `顺序` 与 `display_index`，使工作区阅读顺序和所选提示词布局一致；单独手工拖动索引仍只改显示排列。位置、深度与角色仍由宿主决定，编号不能越过位置边界。自定义预设、作者注释、示例对话或 outlet 要先查看宿主实际提示词，按它排列索引，再用 `pnpm card arrange <名称> --order index` 只按该索引编号。常规自动模式遇到不能推定的位置会停止，详见 [世界书文件](WORLDBOOK-FILES.md)。
-
-## 递归与相互触发
-
-条目被注入后，它的正文可能再次触发别的关键字条目。两个开关控制这件事：
-
-- `exclude_recursion`：本条目不参与递归，不会被别的内容触发。
-- `prevent_recursion`：本条目的内容不触发其它条目。
-
-本仓库新条目默认两个都打开，便于预测；这是默认设计，不是宿主强制。真正需要链式触发时只放开必要的一侧，画清激活路径并核对递归层数、预算与循环，不能用“递归已开”保证所有关联条目到达。
-
-递归还要宿主自己的「递归扫描」打开。锁定的实现里，`checkWorldInfo` 只在全局开关为真时才进入递归步骤，条目级开关只在这个前提下决定本条参与哪一侧；全局关闭时两个条目级开关没有生效路径。
-
-卡内 `世界书.递归扫描`（`recursive_scanning`）是卡片规范字段。锁定实现的导入映射 `convertCharacterBook` 只把它留在原始数据里，没有读它来控制递归；换宿主或升级后是否读取，按真实宿主核实，不按规范原文推断。
-
-因此默认同时启用“不可被递归激活”和“不可激活其他条目”，不代表条目之间互不相关；默认不靠条目正文去触发另一条：需要一起出现的设定写进同一条，或按上一节用关键词组合表达范围。
-
-## 激活验证
-
-静态检查只证明字段与语法成立。改过触发结构后，用宿主提示词预览或真实酒馆逐个走一遍；下面是最小集合，“需要宿主确认”的部分不要写成已验证：
-
-| 场景 | 期望 |
-| --- | --- |
-| 没有任何关键词 | 只有蓝灯条目进入；绿灯地点与角色条目不出现 |
-| 提到上层范围名 | 对应地区的条目按范围命中 |
-| 提到下层地点名 | 命中的是该地点条目，不是整片区域的全部条目 |
-| 同一轮提到两个地区 | 两组条目都能命中，先后按 `顺序` 与位置决定 |
-| 地点来自变量 | 脚本注入生效时命中；注入缺失时同一轮不命中 |
-| 全局递归关闭 | 已注入条目的正文不再触发新条目 |
-| 全局递归打开 | 需要链式到达的条目按层数出现，没有循环或预算溢出 |
-
-`pnpm card check` 覆盖不到真实命中、宏展开与 token 预算，这些只能由宿主证据确认。
-
-## 写卡检查
-
-- 常驻条目数量有限，正文只留必要规则；设定细节交给关键字条目，避免占满世界书预算。
-- 关键字要写玩家真会提到的词，包含常见别称，避免过短导致误触发。
-- 指定深度的条目在一次提示词组装里只插入一次，位置按“距最新消息的深度”计算；同一深度、同一角色的一组条目会合并成一段文本，注意 token 占用。
-- 条目名（`comment`）和正文分开写，不要把说明写进正文。
-- 变量初始化、变量列表、更新规则这类条目通常需要固定的启用状态与位置，改动前先看 [变量与 MVU](VARIABLES.md)。
-
-## 实现依据
-
-锁定版本见 `maintenance/references.lock.json` 的 `sillytavern`。关键路径为 `references/upstream/sillytavern/public/scripts/world-info.js` 的 `convertCharacterBook`、`originalWIDataKeyMap`、`matchKeys`、`getScore`、`checkWorldInfo`、`sortFn` 与 `WIDepthEntries` 拼装。正文注入前调用世界书作用域的正则（placement 5，isPrompt=true），所以提示词清理可能改变正文；纯显示正则不会修改这条注入路径。
-
-扫描文本的组成看 `WorldInfoBuffer.get`（消息深度、可选卡字段、扩展注入与递归缓冲），条目级位置枚举看 `world_info_position`，全局递归开关是 `world_info_recursive`（默认 false），条目级递归在 `checkWorldInfo` 的 `excludeRecursion`／`preventRecursion` 分支里生效。
-
-## 按需进阶
-
-- [分类目录与拆分整理](WORLDBOOK-FILES.md)：文件命名、索引引用、旧工程整理与保真。
-- [宏、EJS 与变量](WORLDBOOK-TEMPLATING.md)：作用域、求值阶段、条件正文与扩展前提。
+Implementation evidence: pinned sillytavern/public/scripts/world-info.js, especially convertCharacterBook, originalWIDataKeyMap, matchKeys, getScore, checkWorldInfo, sortFn, WorldInfoBuffer.get, world_info_position, and WIDepthEntries. Worldbook prompt regexes (placement 5, isPrompt=true) run before injection and can change body text; display-only regexes do not alter that path. Pins are in maintenance/references.lock.json.

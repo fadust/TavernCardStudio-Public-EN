@@ -1,3 +1,3 @@
-世界观:
-  地域: 普通的临海小城
-  日常: 港口贸易与居民生活交织，消息随船只和往来人群流通
+World setting:
+  Region: An ordinary coastal town.
+  Daily life: Harbor trade intertwines with residents' lives; news travels with ships and visitors.

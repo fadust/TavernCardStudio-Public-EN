@@ -54,7 +54,7 @@ async function treeHash(dir) {
   await visit(dir);
   return output;
 }
-const withoutManifest = hash => Object.fromEntries(Object.entries(hash).filter(([file]) => !['project.json', '内容导航.md'].includes(file)));
+const withoutManifest = hash => Object.fromEntries(Object.entries(hash).filter(([file]) => !['project.json', 'CONTENTS.md'].includes(file)));
 async function request(base, options = {}) {
   const target = new URL(options.path ?? '/', base);
   const headers = { connection: 'close' };
@@ -83,9 +83,9 @@ async function request(base, options = {}) {
   });
 }
 
-test('导入 JSON／PNG 保留原件字节，未知扩展被拒绝且不建卡', async t => {
+test('JSON and PNG imports preserve original bytes and reject unknown extensions', async t => {
   const root = await workspace(t);
-  const ops = createOperations({ root, openFolder: async () => { throw new Error('测试中不应打开系统文件夹'); } });
+  const ops = createOperations({ root, openFolder: async () => { throw new Error('Tests must not open system folders'); } });
   const card = await sampleCard('导入源');
   const jsonBytes = Buffer.from(JSON.stringify(card, null, 2) + '\n');
   const imported = await ops.importCard({ filename: '来源卡.json', base64: toBase64(jsonBytes), name: 'JSON 卡' });
@@ -109,13 +109,13 @@ test('导入 JSON／PNG 保留原件字节，未知扩展被拒绝且不建卡',
   assert.deepEqual(fromPNG.card, card);
 
   for (const filename of ['来源卡.card', '来源卡.png.bak', '来源卡']) {
-    await assert.rejects(ops.importCard({ filename, base64: toBase64(jsonBytes), name: '未知扩展' }), /PNG 或 JSON/);
+    await assert.rejects(ops.importCard({ filename, base64: toBase64(jsonBytes), name: '未知扩展' }), /PNG or JSON/);
   }
   assert.equal(await exists(path.join(root, 'cards', '未知扩展')), false);
   assert.deepEqual((await ops.listCards()).cards.map(c => c.name), ['JSON 卡', 'PNG 卡']);
 });
 
-test('目录名与角色显示名可以独立修改，原件哈希保持不变', async t => {
+test('Directory and character names can change independently without modifying original hashes', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   const card = await sampleCard('原名');
@@ -132,13 +132,13 @@ test('目录名与角色显示名可以独立修改，原件哈希保持不变',
   assert.equal(await exists(path.join(root, 'cards', '旧目录')), false);
   let current = await originalOf('新目录');
   assert.equal(current.loaded.project.name, '新目录');
-  assert.equal(current.loaded.card.data.name, '原名', '只改目录名时角色显示名不变');
+  assert.equal(current.loaded.card.data.name, '原名', 'Directory-only renames retain the character display name');
   assert.equal(current.hash, current.loaded.project.original.sha256);
-  assert.equal(await exists(path.join(root, 'dist', '旧目录', '旧目录.json')), true, '改名不动原名字的旧成品目录');
+  assert.equal(await exists(path.join(root, 'dist', '旧目录', '旧目录.json')), true, 'Renaming retains the previous output directory');
 
   await ops.renameCard({ name: '新目录', newName: '新目录', characterName: '改名后' });
   current = await originalOf('新目录');
-  assert.equal(current.loaded.card.data.name, '改名后', '只改角色名时目录名不变');
+  assert.equal(current.loaded.card.data.name, '改名后', 'Character-only renames retain the directory name');
   assert.equal(current.loaded.project.name, '新目录');
   assert.equal(current.hash, current.loaded.project.original.sha256);
 
@@ -155,13 +155,13 @@ test('目录名与角色显示名可以独立修改，原件哈希保持不变',
   assert.equal(listed[0].error, undefined);
 
   await ops.newCard({ name: 'Alpha' });
-  // 仅改大小写在大小写不敏感的文件系统上会先撞到路径已存在检查，两条拒绝理由都算通过。
-  await assert.rejects(ops.renameCard({ name: 'Alpha', newName: 'ALPHA' }), /大小写|已经存在/);
+  // Case-only renames can fail the existing-path check first on case-insensitive filesystems.
+  await assert.rejects(ops.renameCard({ name: 'Alpha', newName: 'ALPHA' }), /letter case|already exists/);
   assert.equal(await exists(path.join(root, 'cards', 'Alpha')), true);
   assert.equal((await loadProject('Alpha', root)).card.data.name, 'Alpha');
 });
 
-test('复制卡片不修改源卡，副本与源内容一致且可独立编辑', async t => {
+test('Copies preserve source cards and can be edited independently', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   await ops.newCard({ name: '源卡' });
@@ -171,13 +171,13 @@ test('复制卡片不修改源卡，副本与源内容一致且可独立编辑',
   const copy = await ops.duplicateCard({ name: '源卡', newName: '副本' });
   assert.equal(copy.ok, true);
   assert.equal(copy.name, '副本');
-  assert.deepEqual(await treeHash(sourceDir), before, '源卡目录必须逐字节不变');
+  assert.deepEqual(await treeHash(sourceDir), before, 'Source card directory must remain byte-identical');
   const source = await loadProject('源卡', root);
   const duplicated = await loadProject('副本', root);
   assert.equal(duplicated.project.name, '副本');
   assert.equal(source.project.name, '源卡');
   assert.deepEqual(duplicated.card, source.card);
-  assert.deepEqual(withoutManifest(await treeHash(duplicated.dir)), withoutManifest(await treeHash(source.dir)), '除工程清单与导航外副本内容与源一致');
+  assert.deepEqual(withoutManifest(await treeHash(duplicated.dir)), withoutManifest(await treeHash(source.dir)), 'Copies match source content apart from the manifest and navigation');
 
   await ops.renameCard({ name: '副本', newName: '副本', characterName: '副本角色' });
   assert.equal((await loadProject('源卡', root)).card.data.name, '源卡');
@@ -185,30 +185,30 @@ test('复制卡片不修改源卡，副本与源内容一致且可独立编辑',
   assert.deepEqual(await treeHash(sourceDir), before);
 });
 
-test('重名的新建、导入、改名与复制都被拒绝且不动已有卡', async t => {
+test('Duplicate names reject creation, import, rename, and copying without changing existing cards', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   const jsonBytes = Buffer.from(JSON.stringify(await sampleCard('重名源'), null, 2) + '\n');
   await ops.newCard({ name: '占位' });
   const guard = await treeHash(path.join(root, 'cards', '占位'));
 
-  await assert.rejects(ops.newCard({ name: '占位' }), /同名|已经存在/);
-  await assert.rejects(ops.importCard({ filename: '重名.json', base64: toBase64(jsonBytes), name: '占位' }), /同名|已经存在/);
-  await assert.rejects(ops.duplicateCard({ name: '占位', newName: '占位' }), /同名|已经存在/);
+  await assert.rejects(ops.newCard({ name: '占位' }), /that name already exists|already exists/);
+  await assert.rejects(ops.importCard({ filename: '重名.json', base64: toBase64(jsonBytes), name: '占位' }), /that name already exists|already exists/);
+  await assert.rejects(ops.duplicateCard({ name: '占位', newName: '占位' }), /that name already exists|already exists/);
   await ops.newCard({ name: '另一个' });
-  await assert.rejects(ops.renameCard({ name: '另一个', newName: '占位' }), /同名|已经存在/);
-  await assert.rejects(ops.renameCard({ name: '另一个', newName: '占位', characterName: '改不动' }), /同名|已经存在/);
-  await assert.rejects(ops.duplicateCard({ name: '另一个', newName: '占位' }), /同名|已经存在/);
+  await assert.rejects(ops.renameCard({ name: '另一个', newName: '占位' }), /that name already exists|already exists/);
+  await assert.rejects(ops.renameCard({ name: '另一个', newName: '占位', characterName: '改不动' }), /that name already exists|already exists/);
+  await assert.rejects(ops.duplicateCard({ name: '另一个', newName: '占位' }), /that name already exists|already exists/);
   await ops.newCard({ name: 'Case' });
-  await assert.rejects(ops.newCard({ name: 'case' }), /同名|已经存在/);
-  await assert.rejects(ops.duplicateCard({ name: '另一个', newName: 'CASE' }), /同名|已经存在/);
+  await assert.rejects(ops.newCard({ name: 'case' }), /that name already exists|already exists/);
+  await assert.rejects(ops.duplicateCard({ name: '另一个', newName: 'CASE' }), /that name already exists|already exists/);
 
   assert.deepEqual(await treeHash(path.join(root, 'cards', '占位')), guard);
   assert.equal((await loadProject('另一个', root)).card.data.name, '另一个');
   assert.equal((await loadProject('Case', root)).card.data.name, 'Case');
 });
 
-test('换封面后打包：JSON 与 PNG 内容一致，图片数据来自封面且不残留旧卡数据', async t => {
+test('Cover builds produce matching JSON and PNG data with no foreign character metadata', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   await ops.newCard({ name: '封面卡' });
@@ -217,8 +217,8 @@ test('换封面后打包：JSON 与 PNG 内容一致，图片数据来自封面�
 
   await ops.setCover({ name: '封面卡', base64: toBase64(cover) });
   const stored = await ops.cover('封面卡');
-  assert.deepEqual(idat(parsePNG(stored)), idat(parsePNG(cover)), '保存的封面必须是同一张图');
-  assert.equal(hasTextKeyword(parsePNG(stored), 'chara'), false, '封面里原有角色卡数据必须被剥离');
+  assert.deepEqual(idat(parsePNG(stored)), idat(parsePNG(cover)), 'Saved cover must retain the same image');
+  assert.equal(hasTextKeyword(parsePNG(stored), 'chara'), false, 'Remove foreign character metadata from cover images');
 
   const built = await ops.buildCard({ name: '封面卡' });
   assert.deepEqual([...built.files].sort(), ['封面卡.json', '封面卡.png']);
@@ -226,7 +226,7 @@ test('换封面后打包：JSON 与 PNG 内容一致，图片数据来自封面�
   const png = await fs.readFile(path.join(built.directory, '封面卡.png'));
   assert.deepEqual(readCardPNG(png).card, card);
   assert.deepEqual(readCardPNG(png).card, (await loadProject('封面卡', root)).card);
-  assert.deepEqual(idat(parsePNG(png)), idat(parsePNG(cover)), '打包 PNG 必须使用封面图像数据');
+  assert.deepEqual(idat(parsePNG(png)), idat(parsePNG(cover)), 'Built PNG must use the cover image data');
   const texts = parsePNG(png).filter(c => c.type === 'tEXt');
   assert.equal(texts.filter(c => c.data.toString('latin1').toLowerCase().startsWith('chara\0')).length, 1);
   assert.equal(texts.some(c => c.data.toString('latin1').includes(foreign.data.name)), false);
@@ -234,7 +234,7 @@ test('换封面后打包：JSON 与 PNG 内容一致，图片数据来自封面�
   assert.equal(Object.hasOwn(report.artifacts, '封面卡.png'), true);
 });
 
-test('去掉封面后打包只生成 JSON，不再生成 PNG', async t => {
+test('Removing a cover produces JSON-only builds', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   await ops.newCard({ name: '无封面卡' });
@@ -245,9 +245,9 @@ test('去掉封面后打包只生成 JSON，不再生成 PNG', async t => {
 
   const removed = await ops.removeCover({ name: '无封面卡' });
   assert.equal(removed.ok, true);
-  await assert.rejects(ops.cover('无封面卡'), /封面/);
+  await assert.rejects(ops.cover('无封面卡'), /cover/);
   assert.equal((await loadProject('无封面卡', root)).project.avatar, null);
-  assert.equal(await exists(avatarFile), true, '去封面只取消引用，不删除已保存的图片');
+  assert.equal(await exists(avatarFile), true, 'Removing the cover reference retains saved image files');
 
   built = await ops.buildCard({ name: '无封面卡' });
   assert.deepEqual(built.files, ['无封面卡.json']);
@@ -255,7 +255,7 @@ test('去掉封面后打包只生成 JSON，不再生成 PNG', async t => {
   assert.equal(await exists(path.join(root, 'dist', '无封面卡', '无封面卡.png')), false);
 });
 
-test('非法封面与越界名称被拒绝，原工程逐字节不受影响', async t => {
+test('Invalid covers and escaping names leave original project bytes intact', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   await ops.newCard({ name: '安全卡' });
@@ -263,28 +263,28 @@ test('非法封面与越界名称被拒绝，原工程逐字节不受影响', as
   const guard = await treeHash(path.join(root, 'cards'));
   const image = pngImage();
 
-  await assert.rejects(ops.setCover({ name: '安全卡', base64: '' }), /编码|空/);
-  await assert.rejects(ops.setCover({ name: '安全卡', base64: 'abc' }), /编码|空/);
+  await assert.rejects(ops.setCover({ name: '安全卡', base64: '' }), /encoded|empty/);
+  await assert.rejects(ops.setCover({ name: '安全卡', base64: 'abc' }), /encoded|empty/);
   await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(Buffer.from('这不是 PNG')) }), /PNG/);
-  await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(corrupt(image)) }), /校验失败/);
-  await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(pngImage({ width: 0, height: 4 })) }), /尺寸/);
-  await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(pngImage({ width: 8193, height: 1 })) }), /尺寸/);
-  await assert.rejects(ops.setCover({ name: '../越界', base64: toBase64(image) }), /不安全/);
-  await assert.rejects(ops.setCover({ name: '安全卡/子目录', base64: toBase64(image) }), /不安全/);
-  await assert.rejects(ops.renameCard({ name: '安全卡', newName: '../越界' }), /不安全/);
-  await assert.rejects(ops.renameCard({ name: '安全卡', newName: '安全卡', characterName: '' }), /角色显示名/);
-  await assert.rejects(ops.renameCard({ name: '../安全卡', newName: '合法' }), /不安全/);
-  await assert.rejects(ops.duplicateCard({ name: '安全卡', newName: 'con' }), /不安全/);
-  await assert.rejects(ops.cover('../../安全卡'), /不安全/);
-  await assert.rejects(ops.cover('安全卡'), /封面/);
+  await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(corrupt(image)) }), /checksum failed/);
+  await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(pngImage({ width: 0, height: 4 })) }), /dimensions/);
+  await assert.rejects(ops.setCover({ name: '安全卡', base64: toBase64(pngImage({ width: 8193, height: 1 })) }), /dimensions/);
+  await assert.rejects(ops.setCover({ name: '../越界', base64: toBase64(image) }), /Unsafe/);
+  await assert.rejects(ops.setCover({ name: '安全卡/子目录', base64: toBase64(image) }), /Unsafe/);
+  await assert.rejects(ops.renameCard({ name: '安全卡', newName: '../越界' }), /Unsafe/);
+  await assert.rejects(ops.renameCard({ name: '安全卡', newName: '安全卡', characterName: '' }), /Character display names/);
+  await assert.rejects(ops.renameCard({ name: '../安全卡', newName: '合法' }), /Unsafe/);
+  await assert.rejects(ops.duplicateCard({ name: '安全卡', newName: 'con' }), /Unsafe/);
+  await assert.rejects(ops.cover('../../安全卡'), /Unsafe/);
+  await assert.rejects(ops.cover('安全卡'), /cover/);
   await assert.rejects(ops.removeCover({ name: '不存在的卡' }), /ENOENT/);
-  await assert.rejects(ops.open({ name: '安全卡', target: '未知' }), /未知/);
-  await assert.rejects(ops.checkCard({ name: '../安全卡' }), /不安全/);
+  await assert.rejects(ops.open({ name: '安全卡', target: '未知' }), /Unknown/);
+  await assert.rejects(ops.checkCard({ name: '../安全卡' }), /Unsafe/);
 
   assert.deepEqual(await treeHash(path.join(root, 'cards')), guard);
 });
 
-test('listCards 遇到坏卡只标记该卡，不拖垮整个列表', async t => {
+test('listCards flags individual broken cards without failing the list', async t => {
   const root = await workspace(t);
   const ops = createOperations({ root });
   const jsonBytes = Buffer.from(JSON.stringify(await sampleCard('被篡改'), null, 2) + '\n');
@@ -306,11 +306,11 @@ test('listCards 遇到坏卡只标记该卡，不拖垮整个列表', async t =>
   for (const name of ['空目录', '坏 JSON', '原件被改']) {
     const broken = listed.cards.find(c => c.name === name);
     assert.equal(typeof broken.error, 'string');
-    assert.ok(broken.error.length > 0, `${name} 应带上错误说明`);
+    assert.ok(broken.error.length > 0, `${name} must include an error message`);
   }
 });
 
-test('打开文件夹使用注入回调，不启动真实资源管理器', async t => {
+test('Opening folders uses the injected callback without launching a file manager', async t => {
   const root = await workspace(t);
   const opened = [];
   const ops = createOperations({ root, openFolder: async dir => { opened.push(dir); } });
@@ -328,12 +328,12 @@ test('打开文件夹使用注入回调，不启动真实资源管理器', async
     path.join(root, 'dist', '打开卡'),
   ]);
 
-  await assert.rejects(ops.open({ name: '打开卡', target: '未知' }), /未知/);
+  await assert.rejects(ops.open({ name: '打开卡', target: '未知' }), /Unknown/);
   await assert.rejects(ops.open({ name: '没有这张卡', target: 'card' }), /ENOENT/);
   assert.equal(opened.length, 4);
 });
 
-test('HTTP 接口在变更前校验 token、Origin 与 Host', async t => {
+test('HTTP validates token, Origin, and Host before mutations', async t => {
   const root = await workspace(t);
   const opened = [];
   const app = await createStudioServer({ root, token: 'studio-test-token', port: 0, openFolder: async dir => { opened.push(dir); } });
@@ -361,7 +361,7 @@ test('HTTP 接口在变更前校验 token、Origin 与 Host', async t => {
   assert.equal((await request(app.url, { method: 'POST', path: '/api/new', body: { name: '未授权' } })).status, 403);
   assert.equal((await request(app.url, { method: 'POST', path: '/api/new', token, origin: 'https://evil.example.com', body: { name: '坏来源' } })).status, 403);
   assert.equal((await request(app.url, { method: 'POST', path: '/api/new', token, host: 'evil.example.com', body: { name: '坏主机' } })).status, 403);
-  assert.deepEqual((await request(app.url, { path: '/api/cards', token })).json.cards, [], '被拒绝的请求不能产生卡片');
+  assert.deepEqual((await request(app.url, { path: '/api/cards', token })).json.cards, [], 'Rejected requests must not create cards');
 
   const created = await request(app.url, { method: 'POST', path: '/api/new', token, origin, body: { name: '网页卡' } });
   assert.equal(created.status, 200);

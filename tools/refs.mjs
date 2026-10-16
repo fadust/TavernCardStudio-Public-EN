@@ -1,9 +1,9 @@
-// 工作区参考资料（references/）的检索、校验、按锁还原与固定版本刷新。
-// 配置：maintenance/reference-sources.json；锁文件：maintenance/references.lock.json。
-// 输出：每条命令打印一个 JSON 对象，包含 ok、command 与结果字段。
-// 边界：只读写 references/、maintenance/references.lock.json 与 references/index.json；
-// 下载内容一律当作资料文本，只做字节读取与哈希，绝不导入或执行。
-// refs restore 只读取锁文件：按锁定的完整提交与文件清单取字节，不改锁文件内容与时间。
+// Search, verify, restore, and update pinned workspace references (references/).
+// Configuration: maintenance/reference-sources.json; lockfile: maintenance/references.lock.json.
+// Output: each command prints a JSON object with ok, command, and result fields.
+// Scope: read and write only references/, maintenance/references.lock.json, and references/index.json.
+// Treat downloads as reference text: read bytes and hashes; never import or execute them.
+// refs restore only reads the lockfile: fetch pinned commits and files without changing its bytes or timestamps.
 import path from 'node:path';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -26,11 +26,11 @@ export const sha256 = hash;
 export const toPosix = value => String(value).replaceAll('\\', '/');
 
 export function inside(root, relative) {
-  if (typeof relative !== 'string' || !relative || path.isAbsolute(relative) || relative.includes('\\') || relative.includes('\0')) throw new Error('必须使用项目内相对路径: ' + relative);
-  if (relative.split('/').some(segment => segment === '' || segment === '.' || segment === '..')) throw new Error('路径越界: ' + relative);
+  if (typeof relative !== 'string' || !relative || path.isAbsolute(relative) || relative.includes('\\') || relative.includes('\0')) throw new Error('Use a project-relative path: ' + relative);
+  if (relative.split('/').some(segment => segment === '' || segment === '.' || segment === '..')) throw new Error('Path escapes the workspace: ' + relative);
   const resolved = path.resolve(root, relative);
   const rel = path.relative(root, resolved);
-  if (!rel || rel.startsWith('..' + path.sep) || rel === '..' || path.isAbsolute(rel)) throw new Error('路径越界: ' + relative);
+  if (!rel || rel.startsWith('..' + path.sep) || rel === '..' || path.isAbsolute(rel)) throw new Error('Path escapes the workspace: ' + relative);
   return resolved;
 }
 
@@ -50,61 +50,61 @@ export function listFiles(dir) {
 
 const normalize = value => toPosix(String(value)).replace(/\/+$/, '');
 const isUnder = (prefix, file) => { const p = normalize(prefix); return file === p || file.startsWith(p + '/'); };
-/** include/exclude 支持 're:正则'、普通子串，或 RegExp（测试用）。 */
+/** include/exclude accepts 're:pattern', literal substrings, or RegExp (for tests). */
 export function toMatcher(pattern, id) {
   if (pattern instanceof RegExp) return value => pattern.test(value);
-  if (typeof pattern !== 'string' || !pattern) throw new Error(id + ': include/exclude 只能是非空字符串或正则。');
+  if (typeof pattern !== 'string' || !pattern) throw new Error(id + ': include/exclude must be a nonempty string or regular expression.');
   if (pattern.startsWith('re:')) {
     let regexp;
     try { regexp = new RegExp(pattern.slice(3), 'i'); }
-    catch (error) { throw new Error(id + ': include/exclude 正则无效 ' + JSON.stringify(pattern) + '（' + error.message + '）'); }
+    catch (error) { throw new Error(id + ': Invalid include/exclude regular expression ' + JSON.stringify(pattern) + ' (' + error.message + ')'); }
     return value => regexp.test(value);
   }
   return value => value.includes(pattern);
 }
 const matchAny = (patterns, value) => patterns.some(pattern => pattern(value));
 
-/** 校验关键路径是相对工作区的安全路径。 */
+/** Validate critical paths as safe workspace-relative paths. */
 function assertRelative(value, label) {
-  if (typeof value !== 'string' || !value) throw new Error(label + ': 需要非空相对路径。');
-  if (path.isAbsolute(value) || value.includes('\\') || value.includes('\0')) throw new Error(label + ': 必须使用项目内相对路径: ' + value);
-  if (value.split('/').some(segment => segment === '' || segment === '.' || segment === '..')) throw new Error('路径越界: ' + value);
+  if (typeof value !== 'string' || !value) throw new Error(label + ': A nonempty relative path is required.');
+  if (path.isAbsolute(value) || value.includes('\\') || value.includes('\0')) throw new Error(label + ': Use a project-relative path: ' + value);
+  if (value.split('/').some(segment => segment === '' || segment === '.' || segment === '..')) throw new Error('Path escapes the workspace: ' + value);
   return value;
 }
 
-/** 把工作区相对资料路径换算成暂存目录里的路径。 */
+/** Resolve workspace-relative reference paths inside the staging directory. */
 const stagedPath = local => {
   const prefix = UPSTREAM_DIR + '/';
   return local.startsWith(prefix) ? local.slice(prefix.length) : local;
 };
 
-/** 编译 maintenance/reference-sources.json。files 项可以是仓库内路径、目录前缀，或 '上游前缀:-> 本地前缀' 映射。 */
+/** Compile maintenance/reference-sources.json. files accepts repository paths, directory prefixes, or 'upstream-prefix:-> local-prefix' mappings. */
 export function compileSources(config) {
-  if (config?.schemaVersion !== 1) throw new Error('reference-sources.json: schemaVersion 必须为 1。');
-  if (!Array.isArray(config.sources) || !config.sources.length) throw new Error('reference-sources.json: sources 必须是非空数组。');
+  if (config?.schemaVersion !== 1) throw new Error('reference-sources.json: schemaVersion must be 1.');
+  if (!Array.isArray(config.sources) || !config.sources.length) throw new Error('reference-sources.json: sources must be a nonempty array.');
   const seen = new Set();
   return config.sources.map(raw => {
     const source = raw ?? {};
     const { id, repository, ref } = source;
-    if (typeof id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(id)) throw new Error('无效的来源 id: ' + JSON.stringify(id));
-    if (seen.has(id)) throw new Error('重复的来源 id: ' + id);
+    if (typeof id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(id)) throw new Error('Invalid source id: ' + JSON.stringify(id));
+    if (seen.has(id)) throw new Error('Duplicate source id: ' + id);
     seen.add(id);
-    if (typeof repository !== 'string' || !/^[\w.-]+\/[\w.-]+$/.test(repository)) throw new Error(id + ': repository 必须是 owner/name。');
-    if (typeof ref !== 'string' || !ref.trim()) throw new Error(id + ': ref 不能为空。');
-    if (source.pinCommit !== undefined && !/^[a-f0-9]{40}$/.test(source.pinCommit)) throw new Error(id + ': pinCommit 必须是完整的 40 位提交哈希。');
+    if (typeof repository !== 'string' || !/^[\w.-]+\/[\w.-]+$/.test(repository)) throw new Error(id + ': repository must be owner/name.');
+    if (typeof ref !== 'string' || !ref.trim()) throw new Error(id + ': ref must not be empty.');
+    if (source.pinCommit !== undefined && !/^[a-f0-9]{40}$/.test(source.pinCommit)) throw new Error(id + ': pinCommit must be a full 40-character commit hash.');
     const dest = source.dest === undefined ? id : normalize(source.dest);
-    assertRelative(dest, id + ' 的 dest');
-    if (!Array.isArray(source.files) || !source.files.length) throw new Error(id + ': files 必须是非空数组。');
+    assertRelative(dest, id + ' dest');
+    if (!Array.isArray(source.files) || !source.files.length) throw new Error(id + ': files must be a nonempty array.');
     const file = source.files.map(raw => {
       const text = String(raw); const at = text.indexOf(':->');
-      if (at === -1) { const from = normalize(text); if (!from) throw new Error(id + ': 空的仓库内路径。'); return { from, to: null }; }
+      if (at === -1) { const from = normalize(text); if (!from) throw new Error(id + ': Empty repository path.'); return { from, to: null }; }
       const from = normalize(text.slice(0, at).trim()); const to = normalize(text.slice(at + 3).trim());
-      if (!from || !to) throw new Error(id + ': 文件映射格式错误: ' + text);
+      if (!from || !to) throw new Error(id + ': Invalid file mapping: ' + text);
       inside(UPSTREAM_DIR, from);
-      assertRelative(to, id + ' 的文件映射目标');
+      assertRelative(to, id + ' file mapping destination');
       return { from, to };
     });
-    for (const item of file) assertRelative(item.to ?? UPSTREAM_DIR + '/' + dest + '/' + item.from, id + ' 的资料路径');
+    for (const item of file) assertRelative(item.to ?? UPSTREAM_DIR + '/' + dest + '/' + item.from, id + ' reference path');
     return {
       id, repository, ref,
       pinCommit: source.pinCommit,
@@ -129,11 +129,11 @@ export async function loadLock(root = ROOT) {
   const file = path.join(root, LOCK_FILE);
   if (!fs.existsSync(file)) return { schemaVersion: 1, sources: {} };
   const lock = await readJSON(file);
-  if (lock?.schemaVersion !== 1 || !lock.sources || typeof lock.sources !== 'object') throw new Error('references.lock.json: 结构或版本不受支持。');
+  if (lock?.schemaVersion !== 1 || !lock.sources || typeof lock.sources !== 'object') throw new Error('references.lock.json: Unsupported structure or version.');
   return lock;
 }
 
-/** 上游文件在资料库中的落点（相对工作区根）。 */
+/** Upstream file destination relative to the workspace root. */
 export function targetPath(source, upstreamPath) {
   const file = toPosix(upstreamPath);
   for (const item of source.file) {
@@ -146,9 +146,9 @@ export function targetPath(source, upstreamPath) {
   return UPSTREAM_DIR + '/' + source.dest + '/' + file;
 }
 
-/** 从 GitHub 目录树里挑选该来源需要的文件。 */
+/** Select files required by a source from the GitHub tree. */
 export function selectFiles(source, tree) {
-  if (tree?.truncated) throw new Error(source.id + ': 上游目录树被截断，无法安全挑选文件。');
+  if (tree?.truncated) throw new Error(source.id + ': The upstream tree is truncated; cannot safely select files.');
   const candidates = (tree?.tree ?? []).filter(entry => entry.type === 'blob').filter(entry => {
     const file = toPosix(entry.path);
     if (!source.file.some(item => isUnder(item.from, file))) return false;
@@ -158,29 +158,29 @@ export function selectFiles(source, tree) {
   const seen = new Set();
   const selected = candidates.sort((a, b) => (a.path < b.path ? -1 : 1)).map(entry => ({ path: toPosix(entry.path), local: targetPath(source, entry.path) }));
   for (const item of selected) {
-    if (seen.has(item.path)) throw new Error(source.id + ': 上游路径重复: ' + item.path);
+    if (seen.has(item.path)) throw new Error(source.id + ': Duplicate upstream path: ' + item.path);
     seen.add(item.path); inside(UPSTREAM_DIR, item.local);
   }
-  for (const required of source.required) if (!selected.some(item => item.path === required)) throw new Error(source.id + ': 必需的上游文件未被选中: ' + required);
-  if (!selected.length) throw new Error(source.id + ': 没有选中任何上游文件。');
-  if (selected.length > source.maxFiles) throw new Error(source.id + ': 选中的文件过多（' + selected.length + ' > ' + source.maxFiles + '）。');
+  for (const required of source.required) if (!selected.some(item => item.path === required)) throw new Error(source.id + ': Required upstream file was not selected: ' + required);
+  if (!selected.length) throw new Error(source.id + ': No upstream files selected.');
+  if (selected.length > source.maxFiles) throw new Error(source.id + ': Too many selected files (' + selected.length + ' > ' + source.maxFiles + ').');
   const locals = new Set();
   for (const item of selected) {
-    if (locals.has(item.local)) throw new Error(source.id + ': 两个上游文件映射到同一路径: ' + item.local);
+    if (locals.has(item.local)) throw new Error(source.id + ': Two upstream files map to the same path: ' + item.local);
     locals.add(item.local);
   }
   return selected;
 }
 
-/** 离线播种：用本地已有的仓库内路径推导选中集合。 */
+/** Offline seed: infer selected files from existing local repository paths. */
 export function offlineSelection(source, available) {
   const selected = [...available].map(toPosix).sort().filter(file => {
     if (!source.file.some(item => isUnder(item.from, file))) return false;
     if (matchAny(source.exclude, file)) return false;
     return !source.include.length || matchAny(source.include, file);
   }).map(file => ({ path: file, local: targetPath(source, file) }));
-  for (const required of source.required) if (!selected.some(item => item.path === required)) throw new Error(source.id + ': 离线资料缺少必需文件: ' + required);
-  if (!selected.length) throw new Error(source.id + ': 离线资料没有命中任何文件。');
+  for (const required of source.required) if (!selected.some(item => item.path === required)) throw new Error(source.id + ': Offline references lack a required file: ' + required);
+  if (!selected.length) throw new Error(source.id + ': Offline references matched no files.');
   return selected;
 }
 
@@ -193,7 +193,7 @@ export function licenseUpstreamPath(source, selected) {
 export function guessSpdx(bytes) {
   const head = bytes.toString('utf8', 0, 6000);
   if (/Aladdin Free Public License/i.test(head)) return 'AFPL';
-  // 无标题的 MIT 风格文本（以版权行开头，仍保留授权与免责声明全文）。
+  // Untitled MIT-style text starts with copyright; retain the full grant and disclaimer.
   if (/Permission is hereby granted, free of charge/i.test(head) && /THE SOFTWARE IS PROVIDED "AS IS"/i.test(head)) return 'MIT';
   if (/Apache License\s*\n?\s*Version 2\.0/i.test(head)) return 'Apache-2.0';
   if (/GNU AFFERO GENERAL PUBLIC LICENSE/i.test(head)) return 'AGPL-3.0';
@@ -213,7 +213,7 @@ export function githubHeaders(token = process.env.GITHUB_TOKEN) {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-/** 默认取数：JSON 走 GitHub API，二进制与文本走 raw.githubusercontent。 */
+/** Default fetch: GitHub API for JSON; raw.githubusercontent for binary and text. */
 export async function request(url, { json = false, token = process.env.GITHUB_TOKEN, attempts = 3 } = {}) {
   let last;
   for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -221,7 +221,7 @@ export async function request(url, { json = false, token = process.env.GITHUB_TO
       const headers = json ? githubHeaders(token) : { 'user-agent': USER_AGENT, ...(token ? { authorization: 'Bearer ' + token } : {}) };
       const response = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) });
       if (!response.ok) {
-        const error = new Error('上游请求失败 HTTP ' + response.status + ': ' + url);
+        const error = new Error('Upstream request failed, HTTP ' + response.status + ': ' + url);
         if (!(response.status === 429 || response.status >= 500) || attempt === attempts) throw error;
         last = error;
       } else {
@@ -247,7 +247,7 @@ export async function resolveCommit(source, fetcher = request) {
   if (source.pinCommit) return source.pinCommit;
   const url = 'https://api.github.com/repos/' + source.repository + '/commits/' + encodeURIComponent(source.ref);
   const head = await fetcher(url, { json: true });
-  if (!/^[a-f0-9]{40}$/.test(head?.sha ?? '')) throw new Error(source.id + ': 未取到完整的提交哈希。');
+  if (!/^[a-f0-9]{40}$/.test(head?.sha ?? '')) throw new Error(source.id + ': Did not receive a full commit hash.');
   return head.sha;
 }
 
@@ -260,19 +260,19 @@ export async function mapLimit(items, limit, worker) {
   return results;
 }
 
-/** 下载内容的防御性校验：非空、体积受限、不是 HTML、不是二进制、JSON 可解析。 */
+/** Validate downloads: nonempty, bounded size, no HTML or binary, and parseable JSON. */
 export function assertPayload(source, upstreamPath, bytes) {
-  if (!Buffer.isBuffer(bytes)) throw new Error(source.id + ': 需要字节内容: ' + upstreamPath);
-  // 结构文件必须非空；文本源码允许合法的空占位文件（例如空的 .ts/.css）。
-  if (!bytes.length && !/\.(md|txt|js|mjs|cjs|ts|tsx|vue|html|css)$/i.test(upstreamPath)) throw new Error(source.id + ': 上游文件为空: ' + upstreamPath);
-  if (bytes.length > source.maxFileBytes) throw new Error(source.id + ': 上游文件过大: ' + upstreamPath);
+  if (!Buffer.isBuffer(bytes)) throw new Error(source.id + ': Expected bytes: ' + upstreamPath);
+  // Structured files must be nonempty; source text may be a valid empty placeholder such as .ts/.css.
+  if (!bytes.length && !/\.(md|txt|js|mjs|cjs|ts|tsx|vue|html|css)$/i.test(upstreamPath)) throw new Error(source.id + ': Upstream file is empty: ' + upstreamPath);
+  if (bytes.length > source.maxFileBytes) throw new Error(source.id + ': Upstream file is too large: ' + upstreamPath);
   const head = bytes.subarray(0, 512).toString('utf8').trimStart().toLowerCase();
-  if (head.startsWith('<!doctype html') || head.startsWith('<html')) throw new Error(source.id + ': 上游返回了 HTML 页面: ' + upstreamPath);
-  if (bytes.includes(0) && /\.(md|txt|js|mjs|cjs|ts|tsx|json|yaml|yml)$/i.test(upstreamPath)) throw new Error(source.id + ': 上游文件疑似二进制: ' + upstreamPath);
+  if (head.startsWith('<!doctype html') || head.startsWith('<html')) throw new Error(source.id + ': Upstream returned an HTML page: ' + upstreamPath);
+  if (bytes.includes(0) && /\.(md|txt|js|mjs|cjs|ts|tsx|json|yaml|yml)$/i.test(upstreamPath)) throw new Error(source.id + ': Upstream file appears to be binary: ' + upstreamPath);
   if (/\.json$/i.test(upstreamPath)) {
     const text = bytes.toString('utf8').replace(/^\uFEFF/, '');
-    if (!/^\s*[[{"\dntf-]/.test(text)) throw new Error(source.id + ': 上游 JSON 格式异常: ' + upstreamPath);
-    try { JSON.parse(text); } catch { throw new Error(source.id + ': 上游 JSON 无法解析: ' + upstreamPath); }
+    if (!/^\s*[[{"\dntf-]/.test(text)) throw new Error(source.id + ': Unexpected upstream JSON format: ' + upstreamPath);
+    try { JSON.parse(text); } catch { throw new Error(source.id + ': Cannot parse upstream JSON: ' + upstreamPath); }
   }
   return bytes;
 }
@@ -294,7 +294,7 @@ function symbolsOf(file, bytes) {
   return [...found].slice(0, 40);
 }
 
-/** 只按锁文件生成索引清单，不读取磁盘：用于提交阶段的结构比对。 */
+/** Generate the index manifest from the lockfile only for structural comparison during publishing. */
 function manifestIndex(lock, sources) {
   const known = new Set(sources.map(source => source.id)); const files = [];
   for (const [id, entry] of Object.entries(lock.sources ?? {})) {
@@ -311,13 +311,13 @@ function manifestIndex(lock, sources) {
   return { schemaVersion: 1, sources: view, files };
 }
 
-/** 由锁文件与磁盘内容生成 references/index.json。 */
+/** Generate references/index.json from the lockfile and disk content. */
 export function buildIndex(root, lock, sources) {
   const known = new Set(sources.map(source => source.id)); const files = [];
   for (const [id, entry] of Object.entries(lock.sources ?? {})) {
     if (!known.has(id)) continue;
     for (const [upstream, record] of Object.entries(entry.files ?? {})) {
-      // root 是工作区时用资料路径；root 是暂存目录时用暂存布局，也会回退到暂存目录里的直属副本。
+      // Use reference paths for a workspace root, or staging paths with direct-copy fallback for a staging root.
       const live = path.join(root, record.local);
       const staged = path.join(root, stagedPath(record.local));
       const full = fs.existsSync(live) ? live : fs.existsSync(staged) ? staged : null;
@@ -334,7 +334,7 @@ export function buildIndex(root, lock, sources) {
   return { schemaVersion: 1, sources: view, files };
 }
 
-/** 索引必须与锁文件一一对应；不依赖资料文件当前在暂存区还是活目录。 */
+/** The index must match the lockfile regardless of whether files are staged or live. */
 export function indexMatchesManifest(root, lock, sources, liveRoot = root) {
   const file = path.join(liveRoot, INDEX_FILE);
   if (!fs.existsSync(file)) return false;
@@ -359,7 +359,7 @@ export function indexMatches(root, lock, sources, liveRoot = root) {
     const expected = jsonText(buildIndex(root, lock, sources));
     const actual = fs.readFileSync(file, 'utf8');
     if (actual === expected) return true;
-    // 提交阶段 root 是暂存目录、索引写在活目录：此时用活目录布局回退再比一次。
+    // During publishing the root is staged but the index is live; retry comparison with live paths.
     return actual === jsonText(buildIndex(liveRoot, lock, sources));
   } catch { return false; }
 }
@@ -369,71 +369,71 @@ function sourceFilter(only) {
   if (typeof only === 'string') return new Set([only]);
   if (only instanceof Set) return only;
   if (Array.isArray(only)) return new Set(only);
-  throw new Error('来源筛选必须是来源 id 或 id 列表。');
+  throw new Error('Source filter must be a source id or list of ids.');
 }
 
-/** 锁文件里有文件清单，但 live 侧的 references/upstream/ 为空时，给出还原建议。 */
+/** Suggest restoring when the lockfile lists files but live references/upstream/ is empty. */
 function restoreHint(live, lock) {
   const locked = Object.values(lock.sources ?? {}).some(entry => Object.keys(entry?.files ?? {}).length);
   if (!locked) return null;
   if (listFiles(path.join(live, UPSTREAM_DIR)).length) return null;
-  return '本地参考资料未恢复：' + UPSTREAM_DIR + '/ 为空或缺失，无法校验。请运行 pnpm refs restore 按锁文件还原（只取锁定的完整提交与文件，按 sha256 校验；可用 --source <id> 只还原指定来源），锁文件与来源配置随仓库保留。';
+  return 'Local references have not been restored: ' + UPSTREAM_DIR + '/ is empty or missing; cannot verify. Run pnpm refs restore to restore pinned commits and files with sha256 verification (use --source <id> for one source). The lockfile and source configuration remain in the repository.';
 }
 
-/** 校验锁文件、逐文件 sha256、必需文件与索引。
- * root 用来读配置、锁文件与索引；liveRoot 用来定位资料文件（提交阶段指向真实工作区）。 */
+/** Verify the lockfile, per-file sha256, required files, and index.
+ * root locates configuration, lockfile, and index; liveRoot locates reference files (the real workspace during publishing). */
 export async function checkReferences(root = ROOT, { sources: only, liveRoot = null } = {}) {
   const live = liveRoot ?? root;
   const sources = await loadConfig(live); const lock = await loadLock(live); const filter = sourceFilter(only);
   const selected = filter ? sources.filter(source => filter.has(source.id)) : sources;
-  if (filter && !selected.length) throw new Error('未知来源: ' + [...filter].join(', '));
+  if (filter && !selected.length) throw new Error('Unknown source: ' + [...filter].join(', '));
   const restore = restoreHint(live, lock);
   if (restore) throw new Error(restore);
   const result = { sources: 0, files: 0, bytes: 0, items: [] };
   for (const source of selected) {
     const entry = lock.sources[source.id];
-    if (!entry) throw new Error(source.id + ': 缺少锁记录，请先运行 refs update。');
-    if (!/^[a-f0-9]{40}$/.test(entry.commit ?? '')) throw new Error(source.id + ': 锁记录的 commit 无效。');
-    if (entry.repository !== source.repository) throw new Error(source.id + ': 锁记录的 repository 与配置不一致。');
-    if (entry.ref !== source.ref) throw new Error(source.id + ': 锁记录的 ref 与配置不一致。');
-    if (source.pinCommit && entry.commit !== source.pinCommit) throw new Error(source.id + ': 锁记录的 commit 与 pinCommit 不一致。');
-    if (!entry.fetchedAt || Number.isNaN(Date.parse(entry.fetchedAt))) throw new Error(source.id + ': 锁记录缺少有效的 fetchedAt。');
-    if (!entry.license || typeof entry.license !== 'object' || !entry.license.spdx || !entry.license.source) throw new Error(source.id + ': 锁记录必须写明许可证的 spdx 与来源。');
-    if (entry.licenseFile && !entry.files?.[entry.licenseFile]) throw new Error(source.id + ': licenseFile 不在锁定的文件里。');
+    if (!entry) throw new Error(source.id + ': Missing lock record. Run refs update first.');
+    if (!/^[a-f0-9]{40}$/.test(entry.commit ?? '')) throw new Error(source.id + ': Invalid commit in lock record.');
+    if (entry.repository !== source.repository) throw new Error(source.id + ': Lock record repository differs from configuration.');
+    if (entry.ref !== source.ref) throw new Error(source.id + ': Lock record ref differs from configuration.');
+    if (source.pinCommit && entry.commit !== source.pinCommit) throw new Error(source.id + ': Lock record commit differs from pinCommit.');
+    if (!entry.fetchedAt || Number.isNaN(Date.parse(entry.fetchedAt))) throw new Error(source.id + ': Lock record lacks a valid fetchedAt.');
+    if (!entry.license || typeof entry.license !== 'object' || !entry.license.spdx || !entry.license.source) throw new Error(source.id + ': Lock record must declare license spdx and source.');
+    if (entry.licenseFile && !entry.files?.[entry.licenseFile]) throw new Error(source.id + ': licenseFile is not among the locked files.');
     const locals = new Set();
     for (const [upstream, record] of Object.entries(entry.files ?? {})) {
-      if (record.local !== targetPath(source, upstream)) throw new Error(source.id + ': 锁文件的路径映射已漂移: ' + upstream);
-      if (locals.has(record.local)) throw new Error(source.id + ': 锁文件路径重复: ' + record.local);
+      if (record.local !== targetPath(source, upstream)) throw new Error(source.id + ': Lockfile path mapping has drifted: ' + upstream);
+      if (locals.has(record.local)) throw new Error(source.id + ': Duplicate lockfile path: ' + record.local);
       locals.add(record.local);
       const full = inside(live, record.local);
-      if (!fs.existsSync(full)) throw new Error(source.id + ': 资料文件缺失: ' + record.local + '。请运行 pnpm refs restore 按锁还原。');
+      if (!fs.existsSync(full)) throw new Error(source.id + ': Missing reference file: ' + record.local + '. Run pnpm refs restore to restore from the lockfile.');
       const bytes = fs.readFileSync(full);
-      if (sha256(bytes) !== record.sha256) throw new Error(source.id + ': 资料内容被改动: ' + record.local);
+      if (sha256(bytes) !== record.sha256) throw new Error(source.id + ': Reference content was modified: ' + record.local);
       result.files++; result.bytes += bytes.length;
     }
-    for (const required of source.required) if (!entry.files?.[required]) throw new Error(source.id + ': 缺少必需资料: ' + required);
+    for (const required of source.required) if (!entry.files?.[required]) throw new Error(source.id + ': Missing required reference: ' + required);
     result.items.push({ id: source.id, commit: entry.commit, files: Object.keys(entry.files ?? {}).length, license: entry.license.spdx });
     result.sources++;
   }
-  if (!filter && !indexMatches(root, lock, sources, live) && !indexMatchesManifest(root, lock, sources, live)) throw new Error('references/index.json 缺失或过期，请运行 pnpm refs restore（按锁还原并重建本地索引）或 pnpm refs update（刷新来源并重写锁文件）。');
+  if (!filter && !indexMatches(root, lock, sources, live) && !indexMatchesManifest(root, lock, sources, live)) throw new Error('references/index.json is missing or stale. Run pnpm refs restore (restore pinned files and rebuild the local index) or pnpm refs update (refresh sources and rewrite the lockfile).');
   return result;
 }
 
-/** 在本地资料库里检索关键词，返回文件、行号与上下文。 */
+/** Search local references and return file paths, line numbers, and context. */
 export function searchReferences(root = ROOT, query, { limit = 80, context = 0, sources: only = null } = {}) {
   const needle = String(query ?? '').trim();
-  if (!needle) throw new Error('refs search 需要一个关键词。');
-  if (!Number.isInteger(limit) || limit < 1) throw new Error('--limit 必须是正整数。');
-  if (!Number.isInteger(context) || context < 0) throw new Error('--context 必须是非负整数。');
+  if (!needle) throw new Error('refs search requires a keyword.');
+  if (!Number.isInteger(limit) || limit < 1) throw new Error('--limit must be a positive integer.');
+  if (!Number.isInteger(context) || context < 0) throw new Error('--context must be a nonnegative integer.');
   const available = listFiles(path.join(root, UPSTREAM_DIR));
-  if (!available.length) throw new Error('本地参考资料尚未恢复：' + UPSTREAM_DIR + '/ 为空或缺失，检索不到内容。请先运行 pnpm refs restore（可用 --source <id> 只还原指定来源）按锁文件还原。');
+  if (!available.length) throw new Error('Local references have not been restored: ' + UPSTREAM_DIR + '/ is empty or missing; nothing to search. Run pnpm refs restore to restore pinned files (use --source <id> for one source).');
   const filter = sourceFilter(only);
   let selectedFiles = null;
   if (filter) {
     const lock = JSON.parse(fs.readFileSync(path.join(root, LOCK_FILE), 'utf8'));
     selectedFiles = new Set();
     for (const id of filter) {
-      if (!lock.sources?.[id]) throw new Error('未知来源: ' + id);
+      if (!lock.sources?.[id]) throw new Error('Unknown source: ' + id);
       for (const record of Object.values(lock.sources[id].files)) selectedFiles.add(record.local);
     }
   }
@@ -483,16 +483,16 @@ function licenseRecord(source, selection, payload, stagingRoot) {
   const upstream = licenseUpstreamPath(source, selection);
   if (!upstream) {
     if (source.license && typeof source.license === 'object') {
-      if (!source.license.spdx || !source.license.source) throw new Error(source.id + ': license 需要 spdx 与 source。');
+      if (!source.license.spdx || !source.license.source) throw new Error(source.id + ': license requires spdx and source.');
       return { license: source.license, licenseFile: null };
     }
-    throw new Error(source.id + ': 没有选中许可证文件，且配置里的 license 不是对象。');
+    throw new Error(source.id + ': No license file selected, and configured license is not an object.');
   }
   const record = payload.get(upstream);
-  if (!record) throw new Error(source.id + ': 许可证文件不在本次选中范围内: ' + upstream);
+  if (!record) throw new Error(source.id + ': License file is not selected: ' + upstream);
   let license = source.license;
   if (license && typeof license === 'object') {
-    if (!license.spdx || !license.source) throw new Error(source.id + ': license 需要 spdx 与 source。');
+    if (!license.spdx || !license.source) throw new Error(source.id + ': license requires spdx and source.');
   } else if (typeof license === 'string') license = { spdx: license, source: upstream };
   else license = { spdx: guessSpdx(fs.readFileSync(inside(stagingRoot, stagedPath(record.local)))), source: upstream };
   return { license, licenseFile: upstream };
@@ -505,11 +505,11 @@ async function downloadSource(source, commit, selection, fetcher) {
     files.set(item.path, { sha256: sha256(bytes), local: item.local, bytes: bytes.length, data: bytes });
     total += bytes.length;
   });
-  if (total > source.maxTotalBytes) throw new Error(source.id + ': 选中内容总量过大（' + total + ' 字节）。');
+  if (total > source.maxTotalBytes) throw new Error(source.id + ': Selected content is too large (' + total + ' bytes).');
   return files;
 }
 
-/** 读取 --seed 目录：<seed>/<id>/<仓库内路径>，返回字节；命中清单时校验 sha256。 */
+/** Read bytes from --seed directory <seed>/<id>/<repository-path>; verify sha256 when a manifest record exists. */
 export function seedReader(seedDir, manifest) {
   const dir = path.resolve(seedDir);
   const entries = manifest?.sources ?? null;
@@ -517,12 +517,12 @@ export function seedReader(seedDir, manifest) {
     const base = path.join(dir, source.id);
     if (!fs.existsSync(base)) return null;
     const declared = entries?.[source.id];
-    if (declared?.commit && commit && declared.commit !== commit) throw new Error(source.id + ': 离线资料的 commit 与锁定的 commit 不一致（' + declared.commit + ' ≠ ' + commit + '）。');
+    if (declared?.commit && commit && declared.commit !== commit) throw new Error(source.id + ': Offline reference commit differs from pinned commit (' + declared.commit + ' ≠ ' + commit + ').');
     const files = {};
     for (const relative of listFiles(base)) {
       const bytes = fs.readFileSync(path.join(base, relative));
       const expected = declared?.files?.[relative]?.sha256;
-      if (expected && expected !== sha256(bytes)) throw new Error(source.id + ': 离线资料哈希与清单不一致: ' + relative);
+      if (expected && expected !== sha256(bytes)) throw new Error(source.id + ': Offline reference hash differs from manifest: ' + relative);
       files[relative] = bytes;
     }
     return Object.keys(files).length ? { commit: declared?.commit ?? commit, files } : null;
@@ -530,14 +530,14 @@ export function seedReader(seedDir, manifest) {
 }
 
 /**
- * 按配置刷新参考资料。
- * 全部内容先写入暂存目录；只有每个来源都校验通过后才整体切换；
- * 提交阶段（写锁文件/索引或外部校验）失败时回滚到切换前的资料与锁文件。
+ * Refresh references using source configuration.
+ * Stage all content first; switch only after every source passes verification.
+ * Roll back references and lockfile if publishing (writing lock/index or external validation) fails.
  */
 export async function updateReferences({ root = ROOT, fetcher = request, only = null, readOffline = null, validate = () => {}, now = () => new Date().toISOString() } = {}) {
   const sources = await loadConfig(root); const previous = await loadLock(root); const filter = sourceFilter(only);
   const selected = filter ? sources.filter(source => filter.has(source.id)) : sources;
-  if (filter && !selected.length) throw new Error('未知来源: ' + [...filter].join(', '));
+  if (filter && !selected.length) throw new Error('Unknown source: ' + [...filter].join(', '));
   const token = process.pid + '-' + Date.now() + '-' + Math.random().toString(16).slice(2);
   const lockFile = path.join(root, LOCK_FILE);
   const indexFile = path.join(root, INDEX_FILE);
@@ -555,12 +555,12 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
     const lock = { schemaVersion: 1, sources: { ...(previous.sources ?? {}) } };
     const changed = [];
     for (const source of selected) {
-      // 离线播种以快照声明的提交为准，不访问上游；联网更新才解析 ref 到最新提交。
+      // Offline seeds use the snapshot commit without upstream access; online updates resolve refs to current commits.
       let commit = source.pinCommit ?? null;
       let offline = null;
       if (readOffline) {
         offline = await readOffline(source, commit);
-        if (!offline) throw new Error(source.id + ': 离线资料没有该来源的内容。');
+        if (!offline) throw new Error(source.id + ': Offline references contain no content for this source.');
         if (offline.commit) commit = offline.commit;
       }
       if (!commit) commit = await resolveCommit(source, fetcher);
@@ -573,8 +573,8 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
           payload.set(item.path, { sha256: sha256(bytes), local: item.local, bytes: bytes.length, data: bytes });
           total += bytes.length;
         }
-        for (const required of source.required) if (!payload.has(required)) throw new Error(source.id + ': 离线资料缺少必需文件: ' + required);
-        if (total > source.maxTotalBytes) throw new Error(source.id + ': 离线资料总量过大（' + total + ' 字节）。');
+        for (const required of source.required) if (!payload.has(required)) throw new Error(source.id + ': Offline references lack a required file: ' + required);
+        if (total > source.maxTotalBytes) throw new Error(source.id + ': Offline references are too large (' + total + ' bytes).');
         for (const item of selection) {
           const full = inside(stagedRoot, stagedPath(item.local));
           fs.mkdirSync(path.dirname(full), { recursive: true });
@@ -599,7 +599,7 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
         fs.mkdirSync(path.dirname(full), { recursive: true });
         const entry = payload.get(upstream);
         const data = entry?.data ?? (before?.files?.[upstream] ? fs.readFileSync(inside(root, before.files[upstream].local)) : null);
-        if (!data) throw new Error(source.id + ': 既没有下载内容也没有旧的资料内容: ' + upstream);
+        if (!data) throw new Error(source.id + ': No downloaded or previous reference content: ' + upstream);
         fs.writeFileSync(full, data);
         staged.set(record.local, true);
       }
@@ -609,7 +609,7 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
       changed.push({ id: source.id, commit, files: Object.keys(files).length, bytes: total });
     }
     if (!changed.length) {
-      // 没有来源内容变化时也要保证索引与锁文件一致：资料已就位、索引为空或过期时直接补写。
+      // Keep index and lockfile consistent even if sources are unchanged; rebuild missing or stale indexes.
       const expectedIndex = buildIndex(root, lock, sources);
       if (!indexMatchesManifest(root, lock, sources, root) && expectedIndex.files.length) {
         writeFileAtomic(indexFile, jsonText(expectedIndex));
@@ -617,7 +617,7 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
       }
       return { changed: 0, sources: selected.length, files: 0, bytes: 0, updated: [] };
     }
-    // 暂存布局：upstream/ 是暂存根，锁里的 local 是工作区相对路径。
+    // Staging layout: upstream/ is the staging root; locked local paths are workspace-relative.
     const index = buildIndex(stagedRoot, lock, sources);
     had = swapDirectory(stagedRoot, live, backup);
     swapped = true;
@@ -634,7 +634,7 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
         if (lockBefore === null) fs.rmSync(lockFile, { force: true }); else writeFileAtomic(lockFile, lockBefore);
         if (indexBefore === null) fs.rmSync(indexFile, { force: true }); else writeFileAtomic(indexFile, indexBefore);
       } catch (restoreError) { failures.push(restoreError); }
-      if (failures.length > 1) throw new AggregateError(failures, '更新失败且回滚未完全成功');
+      if (failures.length > 1) throw new AggregateError(failures, 'Update failed and rollback was incomplete');
       throw error;
     }
     fs.rmSync(backup, { recursive: true, force: true });
@@ -646,16 +646,16 @@ export async function updateReferences({ root = ROOT, fetcher = request, only = 
 }
 
 /* ------------------------------ refs restore ------------------------------ */
-// 按锁文件把参考资料还原到 references/upstream/：只取锁定的完整提交与文件清单，
-// 不使用 GitHub tree API，也不解析最新分支；逐文件按 sha256 校验，已存在且校验通过的文件直接复用。
-// 先在暂存目录里分阶段写好，全部通过后再整体切换；任何失败都回滚，不损伤旧缓存。
-// 下载内容一律当资料：只做字节写入与哈希，绝不导入或执行；锁文件只读，不写入。
+// Restore references to references/upstream/ from full pinned commits and file lists only.
+// Do not use the GitHub tree API or resolve branch heads; verify sha256 and reuse verified local files.
+// Write in staging and switch after all checks pass; roll back failures to preserve the old cache.
+// Treat downloads as data: write bytes and hashes only; never import or execute. The lockfile is read-only.
 
 function lstatOrNull(file) {
   try { return fs.lstatSync(file); } catch { return null; }
 }
 
-/** 复用本地文件：必须是普通文件（跳过符号链接），大小一致且 sha256 命中才可用。 */
+/** Reuse only regular local files (skip symlinks) whose size and sha256 match. */
 function reuseLive(root, local, sha, size) {
   const full = inside(root, local);
   const stat = lstatOrNull(full);
@@ -664,26 +664,26 @@ function reuseLive(root, local, sha, size) {
   return sha256(data) === sha ? data : null;
 }
 
-/** 需要还原的单个文件：校验锁记录、确认落点，并尽量复用已校验的本地字节。 */
+/** Prepare one restore file: validate its lock record and destination, then reuse verified local bytes if possible. */
 function restoreItem(root, source, entry, upstream, record) {
-  assertRelative(upstream, source.id + ' 锁记录里的上游路径');
+  assertRelative(upstream, source.id + ' locked upstream path');
   const local = String(record?.local ?? '');
-  assertRelative(local, source.id + ' 锁记录里的 local');
-  if (local !== targetPath(source, upstream)) throw new Error(source.id + ': 锁记录的路径映射已漂移: ' + upstream + '（请运行 pnpm refs update 重新生成锁文件）');
-  if (!isUnder(UPSTREAM_DIR, local)) throw new Error(source.id + ': 锁记录的 local 必须位于 ' + UPSTREAM_DIR + '/ 下: ' + local);
+  assertRelative(local, source.id + ' locked local path');
+  if (local !== targetPath(source, upstream)) throw new Error(source.id + ': Lock record path mapping has drifted: ' + upstream + ' (run pnpm refs update to regenerate the lockfile)');
+  if (!isUnder(UPSTREAM_DIR, local)) throw new Error(source.id + ': Lock record local must be under ' + UPSTREAM_DIR + '/: ' + local);
   const sha = String(record?.sha256 ?? '');
-  if (!/^[a-f0-9]{64}$/.test(sha)) throw new Error(source.id + ': 锁记录的 sha256 无效: ' + upstream);
-  if (!Number.isInteger(record?.bytes) || record.bytes < 0) throw new Error(source.id + ': 锁记录的字节数无效: ' + upstream);
+  if (!/^[a-f0-9]{64}$/.test(sha)) throw new Error(source.id + ': Invalid lock record sha256: ' + upstream);
+  if (!Number.isInteger(record?.bytes) || record.bytes < 0) throw new Error(source.id + ': Invalid lock record byte count: ' + upstream);
   return { source, entry, upstream, local, sha, bytes: record.bytes, cached: reuseLive(root, local, sha, record.bytes) };
 }
 
-/** 在暂存目录里安全地建立目标路径：清掉挡路的符号链接与目录，逐段确保是真实目录。 */
+/** Create safe staging paths: remove obstructing symlinks/directories and ensure every segment is a real directory. */
 function stagedFile(stagedRoot, local) {
   const prefix = UPSTREAM_DIR + '/';
-  if (!local.startsWith(prefix)) throw new Error('锁记录的 local 必须位于 ' + UPSTREAM_DIR + '/ 下: ' + local);
+  if (!local.startsWith(prefix)) throw new Error('Lock record local must be under ' + UPSTREAM_DIR + '/: ' + local);
   const relative = local.slice(prefix.length);
   const segments = relative.split('/');
-  if (!relative || segments.some(segment => !segment || segment === '.' || segment === '..')) throw new Error('路径越界: ' + local);
+  if (!relative || segments.some(segment => !segment || segment === '.' || segment === '..')) throw new Error('Path escapes the workspace: ' + local);
   let current = stagedRoot;
   for (const segment of segments.slice(0, -1)) {
     const next = path.join(current, segment);
@@ -698,18 +698,18 @@ function stagedFile(stagedRoot, local) {
   return file;
 }
 
-/** 把单个文件写进暂存目录：命中复用就直接写，否则按锁定的完整提交下载并校验后再写。 */
+/** Stage one file: reuse verified bytes or download and verify the pinned commit before writing. */
 async function materializeItem(stagedRoot, item, fetcher) {
   const target = stagedFile(stagedRoot, item.local);
   const data = item.cached ?? await fetcher(rawUrl(item.source, item.entry.commit, item.upstream));
-  if (!Buffer.isBuffer(data)) throw new Error(item.source.id + ': 取数函数没有返回字节内容: ' + item.upstream);
-  if (data.length !== item.bytes) throw new Error(item.source.id + ': 还原内容长度与锁记录不一致: ' + item.upstream + '（' + data.length + ' ≠ ' + item.bytes + '）');
-  if (sha256(data) !== item.sha) throw new Error(item.source.id + ': 还原内容 sha256 与锁记录不一致: ' + item.upstream + '（已丢弃，未写入）');
+  if (!Buffer.isBuffer(data)) throw new Error(item.source.id + ': Fetch function did not return bytes: ' + item.upstream);
+  if (data.length !== item.bytes) throw new Error(item.source.id + ': Restored byte count differs from lock record: ' + item.upstream + ' (' + data.length + ' ≠ ' + item.bytes + ')');
+  if (sha256(data) !== item.sha) throw new Error(item.source.id + ': Restored sha256 differs from lock record: ' + item.upstream + ' (discarded, not written)');
   writeFileAtomic(target, data);
   return data.length;
 }
 
-/** 有界并发：任何一个失败就停发新任务，并等所有在途任务收尾后再抛第一个错误。 */
+/** Bound concurrency: stop scheduling on failure, drain in-flight tasks, then throw the first error. */
 async function runBounded(items, limit, worker) {
   const width = Math.max(1, Math.min(Number.isInteger(limit) && limit > 0 ? limit : CONCURRENCY, items.length));
   let cursor = 0; let firstError = null;
@@ -725,47 +725,47 @@ async function runBounded(items, limit, worker) {
   if (firstError) throw firstError;
 }
 
-/** 切换后按锁记录逐文件回读校验，确认落到工作区的就是锁定的字节。 */
+/** After switching, read back every file and verify it contains the pinned bytes. */
 function verifyRestored(root, selected, lock) {
   for (const source of selected) {
     for (const [upstream, record] of Object.entries(lock.sources[source.id].files ?? {})) {
       const full = inside(root, record.local);
       const stat = lstatOrNull(full);
-      if (!stat || !stat.isFile()) throw new Error(source.id + ': 还原后缺少文件: ' + record.local);
-      if (sha256(fs.readFileSync(full)) !== record.sha256) throw new Error(source.id + ': 还原后校验失败: ' + record.local);
+      if (!stat || !stat.isFile()) throw new Error(source.id + ': Missing file after restore: ' + record.local);
+      if (sha256(fs.readFileSync(full)) !== record.sha256) throw new Error(source.id + ': Verification failed after restore: ' + record.local);
     }
   }
 }
 
 /**
- * 按锁文件还原参考资料，供未随发布分发 references/ 的克隆或损坏缓存重建。
- * only 指定来源时只处理这些来源，其它来源缺失不影响；锁文件只读，内容与时间不变。
+ * Restore pinned references for clones without references/ or to rebuild a damaged cache.
+ * When only selects sources, ignore missing others; keep lockfile bytes and timestamps unchanged.
  */
 export async function restoreReferences({ root = ROOT, fetcher = request, only = null, concurrency = CONCURRENCY } = {}) {
   const referenceRoot = path.join(root, 'references');
-  if (lstatOrNull(referenceRoot)?.isSymbolicLink()) throw new Error('references 目录不能是符号链接。');
+  if (lstatOrNull(referenceRoot)?.isSymbolicLink()) throw new Error('The references directory cannot be a symlink.');
   const sources = await loadConfig(root);
   const lock = await loadLock(root);
   const filter = sourceFilter(only);
   const selected = filter ? sources.filter(source => filter.has(source.id)) : sources;
-  if (filter) for (const id of filter) if (!sources.some(source => source.id === id)) throw new Error('未知来源: ' + id);
-  if (filter && !selected.length) throw new Error('未知来源: ' + [...filter].join(', '));
-  if (!fs.existsSync(path.join(root, LOCK_FILE))) throw new Error('缺少 ' + LOCK_FILE + '：无法按锁还原。锁文件随维护配置保留，请先取得它。');
+  if (filter) for (const id of filter) if (!sources.some(source => source.id === id)) throw new Error('Unknown source: ' + id);
+  if (filter && !selected.length) throw new Error('Unknown source: ' + [...filter].join(', '));
+  if (!fs.existsSync(path.join(root, LOCK_FILE))) throw new Error('Missing ' + LOCK_FILE + ': cannot restore pinned references. Obtain the lockfile from the maintenance configuration first.');
   const items = [];
   for (const source of selected) {
     const entry = lock.sources?.[source.id];
-    if (!entry) throw new Error(source.id + ': 锁文件缺少该来源，请运行 pnpm refs update 生成锁记录后再还原。');
-    if (entry.repository !== source.repository) throw new Error(source.id + ': 锁记录的 repository 与配置不一致，请运行 pnpm refs update。');
-    if (!/^[a-f0-9]{40}$/.test(String(entry.commit ?? ''))) throw new Error(source.id + ': 锁记录的 commit 不是完整 40 位提交哈希，无法按锁还原，请运行 pnpm refs update。');
-    if (source.pinCommit && entry.commit !== source.pinCommit) throw new Error(source.id + ': 锁记录的 commit 与配置 pinCommit 不一致，请运行 pnpm refs update。');
+    if (!entry) throw new Error(source.id + ': Lockfile lacks this source. Run pnpm refs update to create lock records before restoring.');
+    if (entry.repository !== source.repository) throw new Error(source.id + ': Lock record repository differs from configuration. Run pnpm refs update.');
+    if (!/^[a-f0-9]{40}$/.test(String(entry.commit ?? ''))) throw new Error(source.id + ': Lock record commit is not a full 40-character hash. Cannot restore; run pnpm refs update.');
+    if (source.pinCommit && entry.commit !== source.pinCommit) throw new Error(source.id + ': Lock record commit differs from configured pinCommit. Run pnpm refs update.');
     const records = Object.entries(entry.files ?? {}).sort(([a], [b]) => (a < b ? -1 : 1));
-    if (!records.length) throw new Error(source.id + ': 锁记录没有文件清单，请运行 pnpm refs update。');
+    if (!records.length) throw new Error(source.id + ': Lock record has no file list. Run pnpm refs update.');
     for (const [upstream, record] of records) items.push(restoreItem(root, source, entry, upstream, record));
   }
   const indexFile = path.join(root, INDEX_FILE);
   const bytes = items.reduce((sum, item) => sum + item.bytes, 0);
   if (items.every(item => item.cached)) {
-    // 全部命中复用：不动资料，只在缺失或过期时重建本地索引。
+    // All files are reusable; leave references intact and rebuild the local index only if missing or stale.
     let indexRebuilt = false;
     if (!indexMatches(root, lock, sources, root)) { writeFileAtomic(indexFile, jsonText(buildIndex(root, lock, sources))); indexRebuilt = true; }
     return { changed: 0, reused: items.length, fetched: 0, sources: selected.length, files: items.length, bytes, indexRebuilt, updated: [] };
@@ -799,7 +799,7 @@ export async function restoreReferences({ root = ROOT, fetcher = request, only =
       try { restoreDirectory(live, backup, had); preserveBackup = false; } catch (restoreError) { failures.push(restoreError); }
       swapped = false;
       try { if (indexBefore === null) fs.rmSync(indexFile, { force: true }); else writeFileAtomic(indexFile, indexBefore); } catch (restoreError) { failures.push(restoreError); }
-      if (failures.length > 1) throw new AggregateError(failures, '还原失败且回滚未完全成功，请保留备份目录: ' + backup);
+      if (failures.length > 1) throw new AggregateError(failures, 'Restore failed and rollback was incomplete. Keep the backup directory: ' + backup);
       throw error;
     }
     fs.rmSync(backup, { recursive: true, force: true });
@@ -822,7 +822,7 @@ export function parseArgs(argv) {
   const options = { sources: [], positional: [], limit: 80, context: 0, seed: null };
   for (let index = 0; index < rest.length; index++) {
     const value = rest[index];
-    if (value === '--source' || value === '-s') { const next = rest[++index]; if (!next) throw new Error('--source 需要来源 id。'); options.sources.push(next); }
+    if (value === '--source' || value === '-s') { const next = rest[++index]; if (!next) throw new Error('--source requires a source id.'); options.sources.push(next); }
     else if (value.startsWith('--source=')) options.sources.push(value.slice(9));
     else if (value === '--limit') options.limit = Number(rest[++index]);
     else if (value.startsWith('--limit=')) options.limit = Number(value.slice(8));
@@ -835,7 +835,7 @@ export function parseArgs(argv) {
   return { command, ...options };
 }
 
-/** 命令行入口；成功与失败都打印 JSON，失败时返回退出码 1。 */
+/** CLI entry point: print JSON on success and failure; return exit code 1 on failure. */
 export async function main(argv = process.argv.slice(2)) {
   const { command, sources, positional, limit, context, seed } = parseArgs(argv);
   const only = sources.length ? new Set(sources) : null;
@@ -853,7 +853,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (command === 'verify-sources') {
     return { ok: true, command: 'verify-sources', sources: (await loadConfig(ROOT)).map(source => ({ id: source.id, repository: source.repository, ref: source.ref, pinCommit: source.pinCommit ?? null, dest: source.dest })) };
   }
-  throw new Error('refs 支持 check、search <关键词>、restore（可选 --source <id>）、update（可选 --seed <目录>）、verify-sources。');
+  throw new Error('refs supports check, search <keyword>, restore [--source <id>], update [--seed <directory>], and verify-sources.');
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {

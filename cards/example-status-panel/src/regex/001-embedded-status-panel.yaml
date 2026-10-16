@@ -1,0 +1,17 @@
+link: regex-2
+name: Embedded status panel
+find: <CardStatus/>
+trim: []
+disabled: false
+display_only: true
+prompt_only: false
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - ai_output
+replacement_file: src/regex/001-embedded-status-panel.txt
+build:
+  type: html
+  entry: src/ui/html/index.html

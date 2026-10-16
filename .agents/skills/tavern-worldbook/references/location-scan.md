@@ -1,45 +1,31 @@
-# 地点扫描与树状设定（按需）
+# Scope keywords and state-driven scanning
 
-仅在创作者需要按变量里的当前状态稳定加载设定时读取。普通卡先用聊天关键词；不要自动给每张卡添加这类脚本。本页以地点为例，同一条路径也适用于当前组织、当前阶段、当前关系等状态。
+Load only when the card needs multi-level scope relationships or reliable activation from current variable state. Ordinary cards can use chat keywords. Geography is an example; the same design can cover organizations, phases, relationships, peoples, technologies, religions, or timelines.
 
-## 三种到达方式
+## Three distinct paths
 
-- **直接关键词扫描**：父、子条目各自根据同一轮扫描文本独立命中，不靠彼此触发，也不必打开递归。多层范围与交叉关系都用这一层表达。
-- **递归**：靠条目正文再触发别的条目。受宿主全局递归开关、递归层数、预算与循环影响，只在确有链式需求时使用。
-- **脚本注入扫描材料**：变量里的当前状态不会自己进入扫描窗口，需要脚本在生成前注入。这是本文后半段的进阶方案。
+Direct keyword matching independently activates parent/child entries against the same scan window, without recursion. Recursion uses one injected body's text to activate another and depends on global settings, layers, budgets, and cycle handling. Scan injection supplies state before scanning. They can combine, but a parent being present never guarantees its child.
 
-三者可以组合，但先分清用的是哪一种，别把“父条目在”当成“子条目一定到”。
-
-## 关键词表达多层与范围
-
-树状或范围式组织不只用于地理：种族—亚群、势力—下属组织、技术—分支、信仰—教派、纪元—事件都能用同一套范围关键词。主关键词之间是 OR；父条目的关键词可包含下级名称，让同一段扫描文本同时命中父、子条目，需要上级范围消歧时再加次关键词 `任一匹配`。这些是同一轮独立命中，不依靠父条目正文触发子条目，因此递归仍可关闭。角色、事件、组织同样适用；同一个对象也可以同时属于两棵树，用各自的条目表达交叉关系。
-
-例如一棵“北境 → 雾岭 → 灰渡口/雾岭镇”的范围树：
-
-| 层级 | 主关键词 | 次关键词（任一） | 同区块内相对次序 |
+| Entry | Primary keys | Secondary keys (any) | Relative block order |
 | --- | --- | --- | --- |
-| 雾岭总述 | 雾岭、灰渡口、雾岭镇 | 无 | 最前 |
-| 雾岭地理专题 | 地理、气候、商道、灰渡口、雾岭镇 | 雾岭 | 总述之后 |
-| 灰渡口细节 | 灰渡口 | 雾岭 | 专题之后 |
+| Mist Ridge overview | Mist Ridge, Gray Ferry, Mist Ridge Town | none | first |
+| Mist Ridge geography | geography, climate, trade route, Gray Ferry, Mist Ridge Town | Mist Ridge | after overview |
+| Gray Ferry detail | Gray Ferry | Mist Ridge | after topic |
 
-换成组织树也一样，例如“银钥厅 → 书记官 → 档案科”，只是把主题词换成组织、职位与部门。同区块内的次序按“总览 → 专题 → 细节”的相对次序排，具体编号交给 `pnpm card arrange`，不要在这里写死数值。
+With “Mist Ridge / Gray Ferry,” all three can match. With only Gray Ferry, only the unrestricted overview matches; with only Mist Ridge, children do not automatically load. A constant overview mentioning the parent does not supply the missing scan term when recursion is disabled. Let arrange choose actual numbering instead of fixing arbitrary values here.
 
-扫描文本为“雾岭 / 灰渡口”时三条可同时命中；只有“灰渡口”时只有无需范围词的总述匹配；只有“雾岭”时不自动加载全部子地点，父条激活不保证子条激活。这个差异是范围条件的结果，不能靠蓝灯总览里出现了“雾岭”补足，因为默认不进行递归触发。最近聊天中仍有旧地点词时，多组同时激活是可能的。
+Secondary any is AND ANY after a primary match. All terms come from one scan window and can occur in different messages, so it does not express exclusive current state. Old historical scopes can coexist with new topics. Test two areas/factions/topics at once. Strict current-state selection requires deliberate scan-depth/scope/activation design.
 
-次关键词 `任一匹配`（AND ANY）适合收束范围，但要记住所有关键词都来自同一个扫描窗口，可以分别命中不同消息：它没有“当前状态”排他，历史里的旧地点和本轮的新地点会一起参与命中。同一轮聊到两个主题、两个地区或两个势力时，要专门测一遍两条线会不会一起全亮；需要严格只加载当前状态时，另设计扫描深度、范围关键词或经过核对的激活策略。
+Keep bodies self-contained. Cross-entry YAML/XML wrappers require matching triggers, positions, order, indentation, and readable budget truncation. Directory trees have no runtime tree semantics.
 
-各条正文优先自包含。若要把多条拼成 YAML 子树或 XML 包裹块，必须核对共同激活条件、位置、顺序、缩进与预算截断后的可读性；父条目没到达时，子条目不能变成无法识别归属的残片。目录树本身不赋予运行时树结构。
+## Scan-only Helper injection
 
-**把状态加入扫描**：脚本读取本卡真实状态（地点路径、当前组织、当前阶段等），在当前请求的世界书扫描前提供当前值与上级范围词。它不会因为变量名叫“地点”就自动发生，界面显示与变量列表宏也不是扫描保证。
+Read actual initialized state, then inject the current value and necessary parent scope/aliases before this request's worldbook scan. UI display and variable-list macros are not guarantees of scan availability.
 
-## 酒馆助手接口片段
-
-这是上面第三种到达方式的最小片段：能用直接关键词扫描解决时不必上脚本。
-
-本地锁定 `references/upstream/tavern-helper/@types/function/inject.d.ts` 提供 `injectPrompts`。`position: 'none'` 不把注入段发送给模型，`should_scan: true` 允许其参与世界书扫描；`once` 控制是否仅下一次生成有效。下面是接入片段，真实脚本还需选择事件、读取路径和清理时机：
+Pinned Helper @types/function/inject.d.ts provides position:none (not sent to the model), should_scan:true, and once:
 
 ```js
-const stateText = '雾岭 / 灰渡口'; // 换成从本卡已初始化状态读出的当前值，这里以地点路径为例
+const stateText = 'Mist Ridge / Gray Ferry'; // Read the actual initialized state here.
 const { uninject } = injectPrompts([{
   id: 'card-state-scan',
   position: 'none',
@@ -48,17 +34,15 @@ const { uninject } = injectPrompts([{
   content: stateText,
   should_scan: true,
 }], { once: true });
-// 取消/卸载或本次生成不再需要时调用 uninject()。
+// Call uninject on cancellation/teardown or when no longer needed.
 ```
 
-MVU 消费者先等 `waitGlobalInitialized('Mvu')`，读取当前聊天中正确楼层的 `stat_data`，不要硬编码其它卡的路径。状态缺失就不注入，也不凭空补下级；需要范围词的树应从明确的状态索引取得完整路径和别名。
+This is an integration fragment, not a complete event lifecycle. MVU readers first wait for Mvu and read the correct current-chat message stat_data. Do not hardcode another card's paths or invent missing child scopes. Use an explicit state index for full paths/aliases when needed.
 
-## 接入前必须核对的边界
+## Required integration checks
 
-- 注入仅对当前聊天有效。锁定接口说明给出 `CHAT_CHANGED`、`GENERATION_AFTER_COMMANDS` 两类接入时机；所选事件是否在目标请求扫描前触发、异步读取是否等待完成，仍须按宿主实现确认。
-- 清理上一次注入，避免切聊天、重生成、swipe 或移动后残留旧地点。异步等待期间聊天改变时，放弃旧请求的结果。
-- 主正文请求与额外变量请求可能走不同生成入口；决定哪边需要地点扫描，不能假设一次性注入自动覆盖两边，非阻塞并发更要隔离请求归属。
-- 这里只增加扫描材料，不排除聊天历史中的旧地点词，也不保证预算和其它触发条件允许条目进入。需要严格只激活当前位置时另设计扫描深度、范围关键词或经过核对的激活策略。
-- 不为触发世界书而把机械地点串永久写进聊天正文。先验证临时扫描注入方案；生成失败/取消时也要清理。
+Injection is current-chat scoped. Pinned docs mention CHAT_CHANGED and GENERATION_AFTER_COMMANDS, but verify the selected event happens before the target request's scan and awaits asynchronous state reads. Cancel old-chat async results and clean prior injections after move/regenerate/swipe/chat switch. Main/extra requests may use distinct generation routes; one once injection need not cover both, especially concurrently.
 
-验收查看实际激活条目和最终提示词：初始地点、跨区域移动、历史旧地点、未知地点、同一轮出现两个主题、重生成、切聊天、额外请求都要覆盖。没有宿主验证，不宣称脚本已经实现可靠的地点驱动激活。
+Scan injection does not remove old history keywords or bypass budgets/other conditions. Do not permanently pollute chat prose with mechanical location strings just to activate entries. Clean failure/cancel paths too.
+
+Inspect actual activated entries and final prompts for initial state, cross-region moves, old history, unknown location, two topics, regeneration, chat switches, and extra requests. Without host evidence, do not claim reliable state-driven activation.

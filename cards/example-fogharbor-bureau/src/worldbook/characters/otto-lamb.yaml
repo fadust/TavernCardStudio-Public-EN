@@ -1,0 +1,20 @@
+name: people·Otto Lamb
+enabled: true
+keys:
+  - Lamb
+  - coroner
+  - examination house
+secondary_keys: []
+selective: true
+use_regex: false
+order: 13
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: after_character
+role: system
+file: src/worldbook/characters/otto-lamb.md
+link: worldbook-c4d843f7-260a-4b07-8a8e-9d7af7ddea9b

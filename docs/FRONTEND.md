@@ -1,78 +1,29 @@
-# 前端资源
+# Frontend resources
 
-界面是消息楼层里的一个 iframe，由酒馆助手创建。它适合把纯文本状态栏换成能点、能动的面板。这里的重点是资源怎么放，以及构建结果写到卡的哪个字段。
+Tavern Helper renders message interfaces inside an iframe. Start with one html or vue module, for example `pnpm card new my-card --modules "mvu,vue"`.
 
-## 生成什么
+The template supplies src/ui/<kind>/index.html, main.js, style.css, and App.vue for Vue. The renderer regex has `build: { type: vue, entry: src/ui/vue/index.html }`, plus display-only replacement and prompt-only marker cleanup. With MVU, App.mvu.vue becomes App.vue and the framework supplies `<StatusPlaceHolderImpl/>` automatically. Without MVU, `<CardStatus/>` is produced through the opening/output contract. A UI does not need its own script entry.
 
-`card new` 的 `html` 与 `vue` 模块只选一个：
+## Builds and transport
 
-```powershell
-pnpm card new my-card --modules "mvu,vue"
-```
+Script builds use esbuild to make one browser ESM file. HTML/Vue use Vite plus singlefile and then Base64 wrapping. Build binds to its target, typically a rendering regex replacement_file, but can also bind worldbook/script/text/greeting/legacy-text references.
 
-选界面模块后，工具会同时做四件事：
+The packaged replacement is a complete HTML page with doctype, body, and a fenced html code block. Its loader decodes UTF-8 Base64 and uses document.open/write/close. Encoding prevents host regex capture substitution and macro processing from corrupting UI source. It is not encryption. Tavern Helper rendering requires both the code fence and body tags; keep both.
 
-| 位置 | 内容 |
-| --- | --- |
-| `src/ui/html/` 或 `src/ui/vue/` | 界面源码：`index.html`、`main.js`、`style.css`（Vue 还有 `App.vue`） |
-| 正则条目 YAML 的 `构建` | `{ 类型: vue, 入口: src/ui/vue/index.html }`，绑定在负责渲染占位符的那条正则上 |
-| `src/regex/` 的条目 | 两条：一条只在显示时把占位符替换成界面，一条只从提示词里去掉占位符 |
-| 卡内容 | MVU 卡使用框架自动添加的 `<StatusPlaceHolderImpl/>`，不追加输出提示；非 MVU 卡才在开场追加 `<CardStatus/>` 并配输出位置条目 |
+## Resources and runtime
 
-`构建` 写在正则条目上，构建结果写回它的 `替换文件`，不需要为界面单独建脚本条目。选 `vue` 且同时选了 `mvu` 时，模板会把接入 MVU 变量的示例 `App.mvu.vue` 替换成 `App.vue`。
+Bundle local code, styles, images, and fonts into the page. Tool-provided Vite configuration does not execute card-local config files. There are no upstream webpack automatic imports, @util aliases, Sass/Tailwind pipeline, or automatic CDN conversions. Explicitly import installed dependencies or use verified host globals. A script importing separate CSS produces multiple files and must use an HTML/Vue build instead.
 
-## 构建怎么写回
+Dependencies must be declared, pinned, credential-free HTTPS. Local/private paths, unknown protocols, unresolved bundled resources/modules, and undeclared URLs fail validation. Dynamic URLs need manual review. Optional public fixed-version hosting is described in [Remote assets](REMOTE-ASSETS.md); a declared URL is not evidence of reachability or runtime success.
 
-| 构建类型 | 工具 | 结果位置 |
-| --- | --- | --- |
-| `script` | esbuild，打成单个 ESM 文件 | 写回该脚本条目引用的正文 |
-| `html`、`vue` | Vite 加单文件插件，打成单个 HTML | 再经 Base64 包装后写回该正则条目的 `替换文件` |
+Players need Tavern Helper frontend rendering, enabled card regexes, and the marker in the message. MVU markers/state also require enabled/initialized MVU scripts. Do not ask the model to produce the standard MVU placeholder. Multiple interfaces need distinct producers/consumers or one combined replacement.
 
-`构建` 绑定在目标上，可以挂在脚本条目、正则条目、世界书条目，也可以挂在 `文本`、`备选开场白`、`群聊开场白`、`兼容文本` 的引用上：`script` 写回该目标正文，`html`/`vue` 写回该目标正文并做 Base64 包装。界面通常仍配一条只显示正则渲染占位符，但构建目标本身不限于正则。
+## MVU UI state
 
-Base64 包装后的正文是一个完整页面（含 `<!doctype html>` 与 `<body>`），外层是 html 代码块，页面里的 loader 长这样：
+Wait for waitGlobalInitialized('Mvu') with a UI timeout/failure state. In a message iframe, bind to getCurrentMessageId instead of latest so old panels show their own message state. Read Mvu.getMvuData(options)?.stat_data, validate existence/shape, and display without writing UI defaults back into game state. Snapshots need an event-driven reread or cleaned-up polling. Prevent late async completions after unmount from restarting timers. Preserve the complete variable table and correct message target for intentional user writes; do not reapply already-parsed deltas. Clean timers/listeners/mounts on Vue unmount and pagehide.
 
-```html
-<script>(()=>{const html=new TextDecoder().decode(Uint8Array.from(atob("…"),c=>c.charCodeAt(0)));document.open();document.write(html);document.close();})();</script>
-```
+## Layout and verification
 
-这样做的原因很具体：酒馆正则会替换 `$1`、`$<名字>` 和宏，界面里的这些字符会因此被破坏，Base64 让替换阶段看不到它们。**这是编码而不是加密**，卡里的内容仍然可以被任何人读取。
+Design for chat-container width and content-based height. Test narrow widths, overflow, different message heights, and light/dark themes. Viewport height units, forced min-height, nested scrolling, and absolute positioning can fight iframe sizing; use them only deliberately with an actual height source.
 
-酒馆助手只渲染同时满足两个条件的代码块：内容放在三个反引号的围栏代码块里，并且含 `<body>` 与 `</body>`。包装结果本身就满足这两条，所以不要删围栏或 `<body>`；手写一段界面代码去顶替构建产物时也要保持这个形状。宿主侧的判定见 `references/upstream/tavern-helper-docs/src/guide/基本用法/渲染器.md` 与 `.../关于酒馆助手/常见问题/前端编写问题.md`。
-
-## 资源规则
-
-构建后不能再依赖本地文件。检查会拦下这些问题：
-
-- 未在 `dependencies` 声明的外部地址。
-- `localhost`、局域网地址、本机路径（`file:`、盘符路径、UNC 路径）和未知协议。
-- 单文件产物里残留的相对资源或未解析的模块导入。
-- 依赖地址不带固定版本或提交，或者使用带凭据的 URL。
-
-默认把自己写的代码、样式、图片、字体打进单文件；esbuild 与 Vite 会把常见资源内联（图片、字体、文本转成 data URL）。创作者需要独立发布前端或脚本时，也可使用公开的固定版本外链，见 [Git 仓库与外链资源](REMOTE-ASSETS.md)。静态检查允许声明过的合规地址，不代表已上传、可访问或在目标宿主运行成功。
-
-## 运行前提
-
-界面要能显示，玩家需要：安装酒馆助手、启用前端渲染、让本卡正则处于启用状态，并且楼层文本里确实出现占位符。非 MVU 的独立界面渲染不要求额外的卡内脚本；使用 MVU 固定占位符或读取 MVU 变量时，需要 MVU 脚本已启用并完成初始化。构建产物里的 `使用说明.md` 会把模块前提写给使用者。
-
-默认不要让模型输出 `<StatusPlaceHolderImpl/>`。框架自动补入该标记的路径、前提与旧自定义标记的迁移检查见 [更新模式与占位符](MVU-MODES.md#固定状态栏占位符)。如需多个独立界面，先确定各自的生产者和消费正则，不能简单复制两条抢同一标记的替换规则。
-
-## 界面适配
-
-消息楼层的宽度由聊天区域决定，高度由内容决定。下面几条是模板和常见实践的经验，不是酒馆强制的硬规则，请按容器实际需要取舍，并在窄屏与不同楼层高度下实际验证：
-
-- `vh` 这类依赖宿主窗口高度的单位最容易和楼层高度打架；需要固定比例时，用宽度和宽高比更稳。
-- `min-height`、`overflow: auto` 之类会强制撑高父容器的样式容易产生双滚动条，用之前先确认容器是否真的需要。
-- 主体内容如果 `position: absolute` 脱离文档流，容器就失去高度来源，通常不推荐；确有需要时自己给外层提供支撑高度。
-- 界面要适配容器宽度，避免横向滚动条。
-- 模板默认不带背景色；要加背景色，先确认在深浅色主题下都合适。
-
-模板带的 `style.css` 是起点，按需要改。不同酒馆版本与主题对 iframe 的处理不完全一致，最终以实际显示为准。
-
-## 写卡检查
-
-- 负责渲染占位符的正则条目带了 `构建`，`类型` 是 `html` 或 `vue`，`入口` 指向 `src/ui/<kind>/index.html`。
-- 卡里没有私有仓库地址；所有外链都在 `dependencies` 里且带固定版本。
-- `pnpm card check <名称>` 没有错误；`pnpm card build <名称>` 之后 `dist/<名称>/ui/` 下是单文件检查副本，文件名编号不保证与条目顺序一致，绑定关系以条目上的 `构建` 为准。
-- 界面在自己的容器宽度下验证过：窄屏不横向溢出，楼层高度变化时布局不互相挤压。
-- 没有把“本地能打开构建结果”当成“真实酒馆里已验证”；未实机确认时 `runtimeVerified` 保持 `null`。
+Run check/build and inspect the single HTML copy under dist/<name>/ui. Inspection filenames are not stable build identities; the YAML binding is authoritative. Local browser behavior cannot prove host rendering, macro values, MVU timing, or historical-message refresh. Leave runtimeVerified null unless the real host was tested. Detailed APIs/build settings are in [Frontend runtime](../.agents/skills/tavern-frontend/references/iframe-runtime.md).

@@ -1,66 +1,49 @@
-# 角色卡创作工具
+# Local character card Studio
 
-双击仓库根目录的 **`打开角色卡工具.cmd`**，浏览器会打开工具。所有处理都在本机工作区进行，不需要账号，也不会把卡片上传到网站。
+Run `pnpm studio`, double-click `Open-TavernCardStudio.cmd` on Windows, or run `sh Open-TavernCardStudio.sh` on macOS/Linux. The tool runs locally without an account and does not upload cards to a website. Prepare Node.js and pinned pnpm first; see [Installation](INSTALL.md). Launchers check versions and install missing/drifted workspace dependencies from the lockfile, not Node.js or global pnpm.
 
-第一次在新电脑上使用，按 [安装说明](INSTALL.md) 准备 Node.js 与项目指定的 pnpm，或直接让 agent 帮忙。两者装好后双击根目录启动器即可：它检查版本与依赖，缺依赖或锁文件漂移时按锁文件安装一次，不会替你安装 Node.js 或 pnpm。
+The starting page offers new, import, and copy-example actions. Try a copy of example-text or example-fogharbor-bureau. Official examples are identified by the explicit public manifest, not by a name prefix. Desktop startup behavior on each operating system requires testing on that system; a supplied launcher alone is not runtime evidence.
 
-Linux/macOS 使用 `sh 打开角色卡工具.sh` 或在安装依赖后运行 `pnpm studio`。Windows 启动与浏览器流程在本地验证；其它系统的脚本入口已提供，真实桌面打开行为需要在对应系统确认。
+## Import
 
-首次页面提供新建、导入和复制示例三个入口。建议先复制「示例-纯文字」或「示例-雾港调查局」，再修改自己的副本；官方示例依据公开清单标识，不会因自建卡名称带「示例-」就自动变为官方内容。
+Choose **Import character card**, select a PNG containing card data or a JSON card, enter a project name, and import. Drag/drop is also supported. Maximum file size is 64 MB. Ordinary images are for covers rather than card-data import.
 
-## 导入旧卡
+Import archives the complete original under imports, then splits an editable project under cards/<name>/src. Identical archive names/content reuse the same file; different content gets a suffix. Existing projects are never overwritten. Originals already in imports can be selected. The project's original directory is an additional read-only verification copy, not editing input or final output.
 
-点击“导入角色卡”，选择带角色数据的 PNG 或 JSON 文件，填写工程名称，再导入。也可以把文件拖入导入区域。单个文件最多 64 MB。
+The workflow is **imports → cards/<name>/src → dist/<name>**. The original-card-folder action opens imports; the sidebar lists split projects.
 
-导入会先把完整 PNG／JSON 原卡归档到 `imports/<原文件名>`，再拆分到 `cards/<工程名称>/src/`。选择已经放在 `imports/` 的原卡也可以；同名且内容相同会复用，内容不同则自动加序号，不覆盖已有原卡。已有同名编辑工程不会被覆盖，换个工程名即可。
+## Edit, check, and build
 
-日常流程：**完整原卡 `imports/` → 拆分编辑区 `cards/<工程名称>/src/` → 打包成品 `dist/<工程名称>/`**。顶部“原卡文件夹”打开 `imports/`；左侧列表显示已拆分的编辑工程。
+Select a project and open its content folder. Edit src/index.yaml and referenced files in your preferred editor. Generated CONTENTS.md helps locate them. Studio manages imports/projects; authoring remains file-based.
 
-工程内的 `original/` 是工具额外保留的只读校验副本，用于检查拆分前后有无丢内容；它不属于编辑区，也不是打包成品。不要修改它。普通图片不是角色卡；普通图片用于封面功能。
+An agent can edit the same source and run `pnpm card build <name>`. Studio's Build reads those same files and writes the same dist directory. It does not split imports again or replace edits from the original.
 
-## 编写与打包
+Check displays specific validation issues. Build checks first and stops on errors. With a cover, output includes JSON and PNG containing the same card data; import either into SillyTavern once. Without a cover, output is JSON. Use **Open output folder** to locate it. Some old cards contain undeclared links or incomplete settings; successful splitting does not guarantee immediate build success. Correct source/dependency errors and retry. Neither check nor build executes card code or replaces host testing.
 
-从左边选择卡片，打开内容文件夹，在 `src/index.yaml` 和对应正文文件中编辑。卡片目录中的 `内容导航.md` 说明了各类文件的位置。这个小工具负责导入和工程管理，正文仍然使用自己喜欢的编辑器编写。
+## Names, copies, and covers
 
-可以直接让 AI 修改这个编辑工程，AI 也可以运行 `pnpm card build <工程名称>` 打包。自己改完同一批源文件后，在工具里选择对应工程并点“打包”即可。两种方式读取相同的 `cards/<工程名称>/src/`，生成到相同的 `dist/<工程名称>/`；不会从 `imports/` 重新拆分，也不会用原卡覆盖修改。
+The project name controls the directory/output filename; the character display name controls the host's character name. Renaming a project does not replace names inside prose. Rebuild after renaming; old output remains available for comparison and originals are unchanged.
 
-修改后点“检查”，查看具体问题；点“打包”会先执行检查，通过后生成 `dist/<工程名称>/`。有封面时生成 PNG 和 JSON，没有封面时生成 JSON。两种文件里的角色数据相同，导入酒馆时任选一个，不用重复导入。点击“打开成品文件夹”找到输出。
+Copy creates an independent project while retaining the source. It initially preserves the character display name, which can be changed separately.
 
-某些旧卡含有尚未声明的外链或不完整配置，能拆分不表示立刻能通过打包。工具会显示检查错误；需要按错误修正源文件或依赖声明后重试。检查与打包不会执行角色卡里的脚本，也不能代替真实酒馆测试。
+Cover upload accepts PNG/JPG/WebP. The browser converts to PNG, preserves proportions without cropping, and reduces a longest edge over 4096 pixels. Original images must be no more than 24 million pixels. Removing a cover clears the build reference without deleting the original image; rebuilding removes stale PNG output. Name/cover operations validate temporary copies before replacing a project.
 
-## 名称、副本与封面
+## Organize worldbook
 
-- **工程名称**决定 `cards/` 下的文件夹与下次打包的成品文件名；**角色显示名**决定酒馆读到的角色名称。它们分别填写，改工程名不会批量替换正文里出现的人名。
-- 改名后应重新打包；原名字的旧成品目录保留，方便比较。工具不会编辑 `original/` 的原件。
-- **复制卡片**创建一份独立工程，保留源卡。副本起初沿用原卡的角色显示名，可再单独改名。
-- **添加／更换封面**支持 PNG、JPG、WebP。浏览器先把所选图片转换成 PNG，再保存到工程。图片保持比例，不裁切；长边超过 4096 像素时缩小。原图不超过 2400 万像素。
-- **去除封面**取消打包时的封面引用，不删除原图片。再次打包后，该成品目录只保留 JSON 角色卡，不残留上次的 PNG。
-- 名称或封面操作会先检查临时副本，再替换编辑工程。原始导入件始终保留。
+**Organize worldbook** moves referenced settings/bodies into category directories with meaningful entry names and updates references and compatibility path records. It uses local category metadata, retaining the current directory when absent; import can infer an initial category only from explicit title conventions, never by reading prose.
 
-## 整理世界书
+The action runs immediately with a full backup in work/layout-backups/<project>-<number>. Results list moved entries, old/new paths, and backup location. Already-organized projects produce no changes or backup. A safety comparison checks that card data/build bindings remain unchanged. Save/close editors and avoid concurrent operations on the same project; concurrent modification aborts replacement. Studio permits one project operation at a time.
 
-世界书条目按 `src/worldbook/<分类>/<条目名>.yaml` 组织，正文是同名文件；旧卡里的平铺编号路径继续可以读写。卡片详情里的 **整理世界书** 把这些条目按分类目录与条目名归位，并同步更新 `src/index.yaml`、条目 YAML 里的正文引用和 `.card/` 的路径记录。分类只看条目名里的显式标签与约定好的总览名，工具不会读正文猜分类。
+Import/organization results report pending classification. An agent should read those bodies in batches, add category by responsibility, then organize again. Only genuinely unresolved entries stay in unclassified, explicitly reported as pending. Classification changes file placement, not triggers, position, order, or prose. The CLI equivalent is `pnpm card organize <name>`; see [Worldbook files](WORLDBOOK-FILES.md).
 
-点击后立即执行，不弹确认框。工具先把整个工程备份到 `work/layout-backups/<工程名>-<编号>/`，结果区显示整理条目数、每条的旧路径与新路径，以及备份的相对路径；已经符合规范时只显示“无需整理”，也不写备份。整理只移动文件与引用，正文内容和角色数据不变。
+## Arrange by prompt order
 
-导入完成与整理完成的结果里还会给出待分类数量。工具只按条目名里的标签与总览名决定目录，判不出来的条目落在 `未分类/`；这些条目的正文要由 AI 分批读取，按职责在条目 YAML 补 `分类`，再重新整理。分类是职责判断，工具不代劳也不猜；留在 `未分类/` 的条目应在交付里单列为待核实。
+This is an explicit action separate from import, organization, and build. It sorts normal entries before_character → after_character → at_depth (deepest first), renumbers order continuously as 1..N, and updates the index/display_index. Other settings/prose remain unchanged. A full backup goes to work/order-backups and results include changed entries plus a budget warning. An already-aligned project is unchanged.
 
-整理前请先保存并关闭正在编辑这个工程的编辑器，也不要同时运行另一条打包或整理命令。工具会比对整理前后的内容：工程在整理期间被改动就中止并保留原工程；本地界面同一时间只允许一项工程操作。目录名只决定文件怎么放，不参与运行时注入顺序，条目的位置、顺序、深度与角色仍在条目 YAML 里；后续从新目录编辑，再按正常流程打包；目录调整本身不改变成品内容，要统一改条目编号请用下面的“按提示词顺序编号”。
+Order affects cross-position budget priority. Check the actual host prompt after arranging. Author-note, example-message, outlet, or invalid/missing order layouts cannot be inferred safely: inspect the host preset, manually arrange src/index.yaml, then use `pnpm card arrange <name> --order index`. The normal CLI equivalent is `pnpm card arrange <name>`.
 
-命令行等价命令是 `pnpm card organize <工程名>`，世界书文件结构与旧路径的兼容说明见 [WORLDBOOK-FILES.md](WORLDBOOK-FILES.md)。
+## Stop and reopen
 
-## 按提示词顺序编号
+Keep the launch terminal open while using Studio. **Close tool** or closing that terminal stops it. Closing a browser tab does not stop the service. Relaunching opens an existing instance rather than starting another. If a connection expires, use the launcher again instead of bookmarking temporary connection URLs.
 
-**按提示词顺序编号** 是独立动作，不会随导入、整理或打包自动执行。它把普通条目按 `角色定义之前` → `角色定义之后` → `指定深度`（深度由深到浅）排成预期阅读次序，再按这个次序把 `顺序` 连续重编为 1..N，`src/index.yaml` 的条目列表与展示索引一起更新；条目位置、深度、角色、关键词与正文都不改。
-
-与整理一样，点击后立即执行并先把整个工程备份到 `work/order-backups/<工程名>-<编号>/`，结果区显示顺序真的变了的条目、备份路径与预算提示；已经排好时只显示“无需变更”，也不写备份。排序会改变跨位置的提示词预算优先级，改完请在宿主的提示词预览里核对，不要当成无损整理。
-
-作者注、示例消息、出口等位置无法从静态资料排全：包含这类条目的卡片会被直接拒绝并说明原因，需要先读实际宿主预设、手工把 `src/index.yaml` 的条目列表排成目标次序，再用 `pnpm card arrange <工程名> --order index` 按索引编号。命令行等价命令是 `pnpm card arrange <工程名>`，需要先手工排索引时加上 `--order index`。
-
-## 关闭与重新打开
-
-使用时保留启动命令窗口。点击页面中的“关闭工具”，或者关闭命令窗口，即可停止。关闭浏览器标签页不会停止工具，再双击启动器会打开已运行的工具，不重复启动服务。
-
-如果页面提示连接失效，从根目录重新双击启动器。工具只监听本机地址；不要收藏带临时连接信息的地址。再次打开应使用启动器。
-
-工作区文件仍按原有 Git 规则管理：编辑工程在 `cards/`，生成成品在 `dist/`，临时连接记录在忽略的 `work/`。工具不会自动提交或推送 Git。
+Studio listens only on loopback. Temporary connection records live under ignored work. It does not commit or push Git changes automatically.

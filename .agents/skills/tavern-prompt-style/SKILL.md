@@ -1,63 +1,43 @@
 ---
 name: tavern-prompt-style
-description: 写或审查角色卡提示词，区分规则、人物设定、对话示例与玩家叙事，检查一致性和可执行性；按用户或卡片简报选择文体，不强制统一创作风格。
+description: Write or review character-card prompts, distinguishing rules, setting, dialogue examples, and player narration; check consistency and executability while respecting the user's intended style.
 ---
 
-# 提示词与文体
+# Prompt prose and style
 
-先读根目录 [AGENTS.md](../../../AGENTS.md)，再结合当前对话、已有创作说明（若有）和实际文本。沿用已有结构，只加载本次需要的条目。
+Read [AGENTS.md](../../../AGENTS.md), then use the current conversation, actual text, and any optional author notes. Preserve existing structure and load only necessary entries.
 
-## 先辨明文本用途
-
-| 文本 | 审阅重点 |
+| Text purpose | Review focus |
 | --- | --- |
-| 机制、更新规则、输出协议 | 条件、动作、范围、例外、字段与数值含义清楚 |
-| 人物与世界设定 | 事实一致、关系明确、信息能在需要时注入 |
-| 对话示例 | 展示角色语气与互动方式，可以有台词与动作；明确是示例，不是已发生事件 |
-| 开场白与玩家叙事 | 按创作目标采用叙事视角、节奏、场景和台词，不套用规则文本的客观语体 |
-| 创作者备注、创作简报 | 面向维护者与玩家，避免把未注入的维护说明当作模型已知信息 |
+| mechanics/update rules/output protocol | clear conditions, actions, scope, exceptions, fields, and numerical meaning |
+| characters/world setting | consistent facts/relationships and reliable injection when needed |
+| dialogue examples | character voice and interaction, explicitly examples rather than past events |
+| openings/player narration | appropriate viewpoint, pacing, scenes, and dialogue rather than mechanical rule prose |
+| creator notes/brief | useful maintainer/player guidance, not assumed model knowledge unless injected |
 
-## 通用检查
+## General checks
 
-- 保留用户确定的事实、题材、边界和格式；不凭空引入另一张卡的体系、性格代码、数值上限或字段。
-- 条件提示只能依赖本次实际注入的内容；信息缺失时给出合理默认行为，不能用默认值伪造已发生事实。
-- 同一设定涉及多处时同步核对，避免角色字段、世界书、变量规则与开场白互相矛盾。
-- 精简重复内容，不缩写关键概念。数值属于规则、历史事实或用户要求时保留，不为追求文风改掉机制。
-- 标签、宏、JSON Pointer、枚举和变量名按实际消费者保持准确；修改协议先核对解析器与显示链。
-- `{{char}}` 展开为当前角色卡名，不表示任意 NPC。默认用人物姓名、职务或明确对象；只有单角色卡且卡名就是该互动角色时才按需使用。`{{user}}` 也需确认指的是当前玩家身份。
-- 人称、文风、篇幅等通用叙事要求通常由酒馆预设负责，不默认塞进世界书。卡内保留世界事实、人物行为和玩法机制；用户明确要求卡级叙事规则时再补，并核对与预设是否冲突。
-- 不把角色主观判断写成世界事实，不替玩家决定尚未选择的行为或内心状态，除非创作目标明确要求。
+Preserve user-defined facts, genre, boundaries, values, and format. Do not import another card's personality codes, numerical limits, or mechanics. Conditional instructions can rely only on actually injected information; unknown-state behavior must not invent events. Synchronize repeated facts across fields, worldbooks, state, rules, and openings.
 
-## 默认推荐：简洁 YAML 缩进
+Remove repetition without abbreviating important concepts. Keep required numerical mechanics/history intact. Tags, macros, JSON Pointers, enum names, and variable names must match real consumers; protocol changes require parser/display-chain review.
 
-设定、地点、角色和规则默认采用短键与清楚的缩进层级，保留必要事实和触发条件，不为凑齐字段重复改写同一信息。提示词正文可采用 YAML 风格；它与控制蓝绿灯、位置等行为的条目配置 YAML 是两个文件、两种职责。初始化数据必须是可解析的 JSON/YAML，补丁仍用协议要求的 JSON。
+`{{char}}` expands to the card name, not any NPC. Prefer explicit names/roles except for a same-named single character. Confirm the intended player identity for user. General narration person/voice/length normally belongs to the preset. Keep worldbook facts/behavior/mechanics and add card-level narrative rules only when requested, checking preset conflicts. Distinguish subjective beliefs from world facts and avoid choosing the player's unchosen actions/thoughts unless explicitly part of the design.
+
+## Default prose format
+
+Prefer concise YAML-style setting/rule text with meaningful short keys and readable indentation, without repeating facts to fill a form. This body is separate from entry configuration YAML. Actual initial data must parse as JSON/YAML and patches must remain legal JSON.
 
 ```yaml
-档案员:
-  职责: 核对来件与登记来源
-  资料冲突: 先记录差异，核对原件后再修改登记
-  原件缺失: 保留待核实标记
+Archivist:
+  role: Verify submissions and record sources
+  conflicting records: Note differences before changing the register
+  missing original: Keep an unverified marker
 ```
 
-这种格式便于阅读和去重，不保证对每种模型都更省 token。不增加无意义层级、装饰性标签或重复键；开场白和对话示例保留自然文本，用户已有格式则沿用。
+This helps readability/deduplication, not a guaranteed token reduction for every model. Avoid decorative layers/tags and duplicate keys. Openings/dialogue retain natural prose; preserve user-specified formats.
 
-### 规则正文：客观机制式
+For mechanics, default to observable conditions/actions: “When records conflict, the archivist records the differences and checks originals before amending the register; missing originals remain unverified.” This is a style recommendation, not a runtime requirement. Preserve requested narration, first-person dossiers, or deliberate rhetoric. Actions, dialogue, and cognition verbs are not inherently errors.
 
-用户没有指定写法时，机制条目和人物行为规则推荐用客观陈述，说明触发条件、因果或场合差异。例如：
+## Review and edit
 
-> 资料有冲突时，档案员先记录来源差异，完成核对后才修改登记；无法取得原件时保留待核实标记。
-
-它适合需要模型稳定执行的规则。空泛评价可以补充依据；装饰性数字可以改成有用的范围或频率；绝对词只在确有边界时使用。
-
-这是推荐文体，不是运行时要求。用户或卡片简报明确选择叙事式设定、第一人称档案、人物自述或其它风格时，保留其风格，只检查通用问题。不要以“去 AI 味”为由删除用户指定的修辞，也不要把动作、台词、角色认知动词一概判为错误。
-
-## 审查与修改
-
-1. 判断文本用途和用户要求的风格。
-2. 找出实际矛盾、缺失条件、未注入的依赖、重复设定或协议错误。
-3. 给出尽量小的修改，保留原结构与有意设计。
-4. 跨文件修改后核对同一事实、路径、初值和输出格式。
-
-审查他人或其它模型的初稿也使用这套检查，不预设其文字必然有问题。独立审阅可以委派；没有子智能体时主 agent 完成同样检查。
-
-条目触发见 [世界书技能](../tavern-worldbook/SKILL.md)，变量协议见 [MVU 技能](../tavern-mvu/SKILL.md)。本技能不决定卡片必须采用哪些模块。
+Determine purpose/style; identify concrete contradictions, absent conditions/injection dependencies, duplication, or protocol errors; make the smallest correction; then synchronize cross-file facts/paths/initial values/output. Do not presume another author's/model's draft is defective. Optional independent review can be delegated, but the primary agent can perform the same checks. Use [Worldbooks](../tavern-worldbook/SKILL.md) for triggers and [MVU](../tavern-mvu/SKILL.md) for variable contracts.

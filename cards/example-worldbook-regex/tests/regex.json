@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Show notes",
+    "input": "Narrative<note>Rain begins outside.</note>",
+    "expected": "Narrative<details><summary>notes</summary>Rain begins outside.</details>"
+  }
+]

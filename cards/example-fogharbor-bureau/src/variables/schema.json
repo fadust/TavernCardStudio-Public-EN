@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "fogharbor": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "timeOfDay": {
+          "default": "Evening",
+          "type": "string"
+        },
+        "weather": {
+          "default": "Dense fog",
+          "type": "string"
+        },
+        "fogDensity": {
+          "default": 45,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        }
+      }
+    },
+    "bureau": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "caseFile": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "id": {
+              "default": "Unassigned",
+              "type": "string"
+            },
+            "name": {
+              "default": "No active case",
+              "type": "string"
+            },
+            "phase": {
+              "default": "Standby",
+              "type": "string",
+              "enum": [
+                "Standby",
+                "Intake",
+                "Inspection",
+                "Verification",
+                "Closed"
+              ]
+            }
+          }
+        },
+        "clues": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "Clue name"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "default": "Pending",
+                "type": "string",
+                "enum": [
+                  "Pending",
+                  "Verified",
+                  "RuledOut"
+                ]
+              },
+              "description": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "people": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "Person name"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "stance": {
+                "default": "Unknown",
+                "type": "string",
+                "enum": [
+                  "Partner",
+                  "Cooperative",
+                  "Neutral",
+                  "Evasive",
+                  "Hostile",
+                  "Unknown"
+                ]
+              },
+              "trust": {
+                "default": 0,
+                "minimum": 0,
+                "maximum": 100,
+                "type": "number"
+              },
+              "notes": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "evidence": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "Evidence name"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "default": "",
+                "type": "string"
+              },
+              "quantity": {
+                "default": 1,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        },
+        "_progress": {
+          "default": "No records yet",
+          "type": "string"
+        }
+      }
+    },
+    "investigator": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "energy": {
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        },
+        "clearance": {
+          "default": "Trainee",
+          "type": "string",
+          "enum": [
+            "Trainee",
+            "Officer",
+            "Special"
+          ]
+        },
+        "renown": {
+          "default": 20,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        }
+      }
+    }
+  },
+  "title": "Fogharbor Bureau variable schema (schema.json is its projection)",
+  "description": "This file is the source schema registered through registerMvuSchema; src/variables/schema.json is a reference projection for readers and editors, not runtime validation."
+}

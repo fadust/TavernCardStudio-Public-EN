@@ -1,0 +1,21 @@
+character:
+  name: example-vue
+  creator: ""
+  version: 0.1.0
+  tags: []
+text:
+  description: src/text/description.md
+  personality: src/text/personality.md
+  scenario: src/text/scenario.md
+  first_mes: src/text/first_mes.md
+  creator_notes: src/text/creator_notes.md
+alternate_greetings: []
+group_only_greetings: []
+worldbook:
+  entries:
+    - src/worldbook/rules/status-panel-placement.yaml
+  name: example-vue
+regex:
+  - src/regex/001-embedded-status-panel.yaml
+  - src/regex/002-remove-status-placeholder-prompt.yaml
+scripts: []

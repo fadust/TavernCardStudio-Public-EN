@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "scene": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "location": {
+          "default": "Opening scene",
+          "type": "string"
+        },
+        "phase": {
+          "default": "Opening",
+          "type": "string"
+        }
+      }
+    },
+    "character": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "mood": {
+          "default": "Calm",
+          "type": "string"
+        },
+        "trust": {
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100,
+          "type": "number"
+        }
+      }
+    }
+  },
+  "title": "MVU variable schema (schema.json is its projection)",
+  "description": "This file is the source schema, registered at runtime through registerMvuSchema; src/variables/schema.json is its z.toJSONSchema(Schema, { io: \"input\" }) projection for readers and editors."
+}

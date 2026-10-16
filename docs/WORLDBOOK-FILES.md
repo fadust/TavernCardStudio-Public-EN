@@ -1,100 +1,71 @@
-# 世界书目录、文件名与打包
+# Worldbook directories, names, and packaging
 
-世界书按内容分类放进子目录，每条用有意义的名称。文件名不需要排序编号；注入位置与顺序由条目设置决定。分类名称与层级由作品决定，工具没有封闭分类清单。政治、种族、社会风俗、组织关系等都可独立成类，也可按国家或阵营交叉组织；下方只是一种小卡示例。分类不限定条目的注入位置与蓝绿灯。小卡不必建空目录。
+Organize entries into meaningful category subdirectories. Filenames do not need ordering numbers: entry settings determine injection. Categories and depth are open-ended author choices; politics, peoples, customs, organizations, geography, and cross-cutting structures are all valid. Small cards need no empty directory taxonomy.
 
 ```text
-src/
-  index.yaml
-  worldbook/
-    世界设定/
-      世界观.yaml
-      世界观.md
-    地理/
-      地理总览.yaml
-      地理总览.md
-      旧书店.yaml
-      旧书店.md
-    角色/
-      书店店主.yaml
-      书店店主.md
-    规则/
-      信息边界.yaml
-      信息边界.md
-    变量/
-      变量列表.yaml
-      变量列表.md
+src/worldbook/
+  setting/world-rules.yaml
+  setting/world-rules.md
+  geography/old-bookshop.yaml
+  geography/old-bookshop.md
+  characters/shopkeeper.yaml
+  characters/shopkeeper.md
+  rules/information-boundaries.yaml
+  rules/information-boundaries.md
 ```
 
-`.yaml` 是条目的启用、关键词、位置等设置；`文件` 引用的 `.md` 是提示词正文，正文可以采用 YAML 缩进。两者职责不同。宏和 EJS 仍是正文文本，拆分与打包不展开宏、不执行模板；相关进阶用法见 [动态条目](WORLDBOOK-TEMPLATING.md)。
+YAML contains activation/keyword/position settings. The file it references contains the model-facing prose, which may itself use YAML-style indentation. Macros/EJS remain text during split/build; tools do not expand/execute them. See [Dynamic worldbooks](WORLDBOOK-TEMPLATING.md).
 
-## 条目分类元数据
-
-条目 YAML 可以写可选键 `分类`，值是按 `/` 分段的相对目录：
+## Local category metadata
 
 ```yaml
-名称: 北境
-分类: 地理/北境
-文件: src/worldbook/地理/北境/北境.md
+name: Northlands
+category: geography/northlands
+file: src/worldbook/geography/northlands/northlands.md
 ```
 
-`分类` 只是本地创作元数据：不写进卡 JSON，不参与触发、位置或注入，卡片语义与构建产物不因它改变。它决定 `pnpm card organize` 把条目设置与该条目的可移动正文放进哪个目录；没写 `分类` 时沿用条目当前目录。分段必须能安全用作目录名，非法值会让加载与 `check` 失败。工具不读正文猜分类。
+Category is an optional slash-separated safe relative directory. It is not exported, does not affect activation/injection, and must not change card semantics. Organize moves the entry's settings/movable body there; without category it retains the current directory. Invalid path segments fail load/check. The tool does not infer categories from prose.
 
-## 总索引与顺序
+Only files explicitly referenced in worldbook.entries participate in packaging. Comments can segment the list while retaining its sequence. Do not create empty runtime entries for folders or use mutually exclusive runtime groups as categories.
 
-```yaml
-世界书:
-  名称: 旧书店
-  条目:
-    - src/worldbook/世界设定/世界观.yaml
-    - src/worldbook/地理/旧书店.yaml
-    - src/worldbook/角色/书店店主.yaml
-    - src/worldbook/规则/信息边界.yaml
-```
+## Ordering and identity
 
-`src/index.yaml` 引用哪些条目，哪些就参与打包；工具不遍历文件夹自动收录正文。可以把总索引中的引用分段加注释，仍保持列表结构。不必为本地目录分类创建空世界书条目，也不要用运行时互斥 `分组` 充当文件夹。
+For normal new-card layout, index/order follow before_character → after_character → at_depth deepest first; same-depth role groups follow pinned assistant → user → system, and prior order is ascending inside groups. Enabled entries receive consecutive global 1..N values; disabled entries stay in a maintenance tail. Host budgets, timing, grouping, depth, and role still control actual placement.
 
-- 文件夹与文件名只方便查找，可以按地区、人物群体再分子目录。
-- 总索引列表与各条目的 `顺序` 一起表达常规 prompt 布局：`位置` 先按 `角色定义之前` → `角色定义之后` → `指定深度`，指定深度内 `深度` 由深到浅，同深度按锁定实现的助手 → 用户 → 系统分组，组内按原顺序升序；已启用条目顺次编号 1..N、步长 1，后定义的接在前一条之后，不预留十位或百位间隔，未启用条目排在列表末尾维护区。
-- `位置` 使用宿主枚举，`深度` 是相对聊天尾部的距离，预算、递归、粘性与区块合并仍由宿主决定；这套编号只表达常规布局，不同预设下实际文本位置可能不同。
-- `pnpm card arrange <名称>` 专门重排：改总索引列表、连续重编 `顺序`、同步 `display_index`，并先备份完整工程。`split`、`build`、`organize` 都不会自动改 `顺序`，避免动到已有卡的预算优先级。
-- 作者注之前／之后、示例消息、出口等层级无法静态排全；导入卡缺失或带异常顺序设置时工具也不猜测：先读实际宿主预设、手工把总索引排成目标次序，再 `pnpm card arrange <名称> --order index` 按索引顺序编号。排序会改变跨位置预算优先级，改完在宿主提示词预览里核对，不是无损的文件整理。
-- 实际提示词注入由 `位置`、`顺序`、`深度` 与 `角色` 等设置决定，和文件名、目录排列无关。指定深度的条目默认 `角色: 系统`，创作者需要用户或助手消息角色时再改。
-- `关联` 是工具维护的条目身份。重命名文件时保留它，插件读取的标记保留在 `名称` 中；文件名不承担插件协议。
+Use `pnpm card arrange <name>` for explicit index/order/display_index changes with a full backup. Split/build/organize never silently renumber. For author notes, example messages, outlets, or invalid/missing imported orders, inspect the host preset, arrange the index manually, then use --order index. Renumbering is not lossless organization: it changes budget priority and needs host review.
 
-## 新建与导入
+Preserve link when moving/renaming. Plugin markers remain in entry name; filenames are not runtime protocols. For newly added entries without link, manually changing paths before first organization can alter path-derived IDs. The organizer records identity before moving them.
 
-新卡模板自带明确分类。导入卡没有原卡自带的“创作目录”字段，工具只从明确的标题分类推导目录，例如 `[地点]北岸`、`地点-北岸` 分到 `地理/北岸`，`人物-管理员` 分到 `角色/管理员`；少量总览名称和变量协议也可识别。标题本身、正文和酒馆设置保持原样，后续由人或 agent 把职责写进条目 YAML 的 `分类`。
+## Import and classify
 
-`split` 判不出来、标题也没有线索的条目先放 `未分类/`。工具不靠正文猜分类，也不把角色定义之后的所有条目当人物。
+New templates carry explicit categories. Imported cards have no local authoring category; split infers only clear title prefixes/overview/protocol conventions. Unknown titles go to unclassified. Names, bodies, and host settings remain unchanged. It does not assume every after-character entry is a character.
 
-导入整理是 agent 的工作内容，不是可以长期搁置的收尾。用 `pnpm card map <名称>` 拿世界书清单与待分类列表（`worldbook` 与 `classification.pending`，都不含正文），分批读取待分类条目的必要正文，按职责在条目 YAML 补 `分类`，再 `organize` → `check` → `diff`。一次读多少按条目长度定，别整本一次性拉完。范围跟着任务走：用户只改某一条时只整理涉及的那几条，整卡导入或整体创作时把整本世界书分完。混合主题可按主要职责归类，或自定跨主题目录，不必拆正文；确实无法判断或内容未定的条目才留在 `未分类/`，在交付里单列为待核实，不要当成分类完成。分类是职责判断，能定就自己定、不重复问；只有会改变剧情走向的歧义才回头确认。整理只动目录归属，不改条目划分、关键词、位置与正文，别把同一组触发协议拆散。
+Whole-card import includes agent-led classification:
 
-文件名清理 Windows 不允许的字符及保留名称；遇到同名、大小写相同或清理后重名，使用 `名称 (2)` 等局部后缀避免覆盖。这只是消歧，不是顺序编号。已有带编号的文件路径继续有效。
+1. Run card map for worldbook inventory and classification.pending, without dumping all bodies.
+2. Read necessary pending bodies in batches sized to entry length.
+3. Set category by responsibility, preserving entry boundaries, keywords, position, and prose.
+4. Organize, check, and diff.
 
-## 整理已有工程
+For a targeted edit, classify only involved entries; for a whole-card import/redesign, classify the whole worldbook. Mixed topics can use their main responsibility or a custom cross-topic directory without splitting content. Only unresolved/unfinished entries remain pending, explicitly reported. Resolve routine classification autonomously; ask only if ambiguity changes the creative direction.
 
-```powershell
+Windows filename cleanup removes invalid/reserved names. Local suffixes such as Name (2) resolve collisions, including case-insensitive collisions, without overwriting. Author-supplied numbers are retained; old numbered paths remain valid.
+
+## Organize an existing project
+
+```sh
 pnpm card organize my-card
 pnpm card check my-card
 pnpm card diff my-card
 pnpm card build my-card
 ```
 
-`organize` 只整理当前索引引用的世界书条目：优先按条目 YAML 的 `分类` 生成路径，没写 `分类` 时保留条目当前目录；去掉工具生成的全局文件编号，按名称生成文件名，更新 YAML 和总索引引用。未分类条目不会被自动猜成某个人物或地点。条目名称里创作者自己写的数字仍然保留。
+Organize touches referenced worldbook entries only, uses category or the current directory, removes tool-generated global filename numbers, creates semantic filenames, and updates references. Unknown extensions, unreferenced files, originals, and user settings are preserved. It works on a temporary copy, verifies complete card data/build bindings, then replaces the project. Do not edit concurrently.
 
-工具先在临时副本完成修改，核对整理前后的完整卡片数据与构建绑定一致，再替换工程。缺失的旧 `关联` 按原路径找回；新增条目的身份由工具记录，移动不会造成 ID 漂移。未知扩展字段、未引用文件、原件基线和已有用户设置均保留。整理期间不要同时编辑同一工程。
+Movable bodies are unbuilt .md/.txt files inside src/worldbook. Bound build output, executable sources, and relative import trees stay in place; only settings move and retain those references. Literal paths mentioned in prose are not rewritten and may need separate maintenance.
 
-可移动的正文是 `src/worldbook/` 内未绑定构建的 `.md`／`.txt`。有构建绑定的正文、可执行源码及其相对导入树保持原位置，只移动条目配置并保留引用；不自动重写代码里的路径。工具不会修改提示词正文中的字面路径，若作者把本地路径写进了维护说明，应另行更新。
+A complete pre-operation backup is returned under work/layout-backups. Keep it until review and move long-term backups elsewhere because work is not distributed. Unchanged repeat runs create no edits/backups. Migrate v1 before organization; see [Updates](UPDATING.md).
 
-操作前的完整工程备份保存在命令返回的 `work/layout-backups/` 路径，确认无误前保留；需要回滚时恢复这份完整工程。`work/` 不参与公开分发，长期备份请移到自己的备份位置。已经整理过且标题、目录未变时重复运行不产生修改或新备份。v1 工程先按 [升级说明](UPDATING.md) 迁移，再整理。
+## Manual moves
 
-## 手工移动与 agent 编辑
-
-能在条目 YAML 写 `分类` 就用 `pnpm card organize` 移动；手工移动留给工具不适用的情况。
-
-1. 读取总索引及目标条目 YAML，确认 `关联`、正文和构建入口。
-2. 将设置与普通正文移到目标子目录，更新总索引及条目的 `文件`。保留 `关联`，不靠重编号重新识别条目。
-3. 涉及代码入口时核对相对导入与资源路径；不确定就保留代码位置，仅移动设置文件。
-4. 用 `pnpm card map my-card` 查看当前路径与世界书清单，运行检查、差异对比与构建。目录调整本身不应改变条目内容、激活条件或注入顺序；要统一改 `顺序` 用 `pnpm card arrange my-card`，它不会随目录整理自动执行。
-
-新建条目可以不写 `关联`，但在首次整理前，手工改动它的配置路径会影响工具按路径生成的 ID；需要稳定身份时使用整理命令由工具记录。不要为了改目录重新从原卡拆分覆盖已有编辑。
+Prefer category + organize. If manual moves are necessary, inspect the index/configuration/body/build first, retain link, update index and file paths, and verify relative imports/assets. When uncertain, leave executable code in place. Run map/check/diff/build. Directory moves should not change content, activation, or injection order. Do not resplit originals over existing edits to change a directory.

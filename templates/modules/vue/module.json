@@ -1,1 +1,7 @@
-{ "ui": { "kind": "vue", "directory": "ui", "marker": "<CardStatus/>" } }
+{
+  "ui": {
+    "kind": "vue",
+    "directory": "ui",
+    "marker": "<CardStatus/>"
+  }
+}

@@ -1,0 +1,13 @@
+link: script-1
+name: Message event example
+enabled: true
+info: ""
+button:
+  enabled: false
+  buttons: []
+data: {}
+type: script
+file: src/scripts/001-message-event-example.js
+build:
+  type: script
+  entry: src/scripts/001-message-event-example.js

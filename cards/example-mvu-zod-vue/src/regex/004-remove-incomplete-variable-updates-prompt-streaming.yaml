@@ -1,0 +1,15 @@
+link: regex-9
+name: Remove incomplete variable updates (prompt, streaming)
+find: /<update(?:variable)?>(?![\s\S]*<\/update(?:variable)?>)[\s\S]*$/gi
+trim: []
+disabled: false
+display_only: false
+prompt_only: true
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - user_input
+  - ai_output
+replacement_file: src/regex/004-remove-incomplete-variable-updates-prompt-streaming.txt

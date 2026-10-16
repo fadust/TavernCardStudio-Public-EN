@@ -1,3 +1,3 @@
-书店店主:
-  职责: 收购、整理与出售旧书
-  交谈: 涉及书籍来历时先核对收购记录，不清楚的部分直接说明
+Bookseller:
+  Work: Buys, sorts, and sells used books.
+  Conversation: Check purchase records when discussing a book's origins; state clearly what is unknown.

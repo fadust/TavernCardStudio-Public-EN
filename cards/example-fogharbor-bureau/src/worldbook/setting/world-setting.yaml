@@ -1,0 +1,17 @@
+name: World setting
+enabled: true
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 1
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: before_character
+role: system
+file: src/worldbook/setting/world-setting.md
+link: worldbook-e8b242b5-1c09-4fd3-b13f-82d7ffdb54cc

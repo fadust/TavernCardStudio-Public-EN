@@ -1,0 +1,10 @@
+link: script-16
+name: MVU framework (pinned commit)
+enabled: true
+info: ""
+button:
+  enabled: false
+  buttons: []
+data: {}
+type: script
+file: src/scripts/002-mvu-framework-pinned-commit.js

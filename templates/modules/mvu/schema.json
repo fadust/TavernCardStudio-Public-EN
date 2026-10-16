@@ -2,29 +2,29 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "场景": {
+    "scene": {
       "default": {},
       "type": "object",
       "properties": {
-        "地点": {
-          "default": "初始场景",
+        "location": {
+          "default": "Opening scene",
           "type": "string"
         },
-        "阶段": {
-          "default": "开场",
+        "phase": {
+          "default": "Opening",
           "type": "string"
         }
       }
     },
-    "角色": {
+    "character": {
       "default": {},
       "type": "object",
       "properties": {
-        "心情": {
-          "default": "平静",
+        "mood": {
+          "default": "Calm",
           "type": "string"
         },
-        "信任": {
+        "trust": {
           "default": 0,
           "minimum": 0,
           "maximum": 100,
@@ -33,6 +33,6 @@
       }
     }
   },
-  "title": "MVU 变量结构（schema.json 是它的投影）",
-  "description": "结构真源是本文件，由变量结构脚本用 registerMvuSchema 注册到运行时；src/variables/schema.json 是 z.toJSONSchema(Schema, { io: \"input\" }) 的投影，仅供人和编辑器参考。"
+  "title": "MVU variable schema (schema.json is its projection)",
+  "description": "This file is the source schema, registered at runtime through registerMvuSchema; src/variables/schema.json is its z.toJSONSchema(Schema, { io: \"input\" }) projection for readers and editors."
 }

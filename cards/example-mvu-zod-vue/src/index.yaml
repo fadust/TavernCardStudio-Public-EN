@@ -1,0 +1,31 @@
+character:
+  name: example-mvu-zod-vue
+  creator: ""
+  version: 0.1.0
+  tags: []
+text:
+  description: src/text/description.md
+  personality: src/text/personality.md
+  scenario: src/text/scenario.md
+  first_mes: src/text/first_mes.md
+  creator_notes: src/text/creator_notes.md
+alternate_greetings: []
+group_only_greetings: []
+worldbook:
+  entries:
+    - src/worldbook/variables/variable-list.yaml
+    - src/worldbook/variables/[mvu_update]variable-update-rules.yaml
+    - src/worldbook/variables/[mvu_update]variable-output-format.yaml
+    - src/worldbook/variables/[initvar]initial-variables-keep-disabled.yaml
+  name: example-mvu-zod-vue
+regex:
+  - src/regex/001-fold-variable-updates-display.yaml
+  - src/regex/002-fold-incomplete-variable-updates-display-streaming.yaml
+  - src/regex/003-remove-variable-updates-prompt.yaml
+  - src/regex/004-remove-incomplete-variable-updates-prompt-streaming.yaml
+  - src/regex/005-embedded-status-panel.yaml
+  - src/regex/006-remove-status-placeholder-prompt.yaml
+scripts:
+  - src/scripts/001-mvu-framework-pinned-commit.yaml
+  - src/scripts/002-variable-schema-zod-registration.yaml
+helper_variables: {}

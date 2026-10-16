@@ -1,10 +1,64 @@
 {
   "worldbook": [
-    {"comment": "世界观", "keys": [], "constant": true, "position": "before_char", "insertion_order": 100, "contentFile": "setting.md", "category": "世界设定"},
-    {"comment": "地理总览", "keys": [], "constant": true, "position": "before_char", "insertion_order": 110, "contentFile": "geography.md", "category": "地理"},
-    {"comment": "旧书店", "keys": ["旧书店"], "constant": false, "position": "before_char", "insertion_order": 120, "contentFile": "bookshop.md", "category": "地理"},
-    {"comment": "角色总览", "keys": [], "constant": true, "position": "after_char", "insertion_order": 100, "contentFile": "characters.md", "category": "角色"},
-    {"comment": "书店店主", "keys": ["书店店主", "店主"], "constant": false, "position": "after_char", "insertion_order": 110, "contentFile": "bookseller.md", "category": "角色"},
-    {"comment": "信息边界", "keys": [], "constant": true, "position": "at_depth_as_system", "depth": 1, "insertion_order": 100, "contentFile": "rules.md", "category": "规则"}
+    {
+      "comment": "World setting",
+      "keys": [],
+      "constant": true,
+      "position": "before_char",
+      "insertion_order": 100,
+      "contentFile": "setting.md",
+      "category": "setting"
+    },
+    {
+      "comment": "Geography overview",
+      "keys": [],
+      "constant": true,
+      "position": "before_char",
+      "insertion_order": 110,
+      "contentFile": "geography.md",
+      "category": "geography"
+    },
+    {
+      "comment": "Used bookshop",
+      "keys": [
+        "Used bookshop"
+      ],
+      "constant": false,
+      "position": "before_char",
+      "insertion_order": 120,
+      "contentFile": "bookshop.md",
+      "category": "geography"
+    },
+    {
+      "comment": "Character overview",
+      "keys": [],
+      "constant": true,
+      "position": "after_char",
+      "insertion_order": 100,
+      "contentFile": "characters.md",
+      "category": "characters"
+    },
+    {
+      "comment": "Bookseller",
+      "keys": [
+        "Bookseller",
+        "shopkeeper"
+      ],
+      "constant": false,
+      "position": "after_char",
+      "insertion_order": 110,
+      "contentFile": "bookseller.md",
+      "category": "characters"
+    },
+    {
+      "comment": "Knowledge boundaries",
+      "keys": [],
+      "constant": true,
+      "position": "at_depth_as_system",
+      "depth": 1,
+      "insertion_order": 100,
+      "contentFile": "rules.md",
+      "category": "rules"
+    }
   ]
 }

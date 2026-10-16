@@ -1,0 +1,14 @@
+name: Remove greeting initial variables (prompt)
+find: /<initvar>[\s\S]*?<\/initvar>/gi
+trim: []
+disabled: false
+display_only: false
+prompt_only: true
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - user_input
+  - ai_output
+replacement_file: src/regex/006-remove-greeting-initial-variables-prompt.txt

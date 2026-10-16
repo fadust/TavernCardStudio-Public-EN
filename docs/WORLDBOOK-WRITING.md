@@ -1,97 +1,45 @@
-# 世界书条目提示词写法
+# Writing worldbook prompts
 
-这份规范用于编写模型实际收到的正文。字段与触发机制见 [WORLDBOOK.md](WORLDBOOK.md)，MVU 专用格式见 [VARIABLES.md](VARIABLES.md)。JSON、YAML、XML 标签或自然段都能承载提示词；SillyTavern 不因正文长得像 YAML 就自动执行它。
+This page concerns prose the model actually receives. Fields and activation are in [Worldbooks](WORLDBOOK.md); MVU formats are in [Variables](VARIABLES.md). JSON, YAML, XML, or paragraphs can carry prompts; YAML-looking prose is not executed by the host.
 
-## 元数据与正文分工
+## Metadata and prose
 
-`comment` 是条目名称，便于检索，也可能携带插件标记；`content` 才是注入正文。名称直接写“世界观”“守塔人”“伤势规则”即可，分类放在源文件目录中。需要标题前缀时采用清楚、简短的分类，不要求所有条目都加方括号。目录组织见 [世界书文件](WORLDBOOK-FILES.md)。
+Comment is the entry name, used for search and sometimes plugin markers; content is the injected prose. Keep names short and categories in directories. Prefixes are optional. Give each entry one independently activatable responsibility; combine tightly coupled small facts when they must arrive together. Do not over-split a tiny card.
 
-同一条只承担一个可独立激活的职责。可一起触发、必须一起解释的小段可放同条；人物档案、地理与输出协议不因同属一个故事就混成一大条。很小的卡不必机械拆分。
+Avoid editing instructions such as “change this entry” or “see the repository.” The model sees only injected text and cannot infer a missing neighbor, filename, or editor order. `{{char}}` expands to card name, not an arbitrary NPC. `{{user}}` is the player macro; a literal <user> tag has no automatic meaning without an explicit prompt/script contract.
 
-正文不写“修改这条”“参考仓库”“上一版规则”。模型只看到本轮实际注入的内容，不能依赖条目名、未触发条目或编辑器顺序来理解指代。`{{char}}` 展开为卡名，只有单角色且同名时才适合代指互动角色；多角色/世界卡用具体人物名或身份。`{{user}}` 是玩家身份宏；`<user>` 只有在明确的提示约定或脚本替换协议中才有意义，不能声称它会被宿主自动展开。
+General viewpoint, address, sentence rhythm, and length normally belong to presets/card fields. If a card requires its own narration policy, maintain it once and check conflicts.
 
-## 叙事人称与预设的分工
+## Concise YAML-style prose
 
-叙事人称、称呼、视角、句长和节奏通常由酒馆预设或卡文本字段统一决定，世界书不重复写一遍。条目正文按设定与机制本身写：谁、在什么条件下、做什么、缺少信息时怎么办。
-
-需要由本卡固定某种称呼或视角时，只写一处，并检查预设、角色描述与条目之间没有互相矛盾的说法。同一件事写两遍，模型每轮会收到两种表述。
-
-## 用简洁 YAML 写正文
-
-正文是给模型读的设定，默认用简洁 YAML 缩进：顶层写对象或规则，下面按身份、行为、条件等组织，同类事实放同一层。层级以读懂和复用为准；嵌套变量或地理树需要更深结构时保留，不为了固定层数拆散相互依赖的内容。
-
-- 键名优先表达内容职责，避免空泛占位；已有 Schema 或有明确用途的 `说明`、`备注` 字段按原结构保留。
-- 列表项写成能独立读懂的一句，不要把一句话拆成半句一行。
-- 每条正文自包含：模型只看得到本轮注入的这一条，看不到同目录的其它文件。
-- 数值只在规则、历史事实或创作目标要求时保留，并写清单位与适用范围。
-
-示例是通用片段：
+Use short meaningful keys, coherent indentation, and complete list sentences. Preserve deeper relationships when useful; do not impose a fixed depth. Keep each entry self-contained. Retain numbers only when facts/mechanics/goals require them, with units and scope.
 
 ```yaml
-雾岭商道:
-  走向: 自雾岭镇向北穿过灰渡口，进入北境高原
-  通行: 商队约三日；雨季延长，冬季封路
-  风险: 灰渡口以南有滑坡地段，雾天看不清路标
-  用途: 向北运盐与铁器，回程带毛皮
+Mist Ridge trade route:
+  route: North from Mist Ridge Town through Gray Ferry to the northern plateau
+  travel: About three days by caravan; longer in rain, closed in winter
+  risk: Landslides south of Gray Ferry; fog obscures markers
+  trade: Salt and iron northbound, furs on the return
 ```
 
-正文写得像 YAML 不会让它被执行；它仍是文本，靠蓝灯或关键词进入提示词。
+Static character prose should identify role, current goal, knowledge limits, and observable behavior rather than stacking synonyms. Distinguish facts, beliefs, rumors, and secrets; author knowledge is not universal character knowledge.
 
-## 三种可复用结构
+Rules need a subject, trigger, action, and missing-information behavior. Record only new/changed injuries or other events this round rather than inventing facts from a numerical state. Let Schema constrain value shape and let prompts explain when/why values change. Do not create competing formulas or unrequested limits.
 
-### 静态设定或人物
+## Output contracts
 
-用简短映射表达事实、边界与行为，选择有助于扮演的信息，不写同义形容词堆叠。示例是新创作的通用片段，不来自任何具体卡片的剧情：
+Specify spelling, fields, location, count, and empty behavior for every tag consumed by code. Separate narration, structured data, and UI markers. Identify examples as format examples, not current events. Ellipses or descriptive placeholders are not legal JSON values.
 
-```yaml
-夜港守塔人:
-  身份: 负责雾夜灯塔与进港记录的守塔人
-  当前目标: 找出连续三夜熄灭灯火的原因
-  已知: 南侧电缆曾被人拆动；不知道操作者是谁
-  行为:
-    - 面对陌生人先核对来意，确认对方需要避难时会先开门
-    - 不凭猜测指认破坏者；可请来访者协助检查电缆
-```
+| Marker | Producer | Consumer/history |
+| --- | --- | --- |
+| `<UpdateVariable>` / `<JSONPatch>` | fixed MVU model-output protocol | parser, display/prompt regexes; preserve raw message |
+| `<StatusPlaceHolderImpl/>` | MVU automatically | display renderer, prompt cleanup; hide without UI |
+| `<CardStatus/>` | independent non-MVU UI opening/output contract | independent rendering regex and history cleanup |
 
-人物资料应区分事实、人物相信的事、尚未知晓的事。不要让背景资料中的秘密自动变成所有角色的知识。
+Custom markers need explicit consumers. “Output a status panel” alone does not create a UI.
 
-### 机制或约束
+## Conditional content
 
-规则要有适用对象、触发条件、具体动作及必要的缺失信息处理。自然语言可以与 YAML 配合：
+Keywords determine candidate activation; EJS can choose text inside content when Prompt Template is installed/enabled. Read actual request-available state and use default/omission for unknown values. Do not infer missing facts.
 
-```yaml
-受伤处理:
-  适用: 已在正文中发生并确认的外伤
-  处理:
-    - 先描述能直接观察的症状，再决定是否需要停止行动
-    - 缺少检查结果时保留不确定性，不凭数值高低编造伤口
-  与状态同步: 仅记录本轮新增或明确变化的伤势
-```
-
-不要重复 MVU schema 的每个类型；世界书负责告诉模型什么时候更新，schema 负责约束值。涉及数值时只写用户要求的公式/范围，并给出适用条件，避免再出现第二套计算权威。
-
-### 输出契约
-
-当正则或脚本消费某个标签时，明确标签拼写、字段、输出位置、数量和空值行为。自然叙事、结构化数据和界面占位分工清楚。正文中的示例明确是格式示例，不代表当前事实；不要把 `...` 或 `${说明}` 当作可直接输出的合法 JSON。
-
-标签的生产者、消费者和历史处理要成对登记，例如：
-
-| 标记 | 谁产生 | 谁消费 | 历史如何处理 |
-| --- | --- | --- | --- |
-| `<UpdateVariable>` / `<JSONPatch>` | 固定 MVU 输出协议 | MVU 解析器；显示/提示词正则 | 原消息保留，模型历史可清理 |
-| `<StatusPlaceHolderImpl/>` | MVU 脚本自动添加，不提示模型输出 | MVU 状态栏显示正则 | 提示词清理；没有面板时仅隐藏显示 |
-| `<CardStatus/>` | 没有 MVU 的独立界面的输出条目、开场白 | 独立界面显示正则 | 提示词清理；可按需求设置旧楼层清理 |
-
-自创标签必须登记相应消费者，不能只写一句“输出状态栏”就假定界面会出现。
-
-## 条件内容与 EJS
-
-关键词决定是否送入条目；EJS 在已送入的内容中进一步按状态选择文本。使用 EJS 需存在并启用 Prompt Template，接口与变量作用域查 [SCRIPTS.md](SCRIPTS.md)，普通世界书不会自行执行 EJS。
-
-分支应读取本轮真实可用变量。缺失时显示简短默认说明或不输出该分支；不要用推测补全。若跨条目组成一个标签或模板块，启用条件、概率、预算、位置及顺序都必须一致，否则只到达半个块会破坏格式。新卡优先使用自包含条目。
-
-## 编写后审查
-
-逐条问：缺少邻居条目还能读懂吗？规则是否有可观察的触发依据？是否把作者意图写成了已发生事件？是否让模型看到无需知道的工具操作？常驻正文能否再删掉重复定义？输出标签是否有接收者？
-
-风格、数值、世界观都应来自当前创作目标。复杂卡的长列表、分隔符、特定 order/depth 只作为设计案例，不作为所有卡的强制规格。
+Prefer self-contained templates. Cross-entry wrappers require matching enabled/trigger/probability/budget/position/order so half a block cannot arrive. Review whether each entry makes sense alone, depends only on observable inputs, distinguishes examples from events, excludes irrelevant tool instructions, and has all protocol consumers. Preserve the current creative goal rather than imposing reference-card style or numerical conventions.

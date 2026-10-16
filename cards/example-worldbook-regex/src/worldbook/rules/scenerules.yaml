@@ -1,0 +1,17 @@
+link: worldbook-1
+name: sceneRules
+enabled: true
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 1
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: before_character
+role: system
+file: src/worldbook/rules/scenerules.md

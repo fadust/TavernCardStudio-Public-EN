@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Fold variable updates (display)",
+    "input": "{{char}} nods.\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/character/mood\",\"value\":\"Relaxed\"}]</JSONPatch>\n</UpdateVariable>",
+    "expected": "{{char}} nods.\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/character/mood\",\"value\":\"Relaxed\"}]</JSONPatch>\n\n</details>"
+  },
+  {
+    "name": "Fold variable updates (display)",
+    "input": "First paragraph\n<UpdateVariable><JSONPatch>[{\"op\":\"remove\",\"path\":\"/character/mood\"}]</JSONPatch></UpdateVariable>\nSecond paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>",
+    "expected": "First paragraph\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"remove\",\"path\":\"/character/mood\"}]</JSONPatch>\n\n</details>\nSecond paragraph\n<details><summary>Variable update</summary>\n\n<JSONPatch>[]</JSONPatch>\n\n</details>"
+  },
+  {
+    "name": "Fold incomplete variable updates (display, streaming)",
+    "input": "{{char}} is still writing.\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/character/trust\",\"value\":3}]",
+    "expected": "{{char}} is still writing.\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/character/trust\",\"value\":3}]\n\n</details>"
+  },
+  {
+    "name": "Fold incomplete variable updates (display, streaming)",
+    "input": "First paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\nSecond paragraph\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/character/trust\",\"value\":1}]",
+    "expected": "First paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\nSecond paragraph\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/character/trust\",\"value\":1}]\n\n</details>"
+  },
+  {
+    "name": "Remove variable updates (prompt)",
+    "input": "First paragraph\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/scene/location\",\"value\":\"Used bookshop\"}]</JSONPatch>\n</UpdateVariable>\nSecond paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\nEnding",
+    "expected": "First paragraph\n\nSecond paragraph\n\nEnding"
+  },
+  {
+    "name": "Remove incomplete variable updates (prompt, streaming)",
+    "input": "First paragraph\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/character/trust\",\"value\":2}]",
+    "expected": "First paragraph\n"
+  }
+]

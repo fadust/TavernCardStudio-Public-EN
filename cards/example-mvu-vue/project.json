@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "name": "example-mvu-vue",
+  "modules": [
+    "mvu",
+    "vue"
+  ],
+  "avatar": null,
+  "dependencies": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate@3377b494cd7277230f3056230062124fe117f93f/artifact/bundle.js",
+      "purpose": "Public MVU framework; requires Tavern Helper and enabled card scripts.",
+      "version": "3377b494cd7277230f3056230062124fe117f93f"
+    }
+  ],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "16a68b347ef3037b20f2ea5b9a3e2204f9706ce92f59d997097e6c4486268a01"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "2c7863daf12cdbc76385f88e087b45d0cd1de36f52d351c0532595e1da94aa99"
+  }
+}

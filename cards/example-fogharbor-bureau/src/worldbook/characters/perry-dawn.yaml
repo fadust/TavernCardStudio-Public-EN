@@ -1,0 +1,20 @@
+name: people·Perry Dawn
+enabled: true
+keys:
+  - Perry
+  - keeper
+  - duty
+secondary_keys: []
+selective: true
+use_regex: false
+order: 15
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: after_character
+role: system
+file: src/worldbook/characters/perry-dawn.md
+link: worldbook-fa8174ff-8bd6-439e-b8d0-32e31865af00

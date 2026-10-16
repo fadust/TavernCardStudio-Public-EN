@@ -1,0 +1,14 @@
+link: regex-14
+name: Remove status placeholder (prompt)
+find: <StatusPlaceHolderImpl/>
+trim: []
+disabled: false
+display_only: false
+prompt_only: true
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - ai_output
+replacement_file: src/regex/008-remove-status-placeholder-prompt.txt

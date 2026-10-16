@@ -1,0 +1,1 @@
+Describe personality through specific behavior, speech, and preferences when making decisions.

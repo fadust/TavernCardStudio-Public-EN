@@ -31,9 +31,9 @@ test('host-dependent or malformed active placements require reviewed index mode,
     assert.deepEqual(planWorldbookOrder(entries, { order: 'index' }), [{ index: 0, order: 1 }]);
     assert.deepEqual(planWorldbookOrder([{ ...entries[0], enabled: false }]), [{ index: 0, order: 1 }]);
   }
-  assert.throws(() => planWorldbookOrder([], { order: 'invalid' }), /模式/);
+  assert.throws(() => planWorldbookOrder([], { order: 'invalid' }), /mode/);
   assert.equal(entryPosition({ position: 'before_char' }), 0);
   assert.equal(entryPosition({}), 1, 'matches convertCharacterBook fallback');
   assert.equal(entryPosition({ position: 'before_char', extensions: { position: 4 } }), 4);
-  assert.throws(() => planWorldbookOrder([{ extensions: { position: 0 } }]), /缺失、异常的顺序/);
+  assert.throws(() => planWorldbookOrder([{ extensions: { position: 0 } }]), /order settings are missing\/invalid/);
 });

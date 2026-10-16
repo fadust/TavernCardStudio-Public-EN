@@ -1,5 +1,0 @@
-<details><summary>变量更新</summary>
-
-$1
-
-</details>

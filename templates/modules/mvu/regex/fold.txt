@@ -1,4 +1,4 @@
-<details><summary>变量更新</summary>
+<details><summary>Variable update</summary>
 
 $1
 

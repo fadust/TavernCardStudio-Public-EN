@@ -1,0 +1,14 @@
+link: regex-6
+name: Hide variable updates (display)
+find: /<UpdateVariable>[\s\S]*?<\/UpdateVariable>/gi
+trim: []
+disabled: false
+display_only: true
+prompt_only: false
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - ai_output
+replacement_file: src/regex/001-hide-variable-updates-display.txt

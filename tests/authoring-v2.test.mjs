@@ -1,5 +1,5 @@
-// 创作格式 v2：仅使用公开 API 的独立测试。
-// 只依赖 tools/lib/{templates,project,authoring,files,png}.mjs 与 node:test；不改动工具实现。
+// Authoring format v2: independent tests using public APIs only.
+// Depends only on tools/lib/{templates,project,authoring,files,png}.mjs and node:test; tool implementations are unchanged.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -16,7 +16,7 @@ import { chunk, readCardPNG, writeCardPNG } from '../tools/lib/png.mjs';
 
 const REPO = path.dirname(fileURLToPath(new URL('../package.json', import.meta.url)));
 
-// ---------- 测试辅助 ----------
+// ---------- Test helpers ----------
 
 async function tempRoot(t, prefix) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -93,7 +93,7 @@ function cardWithHelper() {
       {
         type: 'folder',
         enabled: true,
-        name: '变量',
+        name: "variables",
         id: 'f1',
         icon: 'fa-cog',
         color: 'blue',
@@ -163,7 +163,7 @@ async function writeText(dir, relative, content) {
 async function readProjectJSON(dir) { return JSON.parse(await readText(dir, 'project.json')); }
 async function writeProjectJSON(dir, project) { await fs.writeFile(path.join(dir, 'project.json'), JSON.stringify(project, null, 2)); }
 
-// 只使用公开 API 的 PNG 构造；与 build.test.mjs 相同的最小可用做法。
+// Construct PNGs through public APIs using the same minimal approach as build.test.mjs.
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 function ihdr(width = 1, height = 1) {
   const data = Buffer.alloc(13);
@@ -191,9 +191,9 @@ async function writeCardFile(root, relative, card) {
   return file;
 }
 
-// ---------- 新建与默认分布 ----------
+// ---------- Creation and defaults ----------
 
-test('newCard 默认 schemaVersion 2，无 src/card.json，只写第一条消息', async t => {
+test("newCard defaults to schemaVersion 2 without src/card.json and references only the first message", async t => {
   const root = await tempRoot(t, 'tcs-v2-new-');
   const dir = await newCard('默认骨架', { root, modules: ['worldbook'] });
   const project = await readProjectJSON(dir);
@@ -208,15 +208,15 @@ test('newCard 默认 schemaVersion 2，无 src/card.json，只写第一条消息
   assert.deepEqual(await dirEntries(dir, 'src/text'), ['creator_notes.md', 'description.md', 'first_mes.md', 'mes_example.md', 'personality.md', 'post_history_instructions.md', 'scenario.md', 'system_prompt.md']);
   for (const name of ['description.md', 'personality.md', 'scenario.md', 'mes_example.md']) assert.equal(await readText(dir, 'src/text/' + name), '', '新卡默认留空 ' + name);
 
-  assert.equal(index.文本['第一条消息'], 'src/text/first_mes.md');
+  assert.equal(index.text["first_mes"], 'src/text/first_mes.md');
   assert.notEqual(await readText(dir, 'src/text/first_mes.md'), '', '开场白保留模板内容');
   assert.equal(loaded.card.data.description, '');
   assert.equal(loaded.card.data.personality, '');
   assert.equal(loaded.card.data.scenario, '');
   assert.equal(loaded.card.data.mes_example, '');
-  assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ['世界观', '地理总览', '旧书店', '角色总览', '书店店主', '信息边界'], 'worldbook 模板条目保留');
+  assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ["World setting", "Geography overview", "Used bookshop", "Character overview", "Bookseller", "Knowledge boundaries"], 'worldbook 模板条目保留');
 
-  await t.test('纯文字卡不带可选模块内容', async () => {
+  await t.test("text-only cards contain no optional module content", async () => {
     const textOnly = await newCard('纯文字骨架', { root });
     const textOnlyLoaded = await loadProject('纯文字骨架', root);
     assert.deepEqual(textOnlyLoaded.project.modules, []);
@@ -227,7 +227,7 @@ test('newCard 默认 schemaVersion 2，无 src/card.json，只写第一条消息
   });
 });
 
-test('导入卡的非空描述、性格、场景、对话示例保留', async t => {
+test("imports preserve nonempty descriptions, personalities, scenarios, and dialogue examples", async t => {
   const card = baseCard();
   const { root, dir } = await splitJSON(t, card, '导入保留', 'tcs-v2-import-keep-');
   const loaded = await loadProject('导入保留', root);
@@ -241,24 +241,24 @@ test('导入卡的非空描述、性格、场景、对话示例保留', async t 
   assert.deepEqual(semanticDiff(card, loaded.card), [], '导入后立即加载应无差异');
 });
 
-// ---------- YAML 元数据与文本 ----------
+// ---------- YAML metadata and text ----------
 
-test('YAML 中文元数据与正文可改后重新读取', async t => {
+test("Chinese YAML metadata and body text remain editable and reloadable", async t => {
   const card = baseCard();
   const { root, dir } = await splitJSON(t, card, '元数据', 'tcs-v2-yaml-');
   const index = await readYAML(dir, 'src/index.yaml');
   const rawIndex = await readText(dir, 'src/index.yaml');
 
-  assert.match(rawIndex, /角色:/);
-  assert.match(rawIndex, /名称:/);
+  assert.match(rawIndex, /character:/);
+  assert.match(rawIndex, /name:/);
   assert.doesNotMatch(rawIndex, /\\u[0-9a-fA-F]{4}/, 'YAML 不应把中文写成转义序列');
-  assert.equal(index.角色.名称, card.data.name);
-  assert.equal(index.文本.第一条消息, 'src/text/first_mes.md');
+  assert.equal(index.character.name, card.data.name);
+  assert.equal(index.text.first_mes, 'src/text/first_mes.md');
 
-  index.角色.名称 = '雨夜旅人';
-  index.角色.作者 = '测试作者';
-  index.角色.版本 = '2.1';
-  index.角色.标签 = ['奇幻', '雨夜'];
+  index.character.name = '雨夜旅人';
+  index.character.creator = '测试作者';
+  index.character.version = '2.1';
+  index.character.tags = ['奇幻', '雨夜'];
   await writeYAML(dir, 'src/index.yaml', index);
   await writeText(dir, 'src/text/first_mes.md', '「雨停了。」');
 
@@ -269,11 +269,11 @@ test('YAML 中文元数据与正文可改后重新读取', async t => {
   assert.deepEqual(reloaded.card.data.tags, ['奇幻', '雨夜']);
   assert.equal(reloaded.card.data.first_mes, '「雨停了。」');
   const indexAgain = await readYAML(dir, 'src/index.yaml');
-  assert.equal(indexAgain.角色.作者, '测试作者', 'YAML 写回后仍是中文');
+  assert.equal(indexAgain.character.creator, '测试作者', 'YAML 写回后仍是中文');
   assert.equal((await readText(dir, 'src/index.yaml')).includes('测试作者'), true);
 });
 
-test('世界书条目的增删与重排按索引生效', async t => {
+test("the index controls worldbook entry additions, removals, and reordering", async t => {
   const card = baseCard();
   card.data.character_book = {
     name: '测试世界书',
@@ -282,52 +282,52 @@ test('世界书条目的增删与重排按索引生效', async t => {
       { id: 1, keys: ['乙'], secondary_keys: [], comment: '乙', content: '乙的内容', enabled: true, constant: true, selective: false, insertion_order: 20, position: 'after_char', use_regex: false, extensions: { position: 1, depth: 4, role: 0 } },
     ],
   };
-  const { root, dir } = await splitJSON(t, card, '世界书', 'tcs-v2-worldbook-');
+  const { root, dir } = await splitJSON(t, card, "worldbook", 'tcs-v2-worldbook-');
 
   let index = await readYAML(dir, 'src/index.yaml');
-  assert.equal(index.世界书.条目.length, 2);
-  const [first, second] = index.世界书.条目;
+  assert.equal(index.worldbook.entries.length, 2);
+  const [first, second] = index.worldbook.entries;
 
-  index.世界书.条目 = [second, first];
+  index.worldbook.entries = [second, first];
   await writeYAML(dir, 'src/index.yaml', index);
-  let loaded = await loadProject('世界书', root);
+  let loaded = await loadProject("worldbook", root);
   assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ['乙', '甲'], '重排索引即改变运行时顺序');
   assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.content), ['乙的内容', '甲的内容']);
 
   const added = 'src/worldbook/新增-丙.yaml';
-  await writeYAML(dir, added, { 名称: '丙', 启用: true, 关键词: ['丙'], 顺序: 30, 文件: 'src/worldbook/新增-丙.md' });
+  await writeYAML(dir, added, { name: '丙', enabled: true, keys: ['丙'], order: 30, file: 'src/worldbook/新增-丙.md' });
   await writeText(dir, 'src/worldbook/新增-丙.md', '丙的内容');
-  index.世界书.条目 = [second, added, first];
+  index.worldbook.entries = [second, added, first];
   await writeYAML(dir, 'src/index.yaml', index);
-  loaded = await loadProject('世界书', root);
+  loaded = await loadProject("worldbook", root);
   assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ['乙', '丙', '甲']);
   const addedEntry = loaded.card.data.character_book.entries[1];
   assert.equal(addedEntry.content, '丙的内容');
   assert.equal(typeof addedEntry.id, 'number', '新条目 ID 由工具生成');
   assert.equal(addedEntry.keys[0], '丙');
 
-  index.世界书.条目 = [second, first];
+  index.worldbook.entries = [second, first];
   await writeYAML(dir, 'src/index.yaml', index);
-  loaded = await loadProject('世界书', root);
+  loaded = await loadProject("worldbook", root);
   assert.deepEqual(loaded.card.data.character_book.entries.map(entry => entry.comment), ['乙', '甲'], '移除引用即退出打包');
   assert.equal(await hasFile(dir, 'src/worldbook/新增-丙.yaml'), true, '未引用的 YAML 可以保留');
 });
 
-test('正则条目的增删与重排按索引生效，替换文本独立可改', async t => {
+test("the index controls regex additions, removals, and reordering while replacement text stays editable", async t => {
   const card = cardWithHelper();
-  const { root, dir } = await splitJSON(t, card, '正则', 'tcs-v2-regex-');
+  const { root, dir } = await splitJSON(t, card, "regex", 'tcs-v2-regex-');
 
   let index = await readYAML(dir, 'src/index.yaml');
-  assert.equal(index.正则.length, 2);
-  const [first, second] = index.正则;
+  assert.equal(index.regex.length, 2);
+  const [first, second] = index.regex;
   const firstConfig = await readYAML(dir, first);
-  assert.equal(firstConfig.关联.startsWith('regex-'), true, '导入条目带工具生成的关联');
-  assert.equal(firstConfig.名称, '[隐藏]变量更新');
+  assert.equal(firstConfig.link.startsWith('regex-'), true, '导入条目带工具生成的关联');
+  assert.equal(firstConfig.name, '[隐藏]变量更新');
 
-  await writeText(dir, firstConfig.替换文件, '改过的替换文本');
-  index.正则 = [second, first];
+  await writeText(dir, firstConfig.replacement_file, '改过的替换文本');
+  index.regex = [second, first];
   await writeYAML(dir, 'src/index.yaml', index);
-  let loaded = await loadProject('正则', root);
+  let loaded = await loadProject("regex", root);
   let regexes = loaded.card.data.extensions.regex_scripts;
   assert.deepEqual(regexes.map(regex => regex.scriptName), ['显示备注', '[隐藏]变量更新']);
   assert.deepEqual(regexes.map(regex => regex.replaceString), ['隐藏二的替换', '改过的替换文本']);
@@ -335,24 +335,24 @@ test('正则条目的增删与重排按索引生效，替换文本独立可改',
   assert.deepEqual(regexes[1].placement, [2]);
 
   const added = 'src/regex/新增-清理.yaml';
-  await writeYAML(dir, added, { 名称: '清理', 查找: '/ +$/g', 替换文件: 'src/regex/新增-清理.txt', 作用于: ['AI输出'] });
+  await writeYAML(dir, added, { name: '清理', find: '/ +$/g', replacement_file: 'src/regex/新增-清理.txt', placement: ["ai_output"] });
   await writeText(dir, 'src/regex/新增-清理.txt', '');
-  index.正则 = [second, added, first];
+  index.regex = [second, added, first];
   await writeYAML(dir, 'src/index.yaml', index);
-  loaded = await loadProject('正则', root);
+  loaded = await loadProject("regex", root);
   regexes = loaded.card.data.extensions.regex_scripts;
   assert.deepEqual(regexes.map(regex => regex.scriptName), ['显示备注', '清理', '[隐藏]变量更新']);
   assert.deepEqual(regexes[1].placement, [2]);
   assert.equal(regexes[1].replaceString, '');
   assert.equal(regexes[2].replaceString, '改过的替换文本');
 
-  index.正则 = [added, second];
+  index.regex = [added, second];
   await writeYAML(dir, 'src/index.yaml', index);
-  loaded = await loadProject('正则', root);
+  loaded = await loadProject("regex", root);
   assert.deepEqual(loaded.card.data.extensions.regex_scripts.map(regex => regex.scriptName), ['清理', '显示备注']);
 });
 
-test('脚本文件夹嵌套的增删与重排', async t => {
+test("nested script folders support additions, removals, and reordering", async t => {
   const card = cardWithHelper();
   card.data.extensions.tavern_helper.scripts[1].scripts = [
     {
@@ -388,21 +388,21 @@ test('脚本文件夹嵌套的增删与重排', async t => {
       },
     ],
   });
-  const { root, dir } = await splitJSON(t, card, '脚本', 'tcs-v2-script-');
+  const { root, dir } = await splitJSON(t, card, "scripts", 'tcs-v2-script-');
 
   let index = await readYAML(dir, 'src/index.yaml');
-  assert.equal(index.脚本.length, 3, '顶层脚本条目按索引列出');
-  const folderFile = index.脚本[1];
+  assert.equal(index.scripts.length, 3, '顶层脚本条目按索引列出');
+  const folderFile = index.scripts[1];
   const folderConfig = await readYAML(dir, folderFile);
-  assert.equal(folderConfig.类型, '文件夹');
-  assert.equal(folderConfig.脚本.length, 1);
-  assert.equal((await readYAML(dir, folderConfig.脚本[0])).名称, '子脚本');
+  assert.equal(folderConfig.type, "folder");
+  assert.equal(folderConfig.scripts.length, 1);
+  assert.equal((await readYAML(dir, folderConfig.scripts[0])).name, '子脚本');
 
-  index.脚本 = [index.脚本[2], index.脚本[1], index.脚本[0]];
+  index.scripts = [index.scripts[2], index.scripts[1], index.scripts[0]];
   await writeYAML(dir, 'src/index.yaml', index);
-  let loaded = await loadProject('脚本', root);
+  let loaded = await loadProject("scripts", root);
   let scripts = loaded.card.data.extensions.tavern_helper.scripts;
-  assert.deepEqual(scripts.map(script => script.name), ['顶层脚本', '外层文件夹', '变量']);
+  assert.deepEqual(scripts.map(script => script.name), ['顶层脚本', '外层文件夹', "variables"]);
   assert.deepEqual(scripts[0].data, {});
   assert.deepEqual(scripts[1].scripts.map(child => child.name), ['子脚本']);
   assert.deepEqual(scripts[2].scripts.map(child => child.name), ['变量结构', '备用脚本']);
@@ -411,11 +411,11 @@ test('脚本文件夹嵌套的增删与重排', async t => {
   assert.deepEqual(loaded.card.data.extensions.tavern_helper.variables, { counter: 0 });
 
   const added = 'src/scripts/新增-收尾.yaml';
-  await writeYAML(dir, added, { 名称: '收尾', 类型: '脚本', 启用: false, 说明: '新脚本', 数据: { a: 1 }, 文件: 'src/scripts/新增-收尾.js' });
+  await writeYAML(dir, added, { name: '收尾', type: "script", enabled: false, info: '新脚本', data: { a: 1 }, file: 'src/scripts/新增-收尾.js' });
   await writeText(dir, 'src/scripts/新增-收尾.js', 'console.info("收尾");');
-  index.脚本 = [added, index.脚本[0]];
+  index.scripts = [added, index.scripts[0]];
   await writeYAML(dir, 'src/index.yaml', index);
-  loaded = await loadProject('脚本', root);
+  loaded = await loadProject("scripts", root);
   scripts = loaded.card.data.extensions.tavern_helper.scripts;
   assert.deepEqual(scripts.map(script => script.name), ['收尾', '顶层脚本']);
   assert.equal(scripts[0].enabled, false);
@@ -424,57 +424,57 @@ test('脚本文件夹嵌套的增删与重排', async t => {
   assert.match(scripts[0].id, /^[a-f0-9]{32}$/, '新脚本 ID 由工具生成');
 });
 
-test('开场白的增删与重排按索引生效', async t => {
+test("the index controls greeting additions, removals, and reordering", async t => {
   const { root, dir } = await splitJSON(t, baseCard(), '开场白', 'tcs-v2-greetings-');
   let index = await readYAML(dir, 'src/index.yaml');
-  assert.equal(index.备选开场白.length, 2);
-  assert.equal(index.群聊开场白.length, 1);
+  assert.equal(index.alternate_greetings.length, 2);
+  assert.equal(index.group_only_greetings.length, 1);
   let loaded = await loadProject('开场白', root);
   assert.deepEqual(loaded.card.data.alternate_greetings, ['备选一', '备选二']);
   assert.deepEqual(loaded.card.data.group_only_greetings, ['群聊一']);
 
   const added = 'src/greetings/新-前言.md';
   await writeText(dir, added, '新的开场');
-  index.备选开场白 = [added, index.备选开场白[1], index.备选开场白[0]];
+  index.alternate_greetings = [added, index.alternate_greetings[1], index.alternate_greetings[0]];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('开场白', root);
   assert.deepEqual(loaded.card.data.alternate_greetings, ['新的开场', '备选二', '备选一'], '新增与重排按索引生效');
 
   index = await readYAML(dir, 'src/index.yaml');
-  index.备选开场白 = [index.备选开场白[2]];
-  index.群聊开场白 = [];
+  index.alternate_greetings = [index.alternate_greetings[2]];
+  index.group_only_greetings = [];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('开场白', root);
   assert.deepEqual(loaded.card.data.alternate_greetings, ['备选一'], '移除引用即退出打包');
   assert.deepEqual(loaded.card.data.group_only_greetings, [], '群聊开场白同样按索引');
 });
 
-test('同一开场白文件被多段引用会被拒绝', async t => {
+test("multiple references to the same greeting file are rejected", async t => {
   const { root, dir } = await splitJSON(t, baseCard(), '重复开场白', 'tcs-v2-greetings-dup-');
   const index = await readYAML(dir, 'src/index.yaml');
-  index.备选开场白 = [...index.备选开场白, index.群聊开场白[0]];
+  index.alternate_greetings = [...index.alternate_greetings, index.group_only_greetings[0]];
   await writeYAML(dir, 'src/index.yaml', index);
-  await assert.rejects(() => loadProject('重复开场白', root), /重复源文件引用或循环引用/);
+  await assert.rejects(() => loadProject('重复开场白', root), /Duplicate or cyclic source reference/);
 });
 
-// ---------- 构建绑定 ----------
+// ---------- Build bindings ----------
 
-test('正则与脚本条目的构建绑定跟随条目，重排后指针与入口不错位', async t => {
+test("regex and script build bindings follow entries and retain correct pointers after reordering", async t => {
   const card = baseCard();
   card.data.extensions.regex_scripts = [];
   card.data.extensions.tavern_helper = { scripts: [], variables: {} };
   const { root, dir } = await splitJSON(t, card, '构建绑定', 'tcs-v2-builds-');
 
   const htmlEntry = 'src/regex/001-界面.yaml';
-  await writeYAML(dir, htmlEntry, { 名称: '界面', 查找: '/<CardStatus\/>/g', 替换文件: 'src/regex/001-界面.txt', 构建: { 类型: 'html', 入口: 'src/ui/html/index.html' } });
+  await writeYAML(dir, htmlEntry, { name: '界面', find: '/<CardStatus\/>/g', replacement_file: 'src/regex/001-界面.txt', build: { type: 'html', entry: 'src/ui/html/index.html' } });
   await writeText(dir, 'src/regex/001-界面.txt', '');
   await writeText(dir, 'src/ui/html/index.html', '<main>界面</main>');
   const scriptEntry = 'src/scripts/001-脚本.yaml';
-  await writeYAML(dir, scriptEntry, { 名称: '脚本', 类型: '脚本', 文件: 'src/scripts/001-脚本.js', 构建: { 类型: 'script', 入口: 'src/scripts/001-脚本.js' } });
+  await writeYAML(dir, scriptEntry, { name: "scripts", type: "script", file: 'src/scripts/001-脚本.js', build: { type: 'script', entry: 'src/scripts/001-脚本.js' } });
   await writeText(dir, 'src/scripts/001-脚本.js', 'console.info("脚本");');
   const index = await readYAML(dir, 'src/index.yaml');
-  index.正则 = [htmlEntry];
-  index.脚本 = [scriptEntry];
+  index.regex = [htmlEntry];
+  index.scripts = [scriptEntry];
   await writeYAML(dir, 'src/index.yaml', index);
 
   let loaded = await loadProject('构建绑定', root);
@@ -485,9 +485,9 @@ test('正则与脚本条目的构建绑定跟随条目，重排后指针与入�
   assert.equal(loaded.project.fields.find(field => field.pointer === htmlBuild.pointer).file, 'src/regex/001-界面.txt');
 
   const second = 'src/scripts/002-脚本.yaml';
-  await writeYAML(dir, second, { 名称: '脚本二', 类型: '脚本', 文件: 'src/scripts/002-脚本.js' });
+  await writeYAML(dir, second, { name: '脚本二', type: "script", file: 'src/scripts/002-脚本.js' });
   await writeText(dir, 'src/scripts/002-脚本.js', 'console.info("脚本二");');
-  index.脚本 = [second, scriptEntry];
+  index.scripts = [second, scriptEntry];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('构建绑定', root);
   const scriptBuild = loaded.project.builds.find(build => build.kind === 'script');
@@ -496,7 +496,7 @@ test('正则与脚本条目的构建绑定跟随条目，重排后指针与入�
   assert.equal(await readText(dir, scriptBuild.entry), 'console.info("脚本");');
 });
 
-test('世界书条目的构建绑定跟随条目，重排后指针与入口不错位', async t => {
+test("worldbook build bindings follow entries and retain correct pointers after reordering", async t => {
   const card = baseCard();
   card.data.character_book = {
     name: '构建世界书',
@@ -508,19 +508,19 @@ test('世界书条目的构建绑定跟随条目，重排后指针与入口不�
   const { root, dir } = await splitJSON(t, card, '构建世界书', 'tcs-v2-wbbuild-');
 
   let index = await readYAML(dir, 'src/index.yaml');
-  const [first, second] = index.世界书.条目;
+  const [first, second] = index.worldbook.entries;
   const firstConfig = await readYAML(dir, first);
-  const firstBody = firstConfig.文件;
+  const firstBody = firstConfig.file;
   assert.equal(await readText(dir, firstBody), '甲的内容', '正文按条目配置的路径读取');
   const firstEntry = firstBody.replace(/\.md$/, '.js');
-  firstConfig.构建 = { 类型: 'script', 入口: firstEntry };
+  firstConfig.build = { type: 'script', entry: firstEntry };
   await writeYAML(dir, first, firstConfig);
   await writeText(dir, firstEntry, 'console.info("甲构建");');
 
   let loaded = await loadProject('构建世界书', root);
   assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: firstEntry, pointer: '/data/character_book/entries/0/content' }]);
 
-  index.世界书.条目 = [second, first];
+  index.worldbook.entries = [second, first];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('构建世界书', root);
   assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: firstEntry, pointer: '/data/character_book/entries/1/content' }], '重排后指针跟着条目');
@@ -528,13 +528,13 @@ test('世界书条目的构建绑定跟随条目，重排后指针与入口不�
   assert.equal(loaded.project.fields.find(field => field.pointer === loaded.project.builds[0].pointer).file, firstBody);
   assert.equal(await readText(dir, loaded.project.builds[0].entry), 'console.info("甲构建");');
 
-  index.世界书.条目 = [first, second];
+  index.worldbook.entries = [first, second];
   await writeYAML(dir, 'src/index.yaml', index);
   loaded = await loadProject('构建世界书', root);
   assert.deepEqual(loaded.project.builds, [{ kind: 'script', entry: firstEntry, pointer: '/data/character_book/entries/0/content' }]);
 });
 
-test('HTML 模块的界面构建绑定仍指向正则替换字段', async t => {
+test("HTML interface build bindings still target the regex replacement field", async t => {
   const root = await tempRoot(t, 'tcs-v2-ui-build-');
   await newCard('界面构建', { root, modules: ['html'] });
   const loaded = await loadProject('界面构建', root);
@@ -547,29 +547,29 @@ test('HTML 模块的界面构建绑定仍指向正则替换字段', async t => {
   assert.match(field.file, /^src\/regex\/.*\.txt$/);
 });
 
-// ---------- 新条目省略关联 ----------
+// ---------- New entries without links ----------
 
-test('新配置条目可省略关联，默认 ID 与名称由工具生成', async t => {
+test("new entries may omit links and receive generated IDs and names", async t => {
   const card = baseCard();
   const { root, dir } = await splitJSON(t, card, '省略关联', 'tcs-v2-nokey-');
   const index = await readYAML(dir, 'src/index.yaml');
 
   const worldbookFile = 'src/worldbook/999-无关联.yaml';
-  await writeYAML(dir, worldbookFile, { 名称: '无关联世界书', 关键词: ['无关联'], 文件: 'src/worldbook/999-无关联.md' });
+  await writeYAML(dir, worldbookFile, { name: '无关联世界书', keys: ['无关联'], file: 'src/worldbook/999-无关联.md' });
   await writeText(dir, 'src/worldbook/999-无关联.md', '无关联正文');
-  index.世界书 = index.世界书 ?? { 条目: [] };
-  index.世界书.条目 = [worldbookFile];
+  index.worldbook = index.worldbook ?? { entries: [] };
+  index.worldbook.entries = [worldbookFile];
   await writeYAML(dir, 'src/index.yaml', index);
 
   const regexFile = 'src/regex/999-无关联.yaml';
-  await writeYAML(dir, regexFile, { 名称: '无关联正则', 查找: '/x/g', 替换文件: 'src/regex/999-无关联.txt' });
+  await writeYAML(dir, regexFile, { name: '无关联正则', find: '/x/g', replacement_file: 'src/regex/999-无关联.txt' });
   await writeText(dir, 'src/regex/999-无关联.txt', '替换');
   const scriptFile = 'src/scripts/999-无关联.yaml';
-  await writeYAML(dir, scriptFile, { 名称: '无关联脚本', 类型: '脚本', 文件: 'src/scripts/999-无关联.js' });
+  await writeYAML(dir, scriptFile, { name: '无关联脚本', type: "script", file: 'src/scripts/999-无关联.js' });
   await writeText(dir, 'src/scripts/999-无关联.js', 'console.info("无关联");');
   const secondIndex = await readYAML(dir, 'src/index.yaml');
-  secondIndex.正则 = [regexFile];
-  secondIndex.脚本 = [scriptFile];
+  secondIndex.regex = [regexFile];
+  secondIndex.scripts = [scriptFile];
   await writeYAML(dir, 'src/index.yaml', secondIndex);
 
   const loaded = await loadProject('省略关联', root);
@@ -589,9 +589,9 @@ test('新配置条目可省略关联，默认 ID 与名称由工具生成', asyn
   assert.match(script.id, /^[a-f0-9]{32}$/);
 });
 
-// ---------- 未知字段与兼容数据 ----------
+// ---------- Unknown fields and compatibility data ----------
 
-test('未知字段、legacy 与嵌套脚本文件夹不丢失', async t => {
+test("unknown fields, legacy data, and nested script folders are preserved", async t => {
   const card = cardWithHelper();
   card.data.extensions['第三方插件'] = { 配置: { nested: [{ deep: [1, '中文', { ok: true, list: [] }] }] }, 开关: false };
   card.data.character_book = {
@@ -613,23 +613,23 @@ test('未知字段、legacy 与嵌套脚本文件夹不丢失', async t => {
   assert.equal(await readText(dir, 'src/legacy/creatorcomment.md'), card.creatorcomment);
 
   const index = await readYAML(dir, 'src/index.yaml');
-  assert.deepEqual(Object.keys(index.兼容文本).sort(), ['legacy/creatorcomment', 'legacy/description'], '兼容文本按原始指针登记');
-  assert.equal(index.兼容文本['legacy/description'], 'src/legacy/description.md');
-  assert.equal(index.兼容文本['legacy/creatorcomment'], 'src/legacy/creatorcomment.md');
+  assert.deepEqual(Object.keys(index.legacy_text).sort(), ['legacy/creatorcomment', 'legacy/description'], '兼容文本按原始指针登记');
+  assert.equal(index.legacy_text['legacy/description'], 'src/legacy/description.md');
+  assert.equal(index.legacy_text['legacy/creatorcomment'], 'src/legacy/creatorcomment.md');
   assert.equal(loaded.project.fields.some(field => field.pointer === '/description'), true);
   assert.equal(loaded.project.fields.some(field => field.pointer === '/creatorcomment'), true);
 
   let folderFile;
-  for (const file of index.脚本) {
+  for (const file of index.scripts) {
     const config = await readYAML(dir, file);
-    if (config.名称 === '变量') { folderFile = file; break; }
+    if (config.name === "variables") { folderFile = file; break; }
   }
   assert.ok(folderFile, '文件夹条目应出现在索引里');
   const folderConfig = await readYAML(dir, folderFile);
-  assert.equal(folderConfig.类型, '文件夹');
-  const nested = folderConfig.脚本[0];
-  assert.equal((await readYAML(dir, nested)).名称, '变量结构');
-  assert.equal((await readYAML(dir, folderConfig.脚本[1])).名称, '备用脚本');
+  assert.equal(folderConfig.type, "folder");
+  const nested = folderConfig.scripts[0];
+  assert.equal((await readYAML(dir, nested)).name, '变量结构');
+  assert.equal((await readYAML(dir, folderConfig.scripts[1])).name, '备用脚本');
   const nestedBody = nested.replace(/\.yaml$/, '.js');
   assert.equal(await readText(dir, nestedBody), 'console.info("变量结构");');
 
@@ -638,7 +638,7 @@ test('未知字段、legacy 与嵌套脚本文件夹不丢失', async t => {
   assert.equal(state.version, 2);
 });
 
-test('兼容文本覆盖的旧字段可以继续编辑并打包', async t => {
+test("legacy fields covered by compatibility text remain editable and buildable", async t => {
   const root = await tempRoot(t, 'tcs-v2-compat-text-');
   const dir = await writeV1Project(root, '兼容旧字段');
   const loaded = await loadProject('兼容旧字段', root);
@@ -648,18 +648,18 @@ test('兼容文本覆盖的旧字段可以继续编辑并打包', async t => {
   assert.equal(roundtrip.card.data.personality, '沉默寡言');
 
   const index = await readYAML(dir, 'src/index.yaml');
-  const key = Object.keys(index.兼容文本).find(title => title.endsWith('depth_prompt'));
+  const key = Object.keys(index.legacy_text).find(title => title.endsWith('depth_prompt'));
   assert.ok(key, '深度提示应登记在兼容文本里');
-  assert.equal(index.兼容文本[key], 'src/text/depth_prompt.md');
+  assert.equal(index.legacy_text[key], 'src/text/depth_prompt.md');
 
   await writeText(dir, 'src/text/depth_prompt.md', '改过的深度提示');
   const reloaded = await loadProject('兼容旧字段', root);
   assert.equal(reloaded.card.depth_prompt.prompt, '改过的深度提示');
 });
 
-// ---------- JSON 与 PNG 往返 ----------
+// ---------- JSON and PNG roundtrips ----------
 
-test('JSON 拆分后加载语义等价，可反复加载', async t => {
+test("split JSON loads with equivalent semantics and supports repeated loading", async t => {
   const card = cardWithHelper();
   const { root, dir } = await splitJSON(t, card, '往返', 'tcs-v2-roundtrip-');
   const first = await loadProject('往返', root);
@@ -670,7 +670,7 @@ test('JSON 拆分后加载语义等价，可反复加载', async t => {
   assert.equal(first.project.source, 'src/index.yaml');
 });
 
-test('PNG 导入后保留卡内容与图像数据，重新打包不丢块', async t => {
+test("PNG imports preserve card content and image data without losing chunks when rebuilt", async t => {
   const root = await tempRoot(t, 'tcs-v2-png-');
   const card = baseCard();
   card.data.extensions = {
@@ -730,9 +730,9 @@ function textKeywordValue(bytes, keyword) {
   return undefined;
 }
 
-// ---------- 错误路径 ----------
+// ---------- Error cases ----------
 
-test('非法键、重复关联、重复文件、越界与 state 篡改被拒绝', async t => {
+test("invalid keys, duplicate links and files, escaping paths, and state tampering are rejected", async t => {
   const card = cardWithHelper();
   card.data.character_book = { name: '防御世界书', entries: [{ id: 0, keys: ['甲'], comment: '甲', content: '甲正文', extensions: { position: 0, depth: 4, role: 0 } }] };
   const { root, dir } = await splitJSON(t, card, '防御', 'tcs-v2-guard-');
@@ -741,7 +741,7 @@ test('非法键、重复关联、重复文件、越界与 state 篡改被拒绝'
   const baselineProject = await readText(dir, 'project.json');
   const baselineState = await readText(dir, '.card/state.json');
   const editFiles = {};
-  for (const file of (await readYAML(dir, indexPath)).世界书.条目) editFiles[file] = await readText(dir, file);
+  for (const file of (await readYAML(dir, indexPath)).worldbook.entries) editFiles[file] = await readText(dir, file);
   const restore = async () => {
     await writeText(dir, indexPath, baseline);
     await writeText(dir, 'project.json', baselineProject);
@@ -750,8 +750,8 @@ test('非法键、重复关联、重复文件、越界与 state 篡改被拒绝'
   };
 
   const index = await readYAML(dir, indexPath);
-  const regexFile = index.正则[0];
-  const worldbookFiles = index.世界书.条目;
+  const regexFile = index.regex[0];
+  const worldbookFiles = index.worldbook.entries;
 
   const expectReject = async (mutate, expected, label) => {
     await restore();
@@ -761,82 +761,82 @@ test('非法键、重复关联、重复文件、越界与 state 篡改被拒绝'
     await assert.rejects(() => loadProject('防御', root), expected, label);
   };
 
-  await expectReject(async next => { next.意外顶层 = 1; }, /未知设置/);
+  await expectReject(async next => { next.意外顶层 = 1; }, /unknown setting/);
 
-  await expectReject(async next => { next.文本.不存在 = 'src/text/first_mes.md'; }, /未知设置/);
+  await expectReject(async next => { next.text.不存在 = 'src/text/first_mes.md'; }, /unknown setting/);
 
   const firstConfig = await readYAML(dir, regexFile);
   await writeYAML(dir, regexFile, { ...firstConfig, 未知设置: true });
-  await assert.rejects(() => loadProject('防御', root), /未知设置/);
+  await assert.rejects(() => loadProject('防御', root), /unknown setting/);
   await writeYAML(dir, regexFile, firstConfig);
 
-  // 关联跟着条目文件走：把两份配置对调后仍各自读取自己的原件，加载成功。
+  // Links follow entry files: swapping configurations still loads each original correctly.
   await restore();
   const swapped = await readYAML(dir, indexPath);
-  const swappedA = await readYAML(dir, swapped.正则[0]);
-  const swappedB = await readYAML(dir, swapped.正则[1]);
-  await writeYAML(dir, swapped.正则[0], swappedB);
-  await writeYAML(dir, swapped.正则[1], swappedA);
+  const swappedA = await readYAML(dir, swapped.regex[0]);
+  const swappedB = await readYAML(dir, swapped.regex[1]);
+  await writeYAML(dir, swapped.regex[0], swappedB);
+  await writeYAML(dir, swapped.regex[1], swappedA);
   const swappedLoaded = await loadProject('防御', root);
   assert.deepEqual(swappedLoaded.card.data.extensions.regex_scripts.map(regex => regex.scriptName), ['显示备注', '[隐藏]变量更新'], '条目顺序由索引决定');
   assert.deepEqual(swappedLoaded.card.data.extensions.regex_scripts.map(regex => regex.replaceString), ['隐藏二的替换', '隐藏一的替换'], '正文与关联跟着各自的配置文件');
 
-  // 世界书条目的 关联 指向正则记录：类型不匹配必须被拒绝。
+  // A worldbook link pointing to a regex record must fail the type check.
   await expectReject(async next => {
-    const regexKey = (await readYAML(dir, next.正则[0])).关联;
+    const regexKey = (await readYAML(dir, next.regex[0])).link;
     const file = 'src/worldbook/错关联.yaml';
-    await writeYAML(dir, file, { 名称: '错关联', 关联: regexKey, 文件: 'src/worldbook/错关联.md' });
+    await writeYAML(dir, file, { name: '错关联', link: regexKey, file: 'src/worldbook/错关联.md' });
     await writeText(dir, 'src/worldbook/错关联.md', '错');
-    next.世界书.条目 = [worldbookFiles[0], file];
-  }, /未知或不匹配的关联/);
-  // 两条世界书 YAML 写同一个 关联：重复必须被拒绝。
+    next.worldbook.entries = [worldbookFiles[0], file];
+  }, /unknown or mismatched link/);
+  // Two worldbook YAML files using the same link must be rejected.
   const duplicatedKey = 'src/worldbook/重复关联.yaml';
   await expectReject(async next => {
-    const firstConfig2 = await readYAML(dir, next.世界书.条目[0]);
-    await writeYAML(dir, duplicatedKey, { 名称: '重复关联', 关联: firstConfig2.关联, 文件: 'src/worldbook/重复关联.md' });
+    const firstConfig2 = await readYAML(dir, next.worldbook.entries[0]);
+    await writeYAML(dir, duplicatedKey, { name: '重复关联', link: firstConfig2.link, file: 'src/worldbook/重复关联.md' });
     await writeText(dir, 'src/worldbook/重复关联.md', '重复');
-    next.世界书.条目 = [worldbookFiles[0], duplicatedKey];
-  }, /重复或无效关联/);
+    next.worldbook.entries = [worldbookFiles[0], duplicatedKey];
+  }, /duplicate or invalid link/);
   await restore();
   await loadProject('防御', root);
 
   await expectReject(async next => {
     const duplicated = 'src/worldbook/重复引用.yaml';
-    const first = await readYAML(dir, next.世界书.条目[0]);
-    await writeYAML(dir, duplicated, { 名称: '重复', 文件: first.文件 });
-    next.世界书.条目 = [next.世界书.条目[0], duplicated];
-  }, /重复源文件引用/);
+    const first = await readYAML(dir, next.worldbook.entries[0]);
+    await writeYAML(dir, duplicated, { name: '重复', file: first.file });
+    next.worldbook.entries = [next.worldbook.entries[0], duplicated];
+  }, /Duplicate or cyclic source reference/);
 
   await expectReject(async next => {
-    const first = await readYAML(dir, next.世界书.条目[0]);
-    first.文件 = '../外面.md';
-    await writeYAML(dir, next.世界书.条目[0], first);
-  }, /路径越界|必须使用项目内相对路径|必须放在 src\//);
+    const first = await readYAML(dir, next.worldbook.entries[0]);
+    first.file = '../外面.md';
+    await writeYAML(dir, next.worldbook.entries[0], first);
+  }, /Path escapes project|Use a project-relative path|must be inside src\//);
   await expectReject(async next => {
-    const first = await readYAML(dir, next.世界书.条目[0]);
-    first.文件 = 'src/../../外面.md';
-    await writeYAML(dir, next.世界书.条目[0], first);
-  }, /路径越界|必须使用项目内相对路径|必须放在 src\//);
-  // 起点写成 src/ 但真实路径落在 src/ 之外：必须拒绝。
+    const first = await readYAML(dir, next.worldbook.entries[0]);
+    first.file = 'src/../../外面.md';
+    await writeYAML(dir, next.worldbook.entries[0], first);
+  }, /Path escapes project|Use a project-relative path|must be inside src\//);
+  // A path beginning with src/ but resolving outside src/ must be rejected.
   await writeText(dir, '外面.md', '越界');
   await expectReject(async next => {
-    const first = await readYAML(dir, next.世界书.条目[0]);
-    first.文件 = 'src/../外面.md';
-    await writeYAML(dir, next.世界书.条目[0], first);
-  }, /源文件路径越界/);
+    const first = await readYAML(dir, next.worldbook.entries[0]);
+    first.file = 'src/../外面.md';
+    await writeYAML(dir, next.worldbook.entries[0], first);
+  }, /Source path escapes src/);
 
   await expectReject(async next => {
-    const first = await readYAML(dir, next.世界书.条目[0]);
-    first.文件 = 'D:/外面.md';
-    await writeYAML(dir, next.世界书.条目[0], first);
-  }, /路径越界|必须使用项目内相对路径|必须放在 src\//);
+    const first = await readYAML(dir, next.worldbook.entries[0]);
+    first.file = 'D:/外面.md';
+    await writeYAML(dir, next.worldbook.entries[0], first);
+  }, /Path escapes project|Use a project-relative path|must be inside src\//);
 
   await restore();
   const tampered = JSON.parse(baselineState);
   tampered.card.data.first_mes = '被改过的正文';
   tampered.records = {};
   await writeText(dir, '.card/state.json', jsonText(tampered));
-  await assert.rejects(() => loadProject('防御', root), /兼容数据校验失败/);
+  await assert.rejects(() => loadProject('防御', root), /Compatibility data checksum failed/);
   await restore();
   await loadProject('防御', root);
 
@@ -859,32 +859,32 @@ test('非法键、重复关联、重复文件、越界与 state 篡改被拒绝'
   try { await fs.symlink(outside, link, 'file'); } catch { linked = false; }
   if (linked) {
     const linkedIndex = await readYAML(dir, indexPath);
-    const first = await readYAML(dir, linkedIndex.世界书.条目[0]);
-    first.文件 = 'src/链接.md';
-    await writeYAML(dir, linkedIndex.世界书.条目[0], first);
-    await assert.rejects(() => loadProject('防御', root), /符号链接指向项目外/);
+    const first = await readYAML(dir, linkedIndex.worldbook.entries[0]);
+    first.file = 'src/链接.md';
+    await writeYAML(dir, linkedIndex.worldbook.entries[0], first);
+    await assert.rejects(() => loadProject('防御', root), /Symbolic link escapes project/);
   }
   await restore();
   await loadProject('防御', root);
 });
 
-test('循环与自引用脚本文件夹被拒绝且不无限递归', async t => {
+test("cyclic and self-referencing script folders are rejected without infinite recursion", async t => {
   const card = baseCard();
   card.data.extensions.tavern_helper = { scripts: [], variables: {} };
   const { root, dir } = await splitJSON(t, card, '循环', 'tcs-v2-cycle-');
 
   const folderFile = 'src/scripts/001-文件夹.yaml';
-  await writeYAML(dir, folderFile, { 名称: '文件夹', 类型: '文件夹', 脚本: [folderFile] });
+  await writeYAML(dir, folderFile, { name: "folder", type: "folder", scripts: [folderFile] });
   const index = await readYAML(dir, 'src/index.yaml');
-  index.脚本 = [folderFile];
+  index.scripts = [folderFile];
   await writeYAML(dir, 'src/index.yaml', index);
 
-  await assert.rejects(() => loadProject('循环', root), /重复源文件引用或循环引用/);
+  await assert.rejects(() => loadProject('循环', root), /Duplicate or cyclic source reference/);
 });
 
-// ---------- 迁移 ----------
+// ---------- Migration ----------
 
-// v1 工程：字段在 src/card.json 里留空，正文来自被拆分的文件。
+// v1 projects leave fields empty in src/card.json and load text from split files.
 function v1Card() {
   const card = baseCard();
   delete card.description;
@@ -943,12 +943,12 @@ async function writeV1Project(root, name) {
   await write(path.join(dir, 'original/card.json'), baseline);
   project.original.baselineSha256 = sha256(Buffer.from(baseline));
   await writeJSON(path.join(dir, 'project.json'), project);
-  await write(path.join(dir, '创作说明.md'), '# 创作说明\n');
+  await write(path.join(dir, "AUTHORING.md"), '# 创作说明\n');
   await writeJSON(path.join(dir, 'tests/regex.json'), []);
   return dir;
 }
 
-test('v1 手写工程可加载，writeAuthoring 直接生成 v2', async t => {
+test("handwritten v1 projects load and writeAuthoring produces v2", async t => {
   const root = await tempRoot(t, 'tcs-v2-authoring-');
   const dir = await writeV1Project(root, '手写旧工程');
   const loaded = await loadProject('手写旧工程', root);
@@ -968,7 +968,7 @@ test('v1 手写工程可加载，writeAuthoring 直接生成 v2', async t => {
   assert.equal(roundtrip.project.fields.some(field => field.pointer === '/data/first_mes'), true);
 });
 
-test('旧版工程迁移到 v2 并保留编辑内容与原件快照', async t => {
+test("upgrading legacy projects to v2 preserves edits and original snapshots", async t => {
   const root = await tempRoot(t, 'tcs-v2-migrate-');
   const dir = await writeV1Project(root, '旧工程');
   const before = await readText(dir, 'src/card.json');
@@ -996,7 +996,7 @@ test('旧版工程迁移到 v2 并保留编辑内容与原件快照', async t =>
   assert.equal(await hasFile(dir, '.card/migration-v1/project.json'), true);
 });
 
-test('迁移保真校验失败时原工程不变且不留临时目录', async t => {
+test("failed migration fidelity checks leave the original project unchanged and no temporary directories", async t => {
   const root = await tempRoot(t, 'tcs-v2-migrate-fail-');
   const dir = await writeV1Project(root, '坏工程');
   const project = await readJSONProject(dir);
@@ -1005,7 +1005,7 @@ test('迁移保真校验失败时原工程不变且不留临时目录', async t 
   const beforeProject = await readText(dir, 'project.json');
   const beforeCard = await readText(dir, 'src/card.json');
 
-  await assert.rejects(() => migrateProject('坏工程', root), /重复字段映射|重复源文件映射/);
+  await assert.rejects(() => migrateProject('坏工程', root), /Duplicate field mapping|Duplicate source mapping/);
   assert.equal(await readText(dir, 'project.json'), beforeProject, '失败时原工程未改动');
   assert.equal(await readText(dir, 'src/card.json'), beforeCard);
   assert.equal(await hasFile(dir, 'src/index.yaml'), false, '失败时不应留下 v2 入口');
@@ -1013,9 +1013,9 @@ test('迁移保真校验失败时原工程不变且不留临时目录', async t 
   assert.deepEqual(leftovers, [], '失败时不留临时目录');
 });
 
-// ---------- 旧 v1 未拆分内容的自动补全 ----------
+// ---------- Recovering unsplit legacy v1 content ----------
 
-// 含大块脚本数据的卡，用于 数据文件 拆分。
+// A card with large script data for testing data-file extraction.
 function largeDataCard() {
   const card = baseCard();
   card.data.extensions.tavern_helper = {
@@ -1027,7 +1027,7 @@ function largeDataCard() {
   return card;
 }
 
-// 手写旧 v1 工程：所有已知文本都没登记在 fields 里，正文只留在 src/card.json。
+// Handwritten legacy v1 project: known text exists only in src/card.json with no fields registration.
 async function writePartialV1Project(root, name) {
   const dir = path.join(root, 'cards', name);
   const card = baseCard();
@@ -1043,12 +1043,12 @@ async function writePartialV1Project(root, name) {
   await write(path.join(dir, 'original/card.json'), baseline);
   project.original = { baseline: 'original/card.json', baselineSha256: sha256(Buffer.from(baseline)) };
   await writeJSON(path.join(dir, 'project.json'), project);
-  await write(path.join(dir, '创作说明.md'), '# 创作说明\n');
+  await write(path.join(dir, "AUTHORING.md"), '# 创作说明\n');
   await writeJSON(path.join(dir, 'tests/regex.json'), []);
   return { dir, card };
 }
 
-test('旧 v1 的未拆分文本与开场白由 writeAuthoring 自动补全', async t => {
+test("writeAuthoring recovers unsplit text and greetings from legacy v1 projects", async t => {
   const root = await tempRoot(t, 'tcs-v2-autofill-');
   const { dir, card } = await writePartialV1Project(root, '旧未拆分');
   const loadedV1 = await loadProject('旧未拆分', root);
@@ -1063,13 +1063,13 @@ test('旧 v1 的未拆分文本与开场白由 writeAuthoring 自动补全', asy
   assert.deepEqual(roundtrip.card.data.alternate_greetings, ['备选一', '备选二'], '未拆分开场白全部自动补全');
 
   const index = await readYAML(dir, 'src/index.yaml');
-  assert.equal(index.文本['角色描述'], 'src/text/description.md');
-  assert.equal(index.文本['性格'], 'src/text/personality.md');
-  assert.equal(index.文本['场景'], 'src/text/scenario.md');
-  assert.equal(index.文本['第一条消息'], 'src/text/first_mes.md');
-  assert.equal(index.文本['对话示例'], 'src/text/mes_example.md');
-  assert.deepEqual(index.备选开场白, ['src/greetings/alternate_greetings-1.md', 'src/greetings/alternate_greetings-2.md']);
-  assert.deepEqual(index.群聊开场白, ['src/greetings/group_only_greetings-1.md']);
+  assert.equal(index.text["description"], 'src/text/description.md');
+  assert.equal(index.text["personality"], 'src/text/personality.md');
+  assert.equal(index.text["scenario"], 'src/text/scenario.md');
+  assert.equal(index.text["first_mes"], 'src/text/first_mes.md');
+  assert.equal(index.text["mes_example"], 'src/text/mes_example.md');
+  assert.deepEqual(index.alternate_greetings, ['src/greetings/alternate_greetings-1.md', 'src/greetings/alternate_greetings-2.md']);
+  assert.deepEqual(index.group_only_greetings, ['src/greetings/group_only_greetings-1.md']);
 
   assert.equal(roundtrip.card.data.name, '雨夜旅人');
   assert.equal(roundtrip.card.data.description, '她站在雨里。');
@@ -1081,22 +1081,22 @@ test('旧 v1 的未拆分文本与开场白由 writeAuthoring 自动补全', asy
   assert.deepEqual(semanticDiff(loadedV1.card, roundtrip.card), [], '整卡保真');
 });
 
-test('文本、开场白与兼容文本支持 {文件,构建} 引用', async t => {
+test("text, greetings, and compatibility text support file/build references", async t => {
   const card = cardWithHelper();
   card.data.character_book = { name: '构建文本世界书', entries: [{ id: 0, keys: [], comment: '甲', content: '甲正文', extensions: { position: 0 } }] };
   const { root, dir } = await splitJSON(t, card, '文本构建', 'tcs-v2-textbuild-');
   const index = await readYAML(dir, 'src/index.yaml');
 
-  const firstMes = index.文本['第一条消息'];
+  const firstMes = index.text["first_mes"];
   await writeText(dir, 'src/ui/first/app.js', 'console.info("开场构建");');
-  index.文本['第一条消息'] = { 文件: firstMes, 构建: { 类型: 'script', 入口: 'src/ui/first/app.js' } };
-  const greeting = index.备选开场白[0];
+  index.text["first_mes"] = { file: firstMes, build: { type: 'script', entry: 'src/ui/first/app.js' } };
+  const greeting = index.alternate_greetings[0];
   await writeText(dir, 'src/ui/greet/app.js', 'console.info("开场白构建");');
-  index.备选开场白[0] = { 文件: greeting, 构建: { 类型: 'script', 入口: 'src/ui/greet/app.js' } };
-  const compatKey = Object.keys(index.兼容文本)[0];
-  const compatFile = index.兼容文本[compatKey];
+  index.alternate_greetings[0] = { file: greeting, build: { type: 'script', entry: 'src/ui/greet/app.js' } };
+  const compatKey = Object.keys(index.legacy_text)[0];
+  const compatFile = index.legacy_text[compatKey];
   await writeText(dir, 'src/ui/compat/app.js', 'console.info("兼容构建");');
-  index.兼容文本[compatKey] = { 文件: compatFile, 构建: { 类型: 'script', 入口: 'src/ui/compat/app.js' } };
+  index.legacy_text[compatKey] = { file: compatFile, build: { type: 'script', entry: 'src/ui/compat/app.js' } };
   await writeYAML(dir, 'src/index.yaml', index);
 
   const loaded = await loadProject('文本构建', root);
@@ -1107,7 +1107,7 @@ test('文本、开场白与兼容文本支持 {文件,构建} 引用', async t =
   assert.equal(await readText(dir, firstMes), card.data.first_mes);
 });
 
-test('大量脚本数据拆到 .data.yaml 并可重新加载', async t => {
+test("large script data is split into reloadable .data.yaml files", async t => {
   const { root, dir } = await splitJSON(t, largeDataCard(), '大数据', 'tcs-v2-data-');
   assert.equal(await hasFile(dir, 'src/scripts/001-旧脚本.data.yaml'), true, '大块数据单独成文件');
   const loaded = await loadProject('大数据', root);
@@ -1116,15 +1116,15 @@ test('大量脚本数据拆到 .data.yaml 并可重新加载', async t => {
   assert.equal(script.data.记录, 'x'.repeat(2500));
 
   const index = await readYAML(dir, 'src/index.yaml');
-  const scriptFile = index.脚本[0];
+  const scriptFile = index.scripts[0];
   const config = await readYAML(dir, scriptFile);
-  assert.equal(config.数据, undefined, '大块数据不再内联在条目 YAML');
-  assert.match(config.数据文件, /\.data\.yaml$/, '大数据落到 数据文件');
-  const dataFile = await readYAML(dir, config.数据文件);
+  assert.equal(config.data, undefined, '大块数据不再内联在条目 YAML');
+  assert.match(config.data_file, /\.data\.yaml$/, '大数据落到 数据文件');
+  const dataFile = await readYAML(dir, config.data_file);
   assert.equal(dataFile.记录, 'x'.repeat(2500));
 });
 
-test('设置类型检查拒绝新值，导入的异常原值保持保真', async t => {
+test("setting type checks reject invalid new values while preserving imported originals", async t => {
   const card = baseCard();
   card.data.character_book = {
     name: '类型检查',
@@ -1140,23 +1140,23 @@ test('设置类型检查拒绝新值，导入的异常原值保持保真', async
   assert.equal(loaded.card.data.character_book.entries[0].extensions.selectiveLogic, 99);
 
   const index = await readYAML(dir, 'src/index.yaml');
-  const worldbookFile = index.世界书.条目[0];
+  const worldbookFile = index.worldbook.entries[0];
   const config = await readYAML(dir, worldbookFile);
   const baseline = await readText(dir, worldbookFile);
 
-  config.启用 = 'yes';
+  config.enabled = 'yes';
   await writeYAML(dir, worldbookFile, config);
-  await assert.rejects(() => loadProject('类型检查', root), /启用 必须是 true\/false/);
+  await assert.rejects(() => loadProject('类型检查', root), /enabled must be true\/false/);
 
-  config.启用 = true;
-  config.关键词 = '甲';
+  config.enabled = true;
+  config.keys = '甲';
   await writeYAML(dir, worldbookFile, config);
-  await assert.rejects(() => loadProject('类型检查', root), /关键词 必须是文本列表/);
+  await assert.rejects(() => loadProject('类型检查', root), /keys must be a list of strings/);
 
-  config.关键词 = ['甲'];
-  config.顺序 = 3.5;
+  config.keys = ['甲'];
+  config.order = 3.5;
   await writeYAML(dir, worldbookFile, config);
-  await assert.rejects(() => loadProject('类型检查', root), /顺序 必须是整数或 null/);
+  await assert.rejects(() => loadProject('类型检查', root), /order must be an integer or null/);
 
   await writeText(dir, worldbookFile, baseline);
   const restored = await loadProject('类型检查', root);
@@ -1164,22 +1164,22 @@ test('设置类型检查拒绝新值，导入的异常原值保持保真', async
 });
 
 +
-// ---------- helper 脚本列表识别与必需索引 ----------
+// ---------- Helper script lists and required index sections ----------
 
-test('helperScriptLists 只识别 helper 顶层脚本列表', () => {
+test("helperScriptLists recognizes only top-level helper script lists", () => {
   const pointer = '/data/extensions/tavern_helper';
   assert.deepEqual(helperScriptLists({ scripts: [] }, pointer), [{ list: [], pointer: pointer + '/scripts' }]);
   const direct = [{ type: 'script', name: 'a' }, { type: 'folder', name: 'b' }];
   assert.deepEqual(helperScriptLists(direct, pointer), [{ list: direct, pointer }]);
   const tupleList = [['scripts', [{ type: 'script', name: '旧' }]]];
   assert.deepEqual(helperScriptLists(tupleList, pointer), [{ list: tupleList[0][1], pointer: pointer + '/0/1' }]);
-  assert.deepEqual(helperScriptLists({ scripts: [{ type: 'script', name: 'a' }], variables: { 数据: [{ type: 'script', name: '误判' }] } }, pointer).length, 1, 'variables 里的脚本形状不另算一组');
+  assert.deepEqual(helperScriptLists({ scripts: [{ type: 'script', name: 'a' }], variables: { data: [{ type: 'script', name: '误判' }] } }, pointer).length, 1, 'variables 里的脚本形状不另算一组');
   assert.deepEqual(helperScriptLists(null, pointer), []);
   assert.deepEqual(helperScriptLists({ variables: {} }, pointer), []);
-  assert.deepEqual(helperScriptLists([{ 名称: '不是脚本' }], pointer), []);
+  assert.deepEqual(helperScriptLists([{ name: '不是脚本' }], pointer), []);
 });
 
-test('extractFields 不把 variables 与脚本 data 里的脚本形状当脚本拆分', async t => {
+test("extractFields does not treat script-shaped objects in variables or script data as scripts", async t => {
   const card = baseCard();
   card.data.extensions.tavern_helper = {
     scripts: [{
@@ -1196,13 +1196,13 @@ test('extractFields 不把 variables 与脚本 data 里的脚本形状当脚本�
   const scriptFields = loaded.project.fields.filter(field => field.pointer.endsWith('/content'));
   assert.deepEqual(scriptFields.map(field => field.pointer), ['/data/extensions/tavern_helper/scripts/0/content']);
   const index = await readYAML(dir, 'src/index.yaml');
-  assert.equal(index.脚本.length, 1);
+  assert.equal(index.scripts.length, 1);
   const state = JSON.parse(await readText(dir, '.card/state.json'));
   assert.deepEqual(state.card.data.extensions.tavern_helper.scripts[0].data.嵌套[0].content, '不应拆分');
   assert.deepEqual(state.card.data.extensions.tavern_helper.variables.记录[0].content, '不应拆分');
 });
 
-test('必需索引区段缺失或未清空时被拒绝', async t => {
+test("required index sections cannot be missing or retain incompatible content", async t => {
   const { root, dir } = await splitJSON(t, baseCard(), '必需区段', 'tcs-v2-required-');
   const baseline = await readText(dir, 'src/index.yaml');
   const restore = () => writeText(dir, 'src/index.yaml', baseline);
@@ -1214,65 +1214,65 @@ test('必需索引区段缺失或未清空时被拒绝', async t => {
     await assert.rejects(() => loadProject('必需区段', root), expected);
   };
 
-  await expectReject(index => { delete index.角色; }, /缺少 角色/);
-  await expectReject(index => { delete index.文本; }, /缺少 文本/);
-  await expectReject(index => { delete index.备选开场白; }, /缺少 备选开场白/);
-  await expectReject(index => { delete index.群聊开场白; }, /缺少 群聊开场白/);
-  await expectReject(index => { delete index.正则; }, /缺少 正则/);
-  await expectReject(index => { delete index.脚本; }, /缺少 脚本/);
-  await expectReject(index => { delete index.世界书.条目; }, /世界书缺少条目列表/);
+  await expectReject(index => { delete index.character; }, /is missing character/);
+  await expectReject(index => { delete index.text; }, /is missing text/);
+  await expectReject(index => { delete index.alternate_greetings; }, /is missing alternate_greetings/);
+  await expectReject(index => { delete index.group_only_greetings; }, /is missing group_only_greetings/);
+  await expectReject(index => { delete index.regex; }, /is missing regex/);
+  await expectReject(index => { delete index.scripts; }, /is missing scripts/);
+  await expectReject(index => { delete index.worldbook.entries; }, /Worldbook needs an entries list/);
   await restore();
 
   const index = await readYAML(dir, 'src/index.yaml');
-  index.文本 = {};
-  index.备选开场白 = [];
-  index.群聊开场白 = [];
-  index.世界书 = { 条目: [] };
-  index.正则 = [];
-  index.脚本 = [];
+  index.text = {};
+  index.alternate_greetings = [];
+  index.group_only_greetings = [];
+  index.worldbook = { entries: [] };
+  index.regex = [];
+  index.scripts = [];
   await writeYAML(dir, 'src/index.yaml', index);
   const loaded = await loadProject('必需区段', root);
   assert.ok(Array.isArray(loaded.card.data.alternate_greetings) || loaded.card.data.alternate_greetings === undefined);
   assert.ok(Array.isArray(loaded.card.data.group_only_greetings) || loaded.card.data.group_only_greetings === undefined);
   assert.ok(loaded.card.data.extensions.regex_scripts === undefined || Array.isArray(loaded.card.data.extensions.regex_scripts));
   const kept = await readYAML(dir, 'src/index.yaml');
-  for (const section of ['角色', '文本', '备选开场白', '群聊开场白', '世界书', '正则', '脚本']) assert.ok(section in kept, section + ' 区段保留');
-  assert.deepEqual(kept.世界书.条目, []);
+  for (const section of ["character", "text", "alternate_greetings", "group_only_greetings", "worldbook", "regex", "scripts"]) assert.ok(section in kept, section + ' 区段保留');
+  assert.deepEqual(kept.worldbook.entries, []);
 });
 
-test('文件夹脚本缺少脚本列表会被拒绝', async t => {
+test("folder scripts without a script list are rejected", async t => {
   const card = baseCard();
   card.data.extensions.tavern_helper = { scripts: [{ type: 'folder', enabled: true, name: '空文件夹', id: 'f0', scripts: [] }], variables: {} };
   const { root, dir } = await splitJSON(t, card, '空文件夹', 'tcs-v2-folder-');
   const index = await readYAML(dir, 'src/index.yaml');
-  const folderFile = index.脚本[0];
+  const folderFile = index.scripts[0];
   const config = await readYAML(dir, folderFile);
-  delete config.脚本;
+  delete config.scripts;
   await writeYAML(dir, folderFile, config);
-  await assert.rejects(() => loadProject('空文件夹', root), /缺少脚本列表/);
+  await assert.rejects(() => loadProject('空文件夹', root), /needs a scripts list/);
 });
 
-// ---------- 关联丢失后的自动找回 ----------
+// ---------- Automatic recovery of missing links ----------
 
-test('缺 关联 但原路径能对上时自动找回未知字段与原 ID', async t => {
+test("missing links recover unknown fields and original IDs when source paths match", async t => {
   const card = cardWithHelper();
-  card.data.character_book = { name: '找回世界书', entries: [{ id: 0, keys: ['书店'], comment: '旧书店', content: '旧书店正文', extensions: { position: 0, depth: 4, role: 0 } }] };
+  card.data.character_book = { name: '找回世界书', entries: [{ id: 0, keys: ['书店'], comment: "Used bookshop", content: '旧书店正文', extensions: { position: 0, depth: 4, role: 0 } }] };
   const { root, dir } = await splitJSON(t, card, '找回', 'tcs-v2-recover-');
   const index = await readYAML(dir, 'src/index.yaml');
-  const worldbookFile = index.世界书.条目[0];
+  const worldbookFile = index.worldbook.entries[0];
   const worldbookBody = '旧书店正文';
   const worldbookConfig = await readYAML(dir, worldbookFile);
-  const worldbookKey = worldbookConfig.关联;
-  await writeText(dir, worldbookConfig.文件, worldbookBody);
-  delete worldbookConfig.关联;
+  const worldbookKey = worldbookConfig.link;
+  await writeText(dir, worldbookConfig.file, worldbookBody);
+  delete worldbookConfig.link;
   await writeYAML(dir, worldbookFile, worldbookConfig);
 
   const scriptEntry = await findScriptEntry(dir, index, '顶层脚本');
   assert.ok(scriptEntry, '顶层脚本条目应存在');
-  const scriptKey = scriptEntry.config.关联;
+  const scriptKey = scriptEntry.config.link;
   const scriptBody = 'console.info("顶层");';
-  await writeText(dir, scriptEntry.config.文件, scriptBody);
-  delete scriptEntry.config.关联;
+  await writeText(dir, scriptEntry.config.file, scriptBody);
+  delete scriptEntry.config.link;
   await writeYAML(dir, scriptEntry.file, scriptEntry.config);
 
   const state = JSON.parse(await readText(dir, '.card/state.json'));
@@ -1284,7 +1284,7 @@ test('缺 关联 但原路径能对上时自动找回未知字段与原 ID', asy
   const loaded = await loadProject('找回', root);
   const byName = loaded.card.data.extensions.tavern_helper.scripts;
   const recovered = {
-    folder: byName.find(script => script.name === '变量'),
+    folder: byName.find(script => script.name === "variables"),
     top: byName.find(script => script.name === '顶层脚本'),
   };
   assert.deepEqual(recovered.folder, card.data.extensions.tavern_helper.scripts[0], '未知字段随关联找回');
@@ -1296,25 +1296,25 @@ test('缺 关联 但原路径能对上时自动找回未知字段与原 ID', asy
   assert.deepEqual(loaded.unreferenced, [], '所有记录都被索引引用');
 });
 
-test('改名或新增文件没有关联时按新条目处理，旧条目进入 unreferenced', async t => {
+test("renamed or new files without links create new entries and leave old entries unreferenced", async t => {
   const card = cardWithHelper();
   const { root, dir } = await splitJSON(t, card, '改名', 'tcs-v2-rename-');
   const index = await readYAML(dir, 'src/index.yaml');
   const scriptEntry = await findScriptEntry(dir, index, '顶层脚本');
   assert.ok(scriptEntry, '顶层脚本条目应存在');
   const state = JSON.parse(await readText(dir, '.card/state.json'));
-  const originalKey = scriptEntry.config.关联;
+  const originalKey = scriptEntry.config.link;
   const originalScript = state.records[originalKey].base;
   const renamed = 'src/scripts/005-改名脚本.yaml';
-  delete scriptEntry.config.关联;
-  await writeYAML(dir, renamed, { ...scriptEntry.config, 名称: '改名脚本' });
+  delete scriptEntry.config.link;
+  await writeYAML(dir, renamed, { ...scriptEntry.config, name: '改名脚本' });
   await writeText(dir, 'src/scripts/005-改名脚本.js', originalScript.content);
-  index.脚本 = index.脚本.map(file => (file === scriptEntry.file ? renamed : file));
+  index.scripts = index.scripts.map(file => (file === scriptEntry.file ? renamed : file));
   await writeYAML(dir, 'src/index.yaml', index);
 
   const loaded = await loadProject('改名', root);
   const scripts = loaded.card.data.extensions.tavern_helper.scripts;
-  const scriptAt = index.脚本.indexOf(renamed);
+  const scriptAt = index.scripts.indexOf(renamed);
   const renamedScript = scripts[scriptAt];
   assert.equal(renamedScript.name, '改名脚本');
   assert.notEqual(renamedScript.id, originalScript.id, '新文件不冒充旧条目');
@@ -1325,27 +1325,27 @@ test('改名或新增文件没有关联时按新条目处理，旧条目进入 u
   assert.equal(loaded.unreferenced[0].name, '顶层脚本');
 });
 
-// ---------- 源文件范围与配置路径避让 ----------
+// ---------- Source boundaries and configuration path collisions ----------
 
-test('源文件必须解析到 src/ 内，src/../original 被拒绝', async t => {
+test("source files must resolve inside src and src/../original is rejected", async t => {
   const card = cardWithHelper();
-  card.data.character_book = { name: '源范围世界书', entries: [{ id: 0, keys: ['书店'], comment: '旧书店', content: '旧书店正文', extensions: { position: 0, depth: 4, role: 0 } }] };
+  card.data.character_book = { name: '源范围世界书', entries: [{ id: 0, keys: ['书店'], comment: "Used bookshop", content: '旧书店正文', extensions: { position: 0, depth: 4, role: 0 } }] };
   const { root, dir } = await splitJSON(t, card, '源范围', 'tcs-v2-srcscope-');
   await writeText(dir, 'original/外面.md', '外面');
   const index = await readYAML(dir, 'src/index.yaml');
-  const first = await readYAML(dir, index.世界书.条目[0]);
-  const body = first.文件;
-  first.文件 = 'src/../original/外面.md';
-  await writeYAML(dir, index.世界书.条目[0], first);
-  await assert.rejects(() => loadProject('源范围', root), /源文件路径越界/);
+  const first = await readYAML(dir, index.worldbook.entries[0]);
+  const body = first.file;
+  first.file = 'src/../original/外面.md';
+  await writeYAML(dir, index.worldbook.entries[0], first);
+  await assert.rejects(() => loadProject('源范围', root), /Source path escapes src/);
 
-  first.文件 = body;
-  await writeYAML(dir, index.世界书.条目[0], first);
+  first.file = body;
+  await writeYAML(dir, index.worldbook.entries[0], first);
   const restored = await loadProject('源范围', root);
-  assert.deepEqual(restored.card.data.character_book.entries.map(entry => entry.comment), ['旧书店']);
+  assert.deepEqual(restored.card.data.character_book.entries.map(entry => entry.comment), ["Used bookshop"]);
 });
 
-test('配置 YAML 避让同 stem 与无扩展名正文，不覆盖已有文件', async t => {
+test("configuration YAML avoids matching stems and extensionless bodies without overwriting files", async t => {
   const root = await tempRoot(t, 'tcs-v2-avoid-');
   const dir = path.join(root, 'cards', '路径避让');
   await fs.mkdir(path.dirname(dir), { recursive: true });
@@ -1356,9 +1356,9 @@ test('配置 YAML 避让同 stem 与无扩展名正文，不覆盖已有文件',
   await writeJSON(path.join(dir, 'src/card.json'), card);
   await write(path.join(dir, 'original/card.json'), jsonText(card));
   await write(path.join(dir, 'project.json'), jsonText({ schemaVersion: 1, name: '路径避让', modules: [], fields: [], builds: [], dependencies: [], runtimeVerified: null, original: { baseline: 'original/card.json', baselineSha256: sha256(Buffer.from(jsonText(card))) } }));
-  await write(path.join(dir, '创作说明.md'), '# 创作说明\n');
+  await write(path.join(dir, "AUTHORING.md"), '# 创作说明\n');
   await writeJSON(path.join(dir, 'tests/regex.json'), []);
-  // 世界书正文与 001-甲.yaml 同 stem；脚本正文没有扩展名。
+  // The worldbook body shares a stem with 001-甲.yaml; the script body has no extension.
   await write(path.join(dir, 'src/worldbook/001-甲.md'), '甲正文');
   await write(path.join(dir, 'src/scripts/raw-script'), 'console.info("裸脚本");');
   const card2 = structuredClone(card);
@@ -1367,32 +1367,32 @@ test('配置 YAML 避让同 stem 与无扩展名正文，不覆盖已有文件',
   const next = await writeAuthoring(dir, card2, { schemaVersion: 1, name: '路径避让', modules: [], fields: [], builds: [] });
   assert.equal(next.schemaVersion, 2);
   const index = await readYAML(dir, 'src/index.yaml');
-  assert.notEqual(index.世界书.条目[0].replace(/\.yaml$/, ''), 'src/worldbook/001-甲.md', 'YAML 不能覆盖同 stem 正文');
-  assert.notEqual(index.脚本[0].replace(/\.yaml$/, ''), 'src/scripts/raw-script', 'YAML 不能覆盖无扩展名正文');
+  assert.notEqual(index.worldbook.entries[0].replace(/\.yaml$/, ''), 'src/worldbook/001-甲.md', 'YAML 不能覆盖同 stem 正文');
+  assert.notEqual(index.scripts[0].replace(/\.yaml$/, ''), 'src/scripts/raw-script', 'YAML 不能覆盖无扩展名正文');
   assert.equal(await readText(dir, 'src/worldbook/001-甲.md'), '甲正文', '正文保持不变');
   assert.equal(await readText(dir, 'src/scripts/raw-script'), 'console.info("裸脚本");');
 });
 
 
-test('正文扩展名非文本与非法 UTF-8 被拒绝', async t => {
+test("nontext body extensions and invalid UTF-8 are rejected", async t => {
   const card = cardWithHelper();
-  card.data.character_book = { name: '正文检查', entries: [{ id: 0, keys: ['书店'], comment: '旧书店', content: '旧书店正文', extensions: { position: 0, depth: 4, role: 0 } }] };
+  card.data.character_book = { name: '正文检查', entries: [{ id: 0, keys: ['书店'], comment: "Used bookshop", content: '旧书店正文', extensions: { position: 0, depth: 4, role: 0 } }] };
   const { root, dir } = await splitJSON(t, card, '正文检查', 'tcs-v2-body-');
   const index = await readYAML(dir, 'src/index.yaml');
-  const worldbookFile = index.世界书.条目[0];
+  const worldbookFile = index.worldbook.entries[0];
   const worldbookConfig = await readYAML(dir, worldbookFile);
-  await writeText(dir, 'src/worldbook/001-旧书店.png', 'not png');
-  worldbookConfig.文件 = 'src/worldbook/001-旧书店.png';
+  await writeText(dir, 'src/worldbook/001-Used bookshop.png', 'not png');
+  worldbookConfig.file = 'src/worldbook/001-Used bookshop.png';
   await writeYAML(dir, worldbookFile, worldbookConfig);
-  await assert.rejects(() => loadProject('正文检查', root), /正文必须是文本文件/);
+  await assert.rejects(() => loadProject('正文检查', root), /body must be a text file/);
 
-  worldbookConfig.文件 = 'src/worldbook/001-旧书店.md';
+  worldbookConfig.file = 'src/worldbook/001-Used bookshop.md';
   await writeYAML(dir, worldbookFile, worldbookConfig);
-  await fs.writeFile(path.join(dir, worldbookConfig.文件), Buffer.from([0xff, 0xfe, 0xfd]));
-  await assert.rejects(() => loadProject('正文检查', root), /无法读取 UTF-8 正文/);
+  await fs.writeFile(path.join(dir, worldbookConfig.file), Buffer.from([0xff, 0xfe, 0xfd]));
+  await assert.rejects(() => loadProject('正文检查', root), /cannot read UTF-8 body/);
 });
 
-test('新改枚举必须有效，导入的异常枚举不改则保真', async t => {
+test("edited enums must be valid while unchanged imported anomalies are preserved", async t => {
   const card = baseCard();
   card.data.character_book = { name: '枚举检查', entries: [{
     id: 0, keys: ['甲'], comment: '甲', content: '甲正文', enabled: true, constant: false, selective: true, insertion_order: 3, position: 'before_char', use_regex: false,
@@ -1403,24 +1403,24 @@ test('新改枚举必须有效，导入的异常枚举不改则保真', async t 
   assert.equal(loaded.card.data.character_book.entries[0].extensions.selectiveLogic, 99, '导入的异常枚举原样保留');
 
   const index = await readYAML(dir, 'src/index.yaml');
-  const worldbookFile = index.世界书.条目[0];
+  const worldbookFile = index.worldbook.entries[0];
   const baseline = await readText(dir, worldbookFile);
 
   const config = await readYAML(dir, worldbookFile);
-  config.位置 = '不存在的深度';
+  config.position = '不存在的深度';
   await writeYAML(dir, worldbookFile, config);
-  await assert.rejects(() => loadProject('枚举检查', root), /未知值/);
+  await assert.rejects(() => loadProject('枚举检查', root), /unknown value/);
 
   await writeText(dir, worldbookFile, baseline);
   const config2 = await readYAML(dir, worldbookFile);
-  config2.角色 = '不存在的角色';
+  config2.role = '不存在的角色';
   await writeYAML(dir, worldbookFile, config2);
-  await assert.rejects(() => loadProject('枚举检查', root), /未知值/);
+  await assert.rejects(() => loadProject('枚举检查', root), /unknown value/);
 
   await writeText(dir, worldbookFile, baseline);
   const config3 = await readYAML(dir, worldbookFile);
-  config3.位置 = '指定深度';
-  config3.角色 = '用户';
+  config3.position = "at_depth";
+  config3.role = "user";
   await writeYAML(dir, worldbookFile, config3);
   const edited = await loadProject('枚举检查', root);
   const entry = edited.card.data.character_book.entries[0];
@@ -1430,7 +1430,7 @@ test('新改枚举必须有效，导入的异常枚举不改则保真', async t 
 });
 
 
-test('脚本按钮、导出设置与数据的新值类型被拒绝，导入异常值不改则保真', async t => {
+test("invalid new script button, export, and data types are rejected while unchanged imports are preserved", async t => {
   const invalidCard = baseCard();
   invalidCard.data.extensions.tavern_helper = {
     scripts: [{
@@ -1461,7 +1461,7 @@ test('脚本按钮、导出设置与数据的新值类型被拒绝，导入异�
   card.data.character_book = { name: '按钮检查', entries: [{ id: 0, keys: [], comment: '甲', content: '甲正文', extensions: { position: 0, depth: 4, role: 0 } }] };
   const { root, dir } = await splitJSON(t, card, '按钮检查', 'tcs-v2-script-check-');
   const index = await readYAML(dir, 'src/index.yaml');
-  const worldbookFile = index.世界书.条目[0];
+  const worldbookFile = index.worldbook.entries[0];
   const scriptEntry = await findScriptEntry(dir, index, '新脚本');
   assert.ok(scriptEntry, '脚本条目应存在');
   const baseline = await readText(dir, scriptEntry.file);
@@ -1474,35 +1474,35 @@ test('脚本按钮、导出设置与数据的新值类型被拒绝，导入异�
     await assert.rejects(() => loadProject('按钮检查', root), expected, label);
   };
 
-  await expectReject(config => { config.启用 = null; }, /启用 必须是 true\/false/, '启用 null 拒绝');
-  await expectReject(config => { config.按钮 = { enabled: 'yes', buttons: [] }; }, /按钮应包含布尔 enabled/, '按钮 enabled 非 bool');
-  await expectReject(config => { config.按钮 = { enabled: true, buttons: [{ visible: true }] }; }, /按钮应包含布尔 enabled/, '按钮缺 name');
-  await expectReject(config => { config.按钮 = { enabled: true, buttons: [{ name: '重载' }] }; }, /按钮应包含布尔 enabled/, '按钮缺 visible');
-  await expectReject(config => { config.按钮 = { enabled: true, buttons: [{ name: '重载', visible: 'true' }] }; }, /按钮应包含布尔 enabled/, '按钮 visible 非 bool');
-  await expectReject(config => { config.导出设置 = { data: 'yes', button: true }; }, /导出设置只接受 data\/button 布尔开关/, '导出设置 data 非 bool');
-  await expectReject(config => { config.导出设置 = { data: true, 未知开关: true }; }, /导出设置只接受 data\/button 布尔开关/, '导出设置额外键');
-  await expectReject(config => { config.数据 = '不是对象'; }, /数据必须是对象/, '数据非对象');
+  await expectReject(config => { config.enabled = null; }, /enabled must be true\/false/, '启用 null 拒绝');
+  await expectReject(config => { config.button = { enabled: 'yes', buttons: [] }; }, /button must contain boolean enabled/, '按钮 enabled 非 bool');
+  await expectReject(config => { config.button = { enabled: true, buttons: [{ visible: true }] }; }, /button must contain boolean enabled/, '按钮缺 name');
+  await expectReject(config => { config.button = { enabled: true, buttons: [{ name: '重载' }] }; }, /button must contain boolean enabled/, '按钮缺 visible');
+  await expectReject(config => { config.button = { enabled: true, buttons: [{ name: '重载', visible: 'true' }] }; }, /button must contain boolean enabled/, '按钮 visible 非 bool');
+  await expectReject(config => { config.export_with = { data: 'yes', button: true }; }, /export_with accepts only data\/button boolean flags/, '导出设置 data 非 bool');
+  await expectReject(config => { config.export_with = { data: true, 未知开关: true }; }, /export_with accepts only data\/button boolean flags/, '导出设置额外键');
+  await expectReject(config => { config.data = '不是对象'; }, /data must be an object/, '数据非对象');
 
-  // 只省略其中一个键是允许的（PartialDeep 契约）。
+  // Omitting either individual key is allowed by the PartialDeep contract.
   await writeText(dir, scriptEntry.file, baseline);
   const partial = await readYAML(dir, scriptEntry.file);
-  partial.导出设置 = { data: true };
+  partial.export_with = { data: true };
   await writeYAML(dir, scriptEntry.file, partial);
   const partialLoaded = await loadProject('按钮检查', root);
   assert.deepEqual(partialLoaded.card.data.extensions.tavern_helper.scripts[0].export_with, { data: true });
 
-  // 世界书上的 区分大小写/全词匹配 允许 null，其它布尔开关不允许。
+  // Worldbook case-sensitive and whole-word matching settings allow null; other boolean switches do not.
   const worldbookBaseline = await readText(dir, worldbookFile);
   const worldbookConfig = await readYAML(dir, worldbookFile);
-  worldbookConfig.区分大小写 = null;
-  worldbookConfig.全词匹配 = null;
+  worldbookConfig.case_sensitive = null;
+  worldbookConfig.match_whole_words = null;
   await writeYAML(dir, worldbookFile, worldbookConfig);
   await loadProject('按钮检查', root);
 
   const badWorldbook = await readYAML(dir, worldbookFile);
-  badWorldbook.启用 = null;
+  badWorldbook.enabled = null;
   await writeYAML(dir, worldbookFile, badWorldbook);
-  await assert.rejects(() => loadProject('按钮检查', root), /启用 必须是 true\/false/);
+  await assert.rejects(() => loadProject('按钮检查', root), /enabled must be true\/false/);
   await writeText(dir, worldbookFile, worldbookBaseline);
 
   await writeText(dir, scriptEntry.file, baseline);
@@ -1511,9 +1511,9 @@ test('脚本按钮、导出设置与数据的新值类型被拒绝，导入异�
 });
 
 async function findScriptEntry(dir, index, name) {
-  for (const file of index.脚本) {
+  for (const file of index.scripts) {
     const config = await readYAML(dir, file);
-    if (config.名称 === name) return { file, config };
+    if (config.name === name) return { file, config };
   }
   return undefined;
 }

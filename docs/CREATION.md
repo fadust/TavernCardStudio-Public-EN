@@ -1,105 +1,62 @@
-# 创作指南
+# Creating cards
 
-这一页写给写卡的人或 agent，按需参考即可：需要决定做成什么、用哪些模块、按什么顺序落内容时再查。用户直接在工作区对话里讲需求就能开工，不需要先填创作简报或准备开工指令。上手入口见 [README](../README.md#首次使用)，模块之间怎么联动见 [复杂卡模块联动](COMPLEX-CARDS.md)。
+Start by describing your goal in the workspace conversation. A brief and startup prompt are optional. See [Getting started](../README.md#getting-started) and [Complex cards](COMPLEX-CARDS.md).
 
-## 三条路径
-
-| 路径 | 命令 | 主要内容 |
+| Path | Command | Work |
 | --- | --- | --- |
-| 简单卡 | `pnpm card new my-card` | `src/index.yaml` 与 `src/text/*.md`；需要设定注入时再加世界书 |
-| 复杂卡 | `pnpm card new my-card --modules "worldbook,regex,script,mvu,vue"` | 世界书、变量、正则、脚本、界面按依赖顺序连接 |
-| 导入卡 | `pnpm card split <PNG或JSON> --name my-card` | 先在 `src/` 上改，按职责给世界书条目补 `分类`、`organize`，最后 `check`／`diff`／`build` |
+| Simple | `pnpm card new my-card` | index and text files; worldbook if useful |
+| Complex | `pnpm card new my-card --modules "worldbook,regex,script,mvu,vue"` | connect modules in dependency order |
+| Imported | `pnpm card split <PNG-or-JSON> --name my-card` | preserve/diff, edit, classify/organize worldbook, check/build |
 
-## 先决定体验目标
+## Choose the experience before modules
 
-角色卡常见的三种目标，决定了完全不同的工作量：
+Dialogue alone needs an opening. Dialogue with setting needs traditional fields or worldbook entries. Persistent state/UI may need variables, regexes, scripts, or frontend; state can use native variables, MVU, or custom logic. Do not add unrelated modules. No modules means a plain-text card. Quote the comma-separated list in PowerShell and choose only one initial frontend, html or vue.
 
-| 目标 | 需要什么 | 不需要什么 |
-| --- | --- | --- |
-| 只要对话 | 开场白（第一条消息） | 世界书、脚本、前端 |
-| 对话 + 设定 | 开场白、角色字段或世界书 | 脚本、变量 |
-| 对话 + 状态和界面 | 开场白、世界书、变量、正则、脚本或前端；变量用酒馆原生变量、MVU 或自定义脚本都可以 | 与目标无关的模块 |
+| Module | Contribution |
+| --- | --- |
+| worldbook | constant/keyword/vector setting injection; YAML settings plus file body under src/worldbook |
+| regex | prompt/display replacement; replacement_file plus tests/regex.json |
+| script | browser JavaScript, host events, variables, and custom interactions |
+| EJS (no separate module) | conditional prompt text evaluated by Prompt Template |
+| mvu | pinned framework/adapter, schema.ts, four standard entries, complete/streaming update regexes and fixtures |
+| html/vue | message iframe source built into a single page and rendered through regex replacement |
 
-先写目标，再选模块。`pnpm card new my-card` 不带模块就是纯文字卡；`pnpm card new my-card --modules "worldbook,regex,script,mvu,vue"` 只生成所选模块的骨架，用不到的模块不必创建。PowerShell 里模块列表要整体加引号，`html` 与 `vue` 初始模板只能选一个。
+Read the matching skill before implementing a module. A frontend need not use MVU; MVU need not have a frontend. JSON Schema is editing reference rather than runtime registration.
 
-## 模块各自解决什么
+## Place setting content deliberately
 
-- **纯文本（无模块）**：开场白落在 `src/text/*.md`，由 `src/index.yaml` 的 `文本` 引用。设定可以写进 `角色描述`、`性格`、`场景`、`对话示例` 这些传统字段，也可以交给世界书条目；导入卡里已有的非空字段原样保留。适合角色扮演、场景对话。
-- **世界书 worldbook**：按关键字、常驻或向量方式注入设定，条目落在 `src/worldbook/**/*.yaml`，正文用 `文件` 指向。适合人物档案、地点、事件与玩法规则。条目的可选 `分类: 地理/北境` 只决定本地目录，由 `pnpm card organize` 移动，不进入卡；导入卡先用 `pnpm card map` 找待分类条目，分批读完正文再补分类，见 [世界书目录与文件名](WORLDBOOK-FILES.md)。世界规模卡先按 [世界设计](WORLD-DESIGN.md) 想清楚写哪些内容，再决定每条的位置与激活。
-- **正则 regex**：在请求或显示前替换文本，条目落在 `src/regex/*.yaml`，`替换文件` 指向替换正文，样例写在 `tests/regex.json`。适合隐藏变量更新块、把占位符渲染成界面。
-- **助手脚本 script**：在浏览器内运行的 JavaScript，代码用条目 YAML 的 `文件` 引用，条目落在 `src/scripts/`，能监听酒馆事件、读写变量、加载界面。
-- **EJS 模板**：在请求组装前参与提示词计算的模板，直接写在卡字段或世界书正文里，不需要单独的模块。适合按变量拼提示词。
-- **MVU mvu**：加入固定提交的 MVU 与 Zod 注册器、`src/schema.ts`、四个标准世界书条目、四条完整/流式更新块正则及样例。`src/variables/schema.json` 仅作编辑参考。适合好感度、状态面板、任务列表。
-- **HTML/Vue 前端**：加入 `src/ui/html/` 或 `src/ui/vue/` 界面工程，构建后通过正则渲染到楼层。把纯文本状态栏变成可交互的界面。
+Worldbook entries are recommended for new cards because they can be conditionally injected and maintained separately. Traditional description/personality/scenario/mes_example fields are simpler for small settings but consume context and can be disabled/changed by presets. Use one main location for each piece of prose. Reference only useful fields under text. Unreferenced source files can remain without being packaged. Preserve imported nonempty fields.
 
-## 设定放在哪里
+For a large world, choose content using [World design](WORLD-DESIGN.md). Category (local directory), activation (candidate conditions), position (prompt region), and parent/child arrival are separate decisions. Trees can describe peoples, politics, customs, organizations, or geography. A category does not fix a position or activation mode.
 
-两条路都成立，选一条为主：
+## Suggested sequence
 
-- **世界书条目**（新卡推荐）：能按触发条件注入、逐条增删、复用同一段设定，正文写作规范见 [世界书条目提示词](WORLDBOOK-WRITING.md)。
-- **传统卡字段**：`角色描述`、`性格`、`场景`、`对话示例` 始终随请求发送，结构简单，适合设定量小的卡。缺点是长期占用上下文，而且预设可以关闭或改写这些字段，不能假定每次都原样发送。
+1. Establish single-character versus multi-character/world scope, card name, player role, and opening. `{{char}}` is the card name; use explicit NPC names where needed.
+2. Write the setting in worldbook entries or traditional fields.
+3. If state is required, choose its writer/storage, define structure and initial values, then choose [MVU update mode](MVU-MODES.md) if applicable.
+4. Write field-specific update conditions for the model.
+5. Add regexes to hide update blocks and render UI markers.
+6. Add scripts/frontend last, after their input contracts are clear.
 
-选定后在 `src/index.yaml` 的 `文本` 下引用对应的键，`文本` 只写真正要用的字段。两种方式都会进入提示词，同一段设定不要写两遍。没有写进 `文本` 的 `src/text/*.md` 文件留在原地即可，不参与打包。
+Load [Prompt style](../.agents/skills/tavern-prompt-style/SKILL.md) before model-facing prose. Synchronize repeated facts, state, and openings across files.
 
-字段与卡 JSON 的对应见 [运行环境与语法](ENVIRONMENT.md) 与 [架构与操作](ARCHITECTURE.md)。
+## Card fields
 
-## 世界规模卡先想内容
+Edit the source referenced by src/index.yaml rather than generated JSON. Character name is required and may name a world/scenario rather than an NPC. Always reference text.first_mes. Other traditional fields are optional; do not fill them with meaningless placeholders. The first message enters chat history and strongly demonstrates intended voice/length. Alternate/group greetings are path lists.
 
-多角色或大世界卡不只是一段人物对话，种族、政治、社会、风俗、地理、组织与局势都可以写。动笔前先按 [世界设计](WORLD-DESIGN.md) 的清单决定这次写哪些内容、每条服务哪个玩家决定；清单是思考方向，不要求逐项填满。
+System_prompt and post_history_instructions only apply when the player enables the corresponding host preferences. Creator, character_version, creator_notes, and tags are metadata; they generally do not enter prompt assembly by default. See [Architecture](ARCHITECTURE.md#authoring-field-mapping).
 
-写完内容后，分类（本地目录）、位置（注入到提示词哪一段）、激活（蓝灯、关键词或向量）与树状依赖（父子内容怎么一起到达）分别决定，互不绑定。地理只是范围关键词的一个例子；位置也不按内容类型决定——角色定义之前常用世界基础与制度，之后可以放关系与当前处境等互动可用的设定。细节与进阶写法见 [世界书](WORLDBOOK.md) 与 [地点扫描与树状设定](../.agents/skills/tavern-worldbook/references/location-scan.md)。
+## Prompt principles
 
-## 建议的写作顺序
+Each instruction must be self-contained in the actually injected request, state an observable condition/action, and provide unknown/default behavior for missing inputs. Initialize/inject values before reading them. Mark format examples as examples rather than past events. Remove duplication instead of abbreviating concepts. Prefer concise YAML-style settings/mechanics, while preserving natural prose for openings/dialogue and the user's intentional style. General narration requirements usually belong to the preset.
 
-1. 确定单角色或多角色/世界卡，再写卡名与开场白。`{{char}}` 是卡名，不是任意 NPC；默认用实际人物名，单角色同名卡才按需使用。
-2. 补设定：写世界书条目，或填写传统卡字段；世界规模卡先按 [世界设计](WORLD-DESIGN.md) 取舍要写的内容。
-3. 需要状态时确定更新者与存储位置，再定义变量结构和初值。MVU 区分 [主 API 与额外请求](MVU-MODES.md)，按体验选择，不默认增加额外调用。
-4. 写变量更新规则，这一步是写给模型看的，不是给程序看的。
-5. 加正则隐藏更新块、渲染占位符，见 [正则](REGEX.md)。
-6. 最后做脚本或界面，见 [助手脚本与 EJS](SCRIPTS.md) 与 [前端资源](FRONTEND.md)。
+## Delivery checks
 
-任何一步写入给模型看的文本前，先加载 [提示词文体](../.agents/skills/tavern-prompt-style/SKILL.md)。设定跨多个条目或字段时，改一处要同步其余位置。
-
-## 卡字段要点
-
-字段对应卡 JSON 的 `data` 对象；写卡时改 `src/index.yaml` 的 `文本` 与它引用的文件。`第一条消息` 始终引用，其余键按需引用。
-
-- `name`：角色卡显示名，不能为空，由 `角色.名称` 提供。多角色/世界卡可以是作品或场景名，不必改成一个 NPC 的名字。
-- `description`、`personality`、`scenario`、`mes_example`：传统文本字段，分别由 `角色描述`、`性格`、`场景`、`对话示例` 提供。用它们就写清楚内容并引用；不用就留空且不引用，不要为了凑格式填占位文字。
-- `first_mes`：新卡默认的开场，由 `文本.第一条消息` 提供；开局写进聊天记录，之后随聊天历史发送。它是模型模仿文风和长度的主要样本，值得多花时间。
-- `alternate_greetings`、`group_only_greetings`：额外开场白，分别是 `备选开场白`、`群聊开场白` 的文件路径列表。
-- `system_prompt`、`post_history_instructions`：覆盖项，只有玩家在酒馆设置里开启对应偏好才生效；写卡时不要假设它们一定生效。
-- `creator`、`character_version`、`creator_notes`、`tags`：元数据，分别来自 `角色` 与 `创作者备注`，默认不进入提示词构建，但影响分发和检索。
-
-## 提示词原则
-
-这些原则对卡字段、世界书条目和变量更新规则都适用：
-
-- 自包含。每条要求只依赖本次请求里确实存在的信息，不要假定模型看过工作区、编辑过程或没有触发的条目。
-- 可执行。写"做什么"和"什么条件下做"，不写"要写得更好"这类无法判定的要求。
-- 分支有依据。判断条件必须是实际注入的标识或变量；没有依据的分支写默认行为。
-- 先写后读。变量、宏和世界书条目被读取前必须有可靠写入路径；写不进去时按未知处理。
-- 示例归示例。给出格式示例时说明它是格式示例，避免模型把它当成已经发生的剧情。
-- 简洁优先。用删掉无用信息来变短，不要靠缩写和自造名词。
-- 默认以简洁 YAML 缩进写设定与机制，沿用用户指定结构；开场白和对话示例保留自然叙事。人称、文风、篇幅通常交给预设，世界书不重复堆叙事规则，详见 [提示词文体](../.agents/skills/tavern-prompt-style/SKILL.md)。
-
-## 写卡检查清单
-
-提交前逐项确认：
-
-- [ ] `文本` 里出现的字段都有实际内容，没有模板占位文字。
-- [ ] 同一段设定只在一个地方维护，没有卡字段与世界书条目各写一份。
-- [ ] 世界书条目的触发方式与它出现的位置匹配（常驻设定不要用关键字触发）。
-- [ ] 世界规模卡的内容按体验取舍过（见 [世界设计](WORLD-DESIGN.md)），分类、位置、激活与树状依赖分别决定，没有把某类内容写死到某个位置。
-- [ ] 导入卡的世界书条目都写过 `分类` 并跑过 `organize`；`card map` 的待分类列表为空，或未定的条目已在报告里列成待核实。
-- [ ] 世界书的 `顺序` 与总索引按预期 prompt 阅读次序全局递增，复杂位置按宿主预设核对过，没有把静态编号当成已实测。
-- [ ] 变量在读取前有初始化路径，缺失时有默认值。
-- [ ] 变量更新规则里提到的每个路径都存在于变量结构中。
-- [ ] 正则的查找表达式在自己的样例文本上测试过，替换结果不会破坏 JSON 或 Markdown 结构。
-- [ ] 脚本不引用私有仓库地址；公开依赖记录在 `project.json` 的 `dependencies`，地址里含固定版本或提交。
-- [ ] 每个正则都有能通过的样例写在 `tests/regex.json`。
-- [ ] 界面在自己的容器宽度下验证过：窄屏不横向溢出，楼层高度变化时布局不互相挤压。
-- [ ] `pnpm card check my-card` 通过，`pnpm card build my-card` 产出到 `dist/my-card/`，导入过的卡再跑 `pnpm card diff my-card`。
-- [ ] 读过 `dist/<名称>/build-report.json` 里的警告，并且没有把静态检查写成真实酒馆实测；未核实的状态保持 `runtimeVerified: null`。
-
-让 agent 代写时，在对话里说明目标、必须保留的内容和可自行决定的部分即可，不需要另外准备或粘贴开工指令。
+- Referenced text has real content; setting prose is maintained once.
+- Worldbook activation, position, order, depth, role, and local category are deliberate. Imported whole-card worldbooks are classified/organized or unresolved entries are reported.
+- Index/order follows intended prompt reading order; custom positions have host evidence. Static numbering is not runtime verification.
+- State initializes before reads, with consistent Schema/initial/rule/output/UI paths and types.
+- Every regex has meaningful fixtures; replacements preserve adjacent prose and JSON/Markdown structure.
+- External dependencies are public, declared, and pinned. Interfaces fit narrow containers without overflow.
+- Check/build pass, imported-card diff is reviewed, and build-report warnings are read.
+- Report actual files, commands/results, outputs, dependencies, and missing host tests. Leave runtimeVerified null without host evidence.

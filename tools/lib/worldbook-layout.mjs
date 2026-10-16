@@ -1,10 +1,10 @@
 import path from 'node:path';
 
-const categories = { 世界观: '世界设定', 世界设定: '世界设定', 设定: '世界设定', 行话: '世界设定', 地理: '地理', 地点: '地理', 区域: '地理', 角色: '角色', 人物: '角色', 档案: '角色', 搭档: '角色', 规则: '规则', 机制: '规则', 事件: '事件', 势力: '势力', 组织: '组织', 物品: '物品', 种族: '种族', 变量: '变量' };
+const categories = { setting: 'setting', world: 'setting', lore: 'setting', geography: 'geography', place: 'geography', location: 'geography', character: 'characters', characters: 'characters', dossier: 'characters', rules: 'rules', mechanics: 'rules', events: 'events', factions: 'factions', organizations: 'organizations', items: 'items', species: 'species', variables: 'variables', 世界观: 'setting', 世界设定: 'setting', 设定: 'setting', 行话: 'setting', 地理: 'geography', 地点: 'geography', 区域: 'geography', 角色: 'characters', 人物: 'characters', 档案: 'characters', 搭档: 'characters', 规则: 'rules', 机制: 'rules', 事件: 'events', 势力: 'factions', 组织: 'organizations', 物品: 'items', 种族: 'species', 变量: 'variables' };
 
 export function fileLabel(value) {
-  let result = String(value || '未命名').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim().replace(/[. ]+$/g, '').slice(0, 64).replace(/[. ]+$/g, '');
-  if (!result || result === '.' || result === '..') result = '未命名';
+  let result = String(value || 'Untitled').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim().replace(/[. ]+$/g, '').slice(0, 64).replace(/[. ]+$/g, '');
+  if (!result || result === '.' || result === '..') result = 'Untitled';
   if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(result)) result = '_' + result;
   return result;
 }
@@ -12,18 +12,18 @@ export function fileLabel(value) {
 // Classify only explicit labels/protocols and a small set of conventional overview names.
 // Neither content nor runtime injection position is used to guess an author's taxonomy.
 export function worldbookLocation(title, folder) {
-  const name = String(title || '未命名');
+  const name = String(title || 'Untitled');
   const prefix = name.match(/^(?:\[([^\]]+)\]|【([^】]+)】|([^\s:：·-]+)\s*[-:：·])\s*(.+)$/u);
   const key = prefix && (prefix[1] ?? prefix[2] ?? prefix[3]);
-  const category = Object.hasOwn(categories, key) ? categories[key] : undefined;
-  const protocol = /\[(?:initvar|mvu_update|config_override)\]/i.test(name) || name === '变量列表';
-  const overviews = { 世界观: '世界设定', 世界总览: '世界设定', 地理总览: '地理', 角色总览: '角色', 人物总览: '角色' };
-  const overview = Object.hasOwn(overviews, name) ? overviews[name] : undefined;
-  return { folder: folder ?? (protocol ? '变量' : category ?? overview ?? '未分类'), label: fileLabel(category ? prefix[4] : name) };
+  const category = Object.hasOwn(categories, key?.toLowerCase()) ? categories[key.toLowerCase()] : undefined;
+  const protocol = /\[(?:initvar|mvu_update|config_override)\]/i.test(name) || ['variable list', '变量列表'].includes(name.toLowerCase());
+  const overviews = { 'world setting': 'setting', 'world overview': 'setting', 'geography overview': 'geography', 'character overview': 'characters', 世界观: 'setting', 世界总览: 'setting', 地理总览: 'geography', 角色总览: 'characters', 人物总览: 'characters' };
+  const overview = Object.hasOwn(overviews, name.toLowerCase()) ? overviews[name.toLowerCase()] : undefined;
+  return { folder: folder ?? (protocol ? 'variables' : category ?? overview ?? 'uncategorized'), label: fileLabel(category ? prefix[4] : name) };
 }
 
 export function validateWorldbookFolder(folder) {
-  if (typeof folder !== 'string' || !folder || folder.split('/').some(segment => fileLabel(segment) !== segment)) throw new Error(`无效世界书分类目录: ${folder}`);
+  if (typeof folder !== 'string' || !folder || folder.split('/').some(segment => fileLabel(segment) !== segment)) throw new Error(`Invalid worldbook category folder: ${folder}`);
   return folder;
 }
 

@@ -1,0 +1,1 @@
+Authoring skeleton: complete the character and setting before use.

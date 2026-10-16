@@ -1,0 +1,10 @@
+name: Character overview
+enabled: true
+activation: constant
+keys: []
+position: after_character
+order: 4
+exclude_recursion: true
+prevent_recursion: true
+file: src/worldbook/characters/character-overview.md
+link: worldbook-83245b4f-d60e-47e0-a7b2-db8e0c4057b3

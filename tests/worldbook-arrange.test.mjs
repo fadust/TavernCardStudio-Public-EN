@@ -1,4 +1,4 @@
-// 世界书顺序重排（arrangeWorldbook）的独立测试：只使用公开 API 与 node:test，不触碰真实 cards/。
+// Independent arrangeWorldbook tests use public APIs and node:test without touching real cards/.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -11,7 +11,7 @@ import { readYAML, writeYAML } from '../tools/lib/authoring.mjs';
 import { BUDGET_NOTICE, arrangeWorldbook } from '../tools/lib/arrange.mjs';
 import { jsonText, sha256, walk } from '../tools/lib/files.mjs';
 
-// ---------- 测试辅助 ----------
+// ---------- Test helpers ----------
 
 async function tempRoot(t, prefix) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -48,7 +48,7 @@ function entry(id, comment, content, spec = {}) {
     ...rest,
   };
 }
-// 导入卡里常见完全没有 extensions 的条目：只保留顶层字段。
+// Imported entries often lack extensions and retain only top-level fields.
 function bareEntry(id, comment, content, position, order) {
   return { id, keys: [comment], comment, content, enabled: true, constant: false, insertion_order: order, position };
 }
@@ -60,11 +60,11 @@ async function importCard(root, name, card) {
 async function worldbookEntries(dir) {
   const index = await readYAML(dir, 'src/index.yaml');
   const result = [];
-  for (const file of index.世界书.条目) result.push({ file, config: await readYAML(dir, file) });
+  for (const file of index.worldbook.entries) result.push({ file, config: await readYAML(dir, file) });
   return result;
 }
 async function findWorldbook(dir, title) {
-  const found = (await worldbookEntries(dir)).find(item => item.config.名称 === title);
+  const found = (await worldbookEntries(dir)).find(item => item.config.name === title);
   assert.ok(found, '世界书条目应存在: ' + title);
   return found;
 }
@@ -74,22 +74,22 @@ function outlineOf(card) {
   return copy;
 }
 
-// ---------- 手写条目 ----------
+// ---------- Authored entries ----------
 
-test('arrange 按 prompt 阅读序重排手写条目、连续编号并保持 ID', async t => {
+test("arrange sorts authored entries by prompt order, assigns consecutive order, and preserves IDs", async t => {
   const root = await tempRoot(t, 'tcs-arrange-hand-');
   const dir = await newCard('手写序', { root });
-  const 甲 = 'src/worldbook/未分类/甲.yaml';
-  const 乙 = 'src/worldbook/未分类/乙.yaml';
-  const 丙 = 'src/worldbook/未分类/丙.yaml';
-  await writeYAML(dir, 甲, { 名称: '甲', 关键词: ['甲'], 顺序: 30, 位置: '角色定义之前', 文件: 'src/worldbook/未分类/甲.md' });
-  await writeYAML(dir, 乙, { 名称: '乙', 关键词: ['乙'], 顺序: 20, 位置: '角色定义之后', 文件: 'src/worldbook/未分类/乙.md' });
-  await writeYAML(dir, 丙, { 名称: '丙', 关键词: ['丙'], 顺序: 10, 位置: '角色定义之后', 文件: 'src/worldbook/未分类/丙.md' });
-  await writeText(dir, 'src/worldbook/未分类/甲.md', '甲正文');
-  await writeText(dir, 'src/worldbook/未分类/乙.md', '乙正文');
-  await writeText(dir, 'src/worldbook/未分类/丙.md', '丙正文');
+  const 甲 = 'src/worldbook/uncategorized/甲.yaml';
+  const 乙 = 'src/worldbook/uncategorized/乙.yaml';
+  const 丙 = 'src/worldbook/uncategorized/丙.yaml';
+  await writeYAML(dir, 甲, { name: '甲', keys: ['甲'], order: 30, position: "before_character", file: 'src/worldbook/uncategorized/甲.md' });
+  await writeYAML(dir, 乙, { name: '乙', keys: ['乙'], order: 20, position: "after_character", file: 'src/worldbook/uncategorized/乙.md' });
+  await writeYAML(dir, 丙, { name: '丙', keys: ['丙'], order: 10, position: "after_character", file: 'src/worldbook/uncategorized/丙.md' });
+  await writeText(dir, 'src/worldbook/uncategorized/甲.md', '甲正文');
+  await writeText(dir, 'src/worldbook/uncategorized/乙.md', '乙正文');
+  await writeText(dir, 'src/worldbook/uncategorized/丙.md', '丙正文');
   const index = await readYAML(dir, 'src/index.yaml');
-  index.世界书.条目 = [乙, 丙, 甲];
+  index.worldbook.entries = [乙, 丙, 甲];
   await writeYAML(dir, 'src/index.yaml', index);
 
   const before = await loadProject('手写序', root);
@@ -101,7 +101,7 @@ test('arrange 按 prompt 阅读序重排手写条目、连续编号并保持 ID'
   assert.equal(result.arranged, true);
   assert.equal(result.order, 'prompt');
   assert.equal(result.budgetNotice, BUDGET_NOTICE);
-  assert.match(result.budgetNotice, /预算/);
+  assert.match(result.budgetNotice, /budget/);
   assert.ok(result.backup.startsWith('work/order-backups/手写序-'), '备份落在 work/order-backups');
   assert.deepEqual(result.changes, [
     { name: '甲', file: 甲, from: 2, to: 0, orderFrom: 30, orderTo: 1 },
@@ -112,16 +112,16 @@ test('arrange 按 prompt 阅读序重排手写条目、连续编号并保持 ID'
   const after = await loadProject('手写序', root);
   assert.deepEqual(after.card.data.character_book.entries.map(item => [item.comment, item.insertion_order, item.extensions.display_index]), [['甲', 1, 0], ['丙', 2, 1], ['乙', 3, 2]]);
   assert.deepEqual(after.card.data.character_book.entries.map(item => [item.comment, item.id]), [['甲', ids.get('甲')], ['丙', ids.get('丙')], ['乙', ids.get('乙')]], '手写条目的 ID 不随重排变化');
-  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).世界书.条目, [甲, 丙, 乙]);
-  assert.equal(await readText(dir, 'src/worldbook/未分类/乙.md'), '乙正文');
+  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).worldbook.entries, [甲, 丙, 乙]);
+  assert.equal(await readText(dir, 'src/worldbook/uncategorized/乙.md'), '乙正文');
   assert.deepEqual(semanticDiff(outlineOf(before.card), outlineOf(after.card)), [], '条目以外的卡数据不变');
 
-  // 备份保留重排前的完整工程
-  assert.deepEqual((await readYAML(root, result.backup + '/src/index.yaml')).世界书.条目, [乙, 丙, 甲]);
-  assert.equal((await readYAML(root, result.backup + '/' + 甲)).顺序, 30);
-  assert.equal(await readText(root, result.backup + '/src/worldbook/未分类/甲.md'), '甲正文');
+  // The backup preserves the complete project before reordering.
+  assert.deepEqual((await readYAML(root, result.backup + '/src/index.yaml')).worldbook.entries, [乙, 丙, 甲]);
+  assert.equal((await readYAML(root, result.backup + '/' + 甲)).order, 30);
+  assert.equal(await readText(root, result.backup + '/src/worldbook/uncategorized/甲.md'), '甲正文');
 
-  // 目标序列与编号已满足：noop，不写文件、不新增备份
+  // Matching order and numbering produce a no-op without writes or new backups.
   const stable = await snapshot(dir);
   assert.deepEqual(await arrangeWorldbook('手写序', root), { name: '手写序', ok: true, arranged: false, order: 'prompt', backup: null, changes: [], budgetNotice: BUDGET_NOTICE });
   assert.deepEqual(await snapshot(dir), stable, '第二次重排不写文件');
@@ -129,31 +129,31 @@ test('arrange 按 prompt 阅读序重排手写条目、连续编号并保持 ID'
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-// ---------- 导入卡 ----------
+// ---------- Imported cards ----------
 
-test('arrange 保真导入卡的未知字段与构建绑定，构建指针随索引重排', async t => {
+test("arrange preserves imported unknown fields and build bindings while reordering pointers with the index", async t => {
   const root = await tempRoot(t, 'tcs-arrange-import-');
   const card = bookCard('导入序', [
     entry(11, '店主', '店主正文', { position: 1, order: 10, extra: { 未知扩展: '保留' }, 未知条目字段: { keep: [1, 2] }, keys: ['店主', '老板'] }),
-    { ...entry(12, '世界观', '世界观正文', { position: 0, order: 20 }), constant: true },
+    { ...entry(12, "World setting", '世界观正文', { position: 0, order: 20 }), constant: true },
   ]);
   const dir = await importCard(root, '导入序', card);
-  const world = await findWorldbook(dir, '世界观');
+  const world = await findWorldbook(dir, "World setting");
   const shop = await findWorldbook(dir, '店主');
-  await writeYAML(dir, world.file, { ...world.config, 构建: { 类型: 'script', 入口: 'src/worldbook/未分类/世界观.js' } });
-  await writeText(dir, 'src/worldbook/未分类/世界观.js', 'console.info("世界观");');
+  await writeYAML(dir, world.file, { ...world.config, build: { type: 'script', entry: 'src/worldbook/uncategorized/World setting.js' } });
+  await writeText(dir, 'src/worldbook/uncategorized/World setting.js', 'console.info("世界观");');
 
   const before = await loadProject('导入序', root);
-  assert.deepEqual(before.project.builds, [{ kind: 'script', entry: 'src/worldbook/未分类/世界观.js', pointer: '/data/character_book/entries/1/content' }]);
-  assert.deepEqual(before.card.data.character_book.entries.map(item => item.comment), ['店主', '世界观']);
+  assert.deepEqual(before.project.builds, [{ kind: 'script', entry: 'src/worldbook/uncategorized/World setting.js', pointer: '/data/character_book/entries/1/content' }]);
+  assert.deepEqual(before.card.data.character_book.entries.map(item => item.comment), ['店主', "World setting"]);
 
   const result = await arrangeWorldbook('导入序', root);
   assert.equal(result.arranged, true);
   const after = await loadProject('导入序', root);
-  assert.deepEqual(after.project.builds, [{ kind: 'script', entry: 'src/worldbook/未分类/世界观.js', pointer: '/data/character_book/entries/0/content' }], '构建指针跟着条目一起移动');
-  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).世界书.条目, [world.file, shop.file]);
+  assert.deepEqual(after.project.builds, [{ kind: 'script', entry: 'src/worldbook/uncategorized/World setting.js', pointer: '/data/character_book/entries/0/content' }], '构建指针跟着条目一起移动');
+  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).worldbook.entries, [world.file, shop.file]);
   assert.deepEqual(after.card.data.character_book.entries.map(item => [item.comment, item.id, item.insertion_order, item.extensions.display_index]), [
-    ['世界观', 12, 1, 0],
+    ["World setting", 12, 1, 0],
     ['店主', 11, 2, 1],
   ]);
   const moved = after.card.data.character_book.entries[1];
@@ -161,7 +161,7 @@ test('arrange 保真导入卡的未知字段与构建绑定，构建指针随索
   assert.equal(moved.extensions.未知扩展, '保留');
   assert.equal(moved.content, '店主正文');
   assert.deepEqual(moved.keys, ['店主', '老板'], '关键词保留');
-  assert.equal(await readText(dir, 'src/worldbook/未分类/世界观.js'), 'console.info("世界观");');
+  assert.equal(await readText(dir, 'src/worldbook/uncategorized/World setting.js'), 'console.info("世界观");');
   const stripSorting = item => {
     const copy = structuredClone(item);
     delete copy.insertion_order;
@@ -174,32 +174,32 @@ test('arrange 保真导入卡的未知字段与构建绑定，构建指针随索
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-// ---------- 总索引注释 ----------
+// ---------- Index comments ----------
 
-test('arrange 重排总索引时保留注释并让注释跟着条目移动', async t => {
+test("arrange preserves index comments and moves them with their entries", async t => {
   const root = await tempRoot(t, 'tcs-arrange-comment-');
   const dir = await newCard('注释序', { root });
-  await writeYAML(dir, 'src/worldbook/未分类/甲.yaml', { 名称: '甲', 关键词: ['甲'], 顺序: 1, 位置: '角色定义之后', 文件: 'src/worldbook/未分类/甲.md' });
-  await writeYAML(dir, 'src/worldbook/未分类/乙.yaml', { 名称: '乙', 关键词: ['乙'], 顺序: 2, 位置: '角色定义之前', 文件: 'src/worldbook/未分类/乙.md' });
-  await writeText(dir, 'src/worldbook/未分类/甲.md', '甲正文');
-  await writeText(dir, 'src/worldbook/未分类/乙.md', '乙正文');
+  await writeYAML(dir, 'src/worldbook/uncategorized/甲.yaml', { name: '甲', keys: ['甲'], order: 1, position: "after_character", file: 'src/worldbook/uncategorized/甲.md' });
+  await writeYAML(dir, 'src/worldbook/uncategorized/乙.yaml', { name: '乙', keys: ['乙'], order: 2, position: "before_character", file: 'src/worldbook/uncategorized/乙.md' });
+  await writeText(dir, 'src/worldbook/uncategorized/甲.md', '甲正文');
+  await writeText(dir, 'src/worldbook/uncategorized/乙.md', '乙正文');
   const raw = await readText(dir, 'src/index.yaml');
-  const commented = raw.replace('  条目: []', ['  条目:', '    # 甲条目：角色定义之后', '    - src/worldbook/未分类/甲.yaml', '    - src/worldbook/未分类/乙.yaml # 乙条目：角色定义之前'].join('\n'));
+  const commented = raw.replace('  entries: []', ['  entries:', '    # 甲条目：角色定义之后', '    - src/worldbook/uncategorized/甲.yaml', '    - src/worldbook/uncategorized/乙.yaml # 乙条目：角色定义之前'].join('\n'));
   assert.notEqual(commented, raw, '测试要真的写入注释');
   await writeText(dir, 'src/index.yaml', commented);
 
   const result = await arrangeWorldbook('注释序', root);
   assert.equal(result.arranged, true);
   const text = await readText(dir, 'src/index.yaml');
-  assert.ok(text.includes('    # 甲条目：角色定义之后\n    - src/worldbook/未分类/甲.yaml'), '条目注释跟着条目移动');
-  assert.ok(text.includes('- src/worldbook/未分类/乙.yaml # 乙条目：角色定义之前'), '行内注释保留');
-  assert.ok(text.indexOf('未分类/乙.yaml') < text.indexOf('未分类/甲.yaml'), '乙排在甲之前');
-  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).世界书.条目, ['src/worldbook/未分类/乙.yaml', 'src/worldbook/未分类/甲.yaml']);
+  assert.ok(text.includes('    # 甲条目：角色定义之后\n    - src/worldbook/uncategorized/甲.yaml'), '条目注释跟着条目移动');
+  assert.ok(text.includes('- src/worldbook/uncategorized/乙.yaml # 乙条目：角色定义之前'), '行内注释保留');
+  assert.ok(text.indexOf('uncategorized/乙.yaml') < text.indexOf('uncategorized/甲.yaml'), '乙排在甲之前');
+  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).worldbook.entries, ['src/worldbook/uncategorized/乙.yaml', 'src/worldbook/uncategorized/甲.yaml']);
 });
 
-// ---------- noop 与特殊位置 ----------
+// ---------- No-ops and special positions ----------
 
-test('连续编号但缺 display_index 的导入卡在同一次重排里补齐展示序号', async t => {
+test("arrange fills missing display_index values even when imported order is already consecutive", async t => {
   const root = await tempRoot(t, 'tcs-arrange-display-');
   const card = bookCard('补序号', [
     entry(1, '甲', '甲正文', { position: 0, order: 1 }),
@@ -232,7 +232,7 @@ test('连续编号但缺 display_index 的导入卡在同一次重排里补齐�
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('次序、编号与展示序号都已到位时 arrange 直接 noop，不写文件、不建备份', async t => {
+test("arrange is a no-op without writes or backups when order and display indices already match", async t => {
   const root = await tempRoot(t, 'tcs-arrange-noop-');
   const card = bookCard('已排好', [
     entry(1, '甲', '甲正文', { position: 0, order: 1, extra: { display_index: 0 } }),
@@ -248,7 +248,7 @@ test('次序、编号与展示序号都已到位时 arrange 直接 noop，不写
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('特殊注入位置在 prompt 模式被拒绝，index 模式按现有索引连续编号', async t => {
+test("prompt mode rejects special injection positions while index mode numbers the existing index", async t => {
   const root = await tempRoot(t, 'tcs-arrange-special-');
   const card = bookCard('特殊位置', [
     entry(1, '甲', '甲正文', { position: 2, order: 50 }),
@@ -257,7 +257,7 @@ test('特殊注入位置在 prompt 模式被拒绝，index 模式按现有索引
   ]);
   const dir = await importCard(root, '特殊位置', card);
   const before = await snapshot(dir);
-  await assert.rejects(() => arrangeWorldbook('特殊位置', root), /宿主/);
+  await assert.rejects(() => arrangeWorldbook('特殊位置', root), /host/);
   assert.deepEqual(await snapshot(dir), before, '拒绝后工程不变');
   assert.equal(await hasFile(root, 'work/order-backups'), false, '拒绝时不写备份');
   assert.deepEqual(await tmpLeftovers(root), []);
@@ -267,26 +267,26 @@ test('特殊注入位置在 prompt 模式被拒绝，index 模式按现有索引
   assert.equal(result.arranged, true);
   assert.equal(result.order, 'index');
   assert.deepEqual(result.changes.map(change => [change.file, change.orderFrom, change.orderTo]), [
-    ['src/worldbook/未分类/甲.yaml', 50, 1],
-    ['src/worldbook/未分类/乙.yaml', 40, 2],
-    ['src/worldbook/未分类/丙.yaml', 60, 3],
+    ['src/worldbook/uncategorized/甲.yaml', 50, 1],
+    ['src/worldbook/uncategorized/乙.yaml', 40, 2],
+    ['src/worldbook/uncategorized/丙.yaml', 60, 3],
   ]);
   const after = await loadProject('特殊位置', root);
   assert.deepEqual(after.card.data.character_book.entries.map(item => [item.comment, item.insertion_order, item.extensions.display_index]), [['甲', 1, 0], ['乙', 2, 1], ['丙', 3, 2]], 'index 模式保持原索引次序，只连续编号');
-  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).世界书.条目, ['src/worldbook/未分类/甲.yaml', 'src/worldbook/未分类/乙.yaml', 'src/worldbook/未分类/丙.yaml']);
+  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).worldbook.entries, ['src/worldbook/uncategorized/甲.yaml', 'src/worldbook/uncategorized/乙.yaml', 'src/worldbook/uncategorized/丙.yaml']);
   assert.deepEqual(after.card.data.character_book.entries.map(item => item.extensions.position), [2, 0, 4], '位置与深度原样保留');
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('arrange 拒绝未知顺序模式与 v1 工程，空世界书直接 noop', async t => {
+test("arrange rejects unknown ordering modes and v1 projects and treats empty worldbooks as a no-op", async t => {
   const root = await tempRoot(t, 'tcs-arrange-guard-');
   await importCard(root, '守护', bookCard('守护', [entry(1, '甲', '甲正文')]));
-  await assert.rejects(() => arrangeWorldbook('守护', root, { order: '顺序' }), /顺序模式/);
+  await assert.rejects(() => arrangeWorldbook('守护', root, { order: "order" }), /Order mode/);
 
   const file = path.join(root, '旧版.json');
   await fs.writeFile(file, JSON.stringify(bookCard('旧版', [entry(1, '甲', '甲正文')]), null, 2));
   await splitCard(file, { name: '旧版', root, formatVersion: 1 });
-  await assert.rejects(() => arrangeWorldbook('旧版', root), /迁移到 v2/);
+  await assert.rejects(() => arrangeWorldbook('旧版', root), /upgrade the project to v2/);
 
   const empty = await newCard('无世界书', { root });
   const stable = await snapshot(empty);
@@ -295,7 +295,7 @@ test('arrange 拒绝未知顺序模式与 v1 工程，空世界书直接 noop', 
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('arrange 把未启用条目排到列表末尾维护区', async t => {
+test("arrange places disabled entries at the end for maintenance", async t => {
   const root = await tempRoot(t, 'tcs-arrange-disabled-');
   const card = bookCard('停用序', [
     entry(1, '甲', '甲正文', { position: 0, order: 30 }),
@@ -311,12 +311,12 @@ test('arrange 把未启用条目排到列表末尾维护区', async t => {
     ['乙', true, 2, 1],
     ['停用', false, 3, 2],
   ], '启用条目按位置排序，未启用条目留在末尾维护区');
-  const files = (await worldbookEntries(dir)).map(item => [item.config.名称, item.config.顺序]);
+  const files = (await worldbookEntries(dir)).map(item => [item.config.name, item.config.order]);
   assert.deepEqual(files, [['甲', 1], ['乙', 2], ['停用', 3]]);
-  assert.equal(await readText(dir, 'src/worldbook/未分类/停用.md'), '停用正文');
+  assert.equal(await readText(dir, 'src/worldbook/uncategorized/停用.md'), '停用正文');
 });
 
-test('导入卡条目没有 extensions 时，连续编号只补 display_index 容器', async t => {
+test("consecutive ordering adds only display_index containers to imported entries lacking extensions", async t => {
   const root = await tempRoot(t, 'tcs-arrange-noext-');
   const card = bookCard('无扩展', [
     bareEntry(1, '甲', '甲正文', 'before_char', 1),
@@ -341,7 +341,7 @@ test('导入卡条目没有 extensions 时，连续编号只补 display_index �
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('导入卡条目没有 extensions 时也能按阅读序重排', async t => {
+test("imported entries without extensions can be sorted by reading order", async t => {
   const root = await tempRoot(t, 'tcs-arrange-noext-order-');
   const card = bookCard('无扩展重排', [
     bareEntry(1, '甲', '甲正文', 'before_char', 1),
@@ -361,31 +361,31 @@ test('导入卡条目没有 extensions 时也能按阅读序重排', async t => 
     ['丙', 2, { display_index: 1 }],
     ['乙', 3, { display_index: 2 }],
   ]);
-  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).世界书.条目, [
-    'src/worldbook/未分类/甲.yaml',
-    'src/worldbook/未分类/丙.yaml',
-    'src/worldbook/未分类/乙.yaml',
+  assert.deepEqual((await readYAML(dir, 'src/index.yaml')).worldbook.entries, [
+    'src/worldbook/uncategorized/甲.yaml',
+    'src/worldbook/uncategorized/丙.yaml',
+    'src/worldbook/uncategorized/乙.yaml',
   ]);
-  assert.equal(await readText(dir, 'src/worldbook/未分类/乙.md'), '乙正文');
+  assert.equal(await readText(dir, 'src/worldbook/uncategorized/乙.md'), '乙正文');
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('state 记录缺 关联 时按路径找回，arrange 不写 关联 也不改记录配置', async t => {
+test("missing state links recover by path without arrange rewriting links or recorded configuration", async t => {
   const root = await tempRoot(t, 'tcs-arrange-rekey-');
   const card = bookCard('缺关联', [
     entry(1, '甲', '甲正文', { position: 0, order: 1 }),
     entry(2, '乙', '乙正文', { position: 1, order: 2 }),
   ]);
   const dir = await importCard(root, '缺关联', card);
-  // 造出 organize 会留下的形态：YAML 与记录配置都还没有 关联，记录靠 file 路径认领条目。
+  // Reproduce organize output: YAML and recorded configuration lack links, so records identify entries by file paths.
   const target = (await worldbookEntries(dir))[0];
   const config = { ...target.config };
-  const key = config.关联;
+  const key = config.link;
   assert.equal(typeof key, 'string', '前提：导入时写过关联');
-  delete config.关联;
+  delete config.link;
   await writeYAML(dir, target.file, config);
   const state = JSON.parse(await readText(dir, '.card/state.json'));
-  delete state.records[key].config.关联;
+  delete state.records[key].config.link;
   const bytes = jsonText(state);
   await writeText(dir, '.card/state.json', bytes);
   const manifest = JSON.parse(await readText(dir, 'project.json'));
@@ -394,21 +394,21 @@ test('state 记录缺 关联 时按路径找回，arrange 不写 关联 也不�
 
   const before = await loadProject('缺关联', root);
   assert.deepEqual(before.unreferenced, [], '缺 关联 的记录靠路径被认领，不算未引用');
-  assert.equal((await readYAML(dir, target.file)).关联, undefined);
+  assert.equal((await readYAML(dir, target.file)).link, undefined);
 
   const result = await arrangeWorldbook('缺关联', root);
   assert.equal(result.arranged, true, '缺 display_index 要补');
   const after = await loadProject('缺关联', root);
-  assert.equal((await readYAML(dir, target.file)).关联, undefined, 'arrange 不补写 关联');
+  assert.equal((await readYAML(dir, target.file)).link, undefined, 'arrange 不补写 关联');
   const stateAfter = JSON.parse(await readText(dir, '.card/state.json'));
-  assert.equal(Object.hasOwn(stateAfter.records[key].config, '关联'), false, '记录配置不被改写');
+  assert.equal(Object.hasOwn(stateAfter.records[key].config, "link"), false, '记录配置不被改写');
   assert.equal(Object.keys(stateAfter.records).length, 2, '不新建重复记录');
   assert.deepEqual(after.card.data.character_book.entries.map(item => [item.comment, item.extensions.display_index]), [['甲', 0], ['乙', 1]]);
   assert.deepEqual(after.unreferenced, []);
   assert.deepEqual(await tmpLeftovers(root), []);
 });
 
-test('条目缺失或异常的顺序在 prompt 模式被拒绝，index 模式编号修正', async t => {
+test("prompt mode rejects missing or invalid order while index mode repairs numbering", async t => {
   const root = await tempRoot(t, 'tcs-arrange-badorder-');
   const card = bookCard('异常顺序', [
     { id: 1, keys: ['甲'], comment: '甲', content: '甲正文', enabled: true, constant: false, position: 'before_char' },
@@ -430,6 +430,6 @@ test('条目缺失或异常的顺序在 prompt 模式被拒绝，index 模式编
     ['甲', 1, { display_index: 0 }],
     ['乙', 2, { display_index: 1 }],
   ], 'index 模式按现有索引写成连续编号');
-  assert.deepEqual((await worldbookEntries(dir)).map(item => item.config.顺序), [1, 2]);
+  assert.deepEqual((await worldbookEntries(dir)).map(item => item.config.order), [1, 2]);
   assert.deepEqual(await tmpLeftovers(root), []);
 });

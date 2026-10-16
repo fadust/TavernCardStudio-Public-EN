@@ -1,0 +1,1 @@
+Complete text-only example: Lynn, a mountain post office archivist. Uses description, personality, scenario, and a greeting, with no worldbook, script, variable, or interface dependencies. Import and discuss a returned letter, or copy the project for your own character. Not verified in a real Tavern and model environment.

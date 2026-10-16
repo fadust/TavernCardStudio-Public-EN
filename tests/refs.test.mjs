@@ -1,5 +1,5 @@
-// refs 命令的检索、校验与更新回滚测试。
-// 只使用公开接口：tools/refs.mjs 的 loadConfig/checkReferences/updateReferences/searchReferences。
+// Reference search, verification, and update rollback tests.
+// Use only public tools/refs.mjs APIs: loadConfig/checkReferences/updateReferences/searchReferences.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import fss from 'node:fs';
@@ -12,11 +12,11 @@ import { checkReferences, searchReferences, updateReferences, loadConfig, sha256
 
 const COMMIT = 'a'.repeat(40);
 
-/** 注入的取数函数：只解析 ref 到固定提交，不联网。 */
+/** Injected fetcher resolves refs to a fixed commit without network access. */
 const fetcher = async () => ({ sha: COMMIT });
 const OLD_COMMIT = 'b'.repeat(40);
 
-test('HTTP 层保留空模板文件，由来源校验决定是否允许', async t => {
+test('HTTP preserves empty template files for source validation', async t => {
   const oldFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = oldFetch; });
   globalThis.fetch = async () => new Response('', { status: 200 });
@@ -26,7 +26,7 @@ test('HTTP 层保留空模板文件，由来源校验决定是否允许', async 
 
 function textFile(body) { return Buffer.from(body, 'utf8'); }
 
-/** 最小来源配置：demo 两个文件、extra 一个文件。files 使用上游到本地的显式映射。 */
+/** Minimal source configuration with explicit upstream-to-local mappings. */
 function fixtureConfig() {
   return {
     schemaVersion: 1,
@@ -81,22 +81,22 @@ function readerFor(seed) {
 }
 
 
-test('种子更新生成非空索引，条目指向资料路径且内容可检索', async () => {
+test('Seed updates generate a nonempty searchable index with reference paths', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
 
   const index = JSON.parse(await fs.readFile(path.join(root, 'references/index.json'), 'utf8'));
   assert.equal(index.schemaVersion, 1);
-  assert.equal(index.files.length, 4, '索引必须列出全部锁定资料，不能为空');
+  assert.equal(index.files.length, 4, 'Index must list all pinned references');
   assert.deepEqual([...new Set(index.files.map(item => item.source))].sort(), ['demo', 'extra']);
 
   const guide = index.files.find(item => item.local === 'references/upstream/demo-docs/guide.md');
-  assert.ok(guide, '索引条目使用工作区资料路径');
+  assert.ok(guide, 'Index entries use workspace reference paths');
   assert.equal(guide.upstreamPath, 'docs/guide.md');
   assert.equal(guide.sha256, sha256(seed.get('demo/docs/guide.md')));
   assert.equal(guide.bytes, seed.get('demo/docs/guide.md').length);
   assert.equal(guide.commit, COMMIT);
-  assert.ok(guide.symbols.includes('Guide'), '索引保留可检索的符号');
+  assert.ok(guide.symbols.includes('Guide'), 'Index retains searchable symbols');
   assert.ok(index.files.every(item => item.local.startsWith('references/upstream/') && item.sha256.length === 64));
 
   const summary = await checkReferences(root);
@@ -105,14 +105,14 @@ test('种子更新生成非空索引，条目指向资料路径且内容可检�
   assert.equal(found.matched, 1);
   assert.equal(found.results[0].file, guide.local);
 
-  // 手改索引会被 check 发现，而不是因为索引为空而"通过"。
+  // check detects a manually emptied index.
   index.files = [];
   await fs.writeFile(path.join(root, 'references/index.json'), JSON.stringify(index, null, 2) + '\n');
-  await assert.rejects(checkReferences(root), /index\.json 缺失或过期/);
+  await assert.rejects(checkReferences(root), /index\.json is missing or stale/);
 });
 
 
-test('索引缺失或为空时 update 会补写，不重切资料', async () => {
+test('update rebuilds missing or empty indexes without replacing reference files', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   const before = await snapshot(root);
@@ -127,10 +127,10 @@ test('索引缺失或为空时 update 会补写，不重切资料', async () => 
   assert.equal(index.files.length, 4);
   await checkReferences(root);
   const after = await snapshot(root);
-  assert.deepEqual({ ...after, 'references/index.json': before['references/index.json'] }, before, '只改索引，不动资料与锁文件');
+  assert.deepEqual({ ...after, 'references/index.json': before['references/index.json'] }, before, 'Only the index changes; references and lockfile remain intact');
 });
 
-/** 记录临时根目录（含锁文件、索引与资料）的快照，用于回滚断言。 */
+/** Snapshot the temporary root including lockfile, index, and references for rollback assertions. */
 async function snapshot(root) {
   const output = {};
   const walk = async dir => {
@@ -144,7 +144,7 @@ async function snapshot(root) {
   return output;
 }
 
-test('种子更新写入锁文件、资料与索引，check 通过且内容可检索', async () => {
+test('Seed update writes a searchable, verified lockfile, references, and index', async () => {
   const { root, seed } = await fixture();
   const result = await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   assert.equal(result.changed, 2);
@@ -168,7 +168,7 @@ test('种子更新写入锁文件、资料与索引，check 通过且内容可�
   assert.equal(found.results[0].line, 3);
 });
 
-test('相同输入重复更新不产生变化，且不重写已有资料', async () => {
+test('Repeated identical updates leave existing references unchanged', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   const before = await snapshot(root);
@@ -177,56 +177,56 @@ test('相同输入重复更新不产生变化，且不重写已有资料', async
   assert.deepEqual(await snapshot(root), before);
 });
 
-test('校验失败时资料、锁文件与索引一起回滚', async () => {
+test('Validation failure rolls back references, lockfile, and index', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   const before = await snapshot(root);
 
   const changed = fixtureSeed({ 'demo/docs/guide.md': textFile('# Guide\n\nWorld Info entries changed.\n') });
   await assert.rejects(
-    updateReferences({ root, fetcher, readOffline: readerFor(changed), validate: () => { throw new Error('校验失败'); } }),
-    /校验失败/,
+    updateReferences({ root, fetcher, readOffline: readerFor(changed), validate: () => { throw new Error('verification failed'); } }),
+    /verification failed/,
   );
   assert.deepEqual(await snapshot(root), before);
   await checkReferences(root);
 });
 
-test('缺少必需文件或空内容时保留旧资料并报错', async () => {
+test('Missing required files or empty content preserves old references and fails', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   const before = await snapshot(root);
 
   const missing = fixtureSeed();
   missing.delete('demo/docs/guide.md');
-  await assert.rejects(updateReferences({ root, fetcher, readOffline: readerFor(missing) }), /缺少必需文件/);
+  await assert.rejects(updateReferences({ root, fetcher, readOffline: readerFor(missing) }), /lack a required file/);
 
   const empty = fixtureSeed({ 'demo/docs/api.json': Buffer.alloc(0) });
-  await assert.rejects(updateReferences({ root, fetcher, readOffline: readerFor(empty) }), /上游文件为空/);
+  await assert.rejects(updateReferences({ root, fetcher, readOffline: readerFor(empty) }), /Upstream file is empty/);
 
   assert.deepEqual(await snapshot(root), before);
   await checkReferences(root);
 });
 
-test('异步校验失败同样回滚资料、锁文件与索引', async () => {
+test('Async validation failures roll back references, lockfile, and index', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   const before = await snapshot(root);
 
-  const changed = fixtureSeed({ 'demo/docs/guide.md': textFile('# Guide\n\n异步校验会失败。\n') });
+  const changed = fixtureSeed({ 'demo/docs/guide.md': textFile('# Guide\n\nAsync validation will fail.\n') });
   await assert.rejects(
     updateReferences({
       root,
       fetcher,
       readOffline: readerFor(changed),
-      validate: async () => { await new Promise(resolve => setTimeout(resolve, 5)); throw new Error('异步校验失败'); },
+      validate: async () => { await new Promise(resolve => setTimeout(resolve, 5)); throw new Error('Async verification failed'); },
     }),
-    /异步校验失败/,
+    /Async verification failed/,
   );
   assert.deepEqual(await snapshot(root), before);
   await checkReferences(root);
 });
 
-test('含空格与中文的路径下 CLI 入口仍会执行', async () => {
+test('CLI entry point supports paths containing spaces and Unicode', async () => {
   const { root, seed } = await fixture();
   const cliTest = path.join(root, '含 空格 目录', 'entry.test.mjs');
   await fs.mkdir(path.dirname(cliTest), { recursive: true });
@@ -243,36 +243,36 @@ test('含空格与中文的路径下 CLI 入口仍会执行', async () => {
   assert.match(run.stdout, /^ok/);
 });
 
-test('check 能发现资料被改动与锁文件漂移', async () => {
+test('check detects modified references and lockfile drift', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
 
   const file = path.join(root, 'references/upstream/demo-docs/guide.md');
   const original = await fs.readFile(file);
-  await fs.writeFile(file, Buffer.concat([original, Buffer.from('\n新增一行\n')]));
-  await assert.rejects(checkReferences(root), /资料内容被改动/);
+  await fs.writeFile(file, Buffer.concat([original, Buffer.from('\nAdded line\n')]));
+  await assert.rejects(checkReferences(root), /Reference content was modified/);
   await fs.writeFile(file, original);
 
   const lockFile = path.join(root, 'maintenance/references.lock.json');
   const lock = JSON.parse(await fs.readFile(lockFile, 'utf8'));
   lock.sources.demo.commit = OLD_COMMIT;
   await fs.writeFile(lockFile, JSON.stringify(lock, null, 2) + '\n');
-  await assert.rejects(checkReferences(root), /锁记录的 commit|index\.json 缺失或过期|资料内容被改动/);
+  await assert.rejects(checkReferences(root), /Lock record commit|index\.json is missing or stale|Reference content was modified/);
 });
 
-test('路径越界与非法配置被拒绝', async () => {
+test('Path escapes the workspaceand invalid configuration are rejected', async () => {
   const bad = fixtureConfig();
   bad.sources[0].files = ['LICENSE', 'docs/:-> ../../outside'];
   const { root } = await fixture(fixtureSeed(), bad);
-  await assert.rejects(loadConfig(root), /路径越界/);
+  await assert.rejects(loadConfig(root), /Path escapes the workspace/);
 
   const escape = fixtureConfig();
   escape.sources[0].files = ['LICENSE', '../secret:-> demo-docs/'];
   const second = await fixture(fixtureSeed(), escape);
-  await assert.rejects(loadConfig(second.root), /路径越界/);
+  await assert.rejects(loadConfig(second.root), /Path escapes the workspace/);
 });
 
-test('只更新指定来源时不动其他来源的锁定内容', async () => {
+test('Updating selected sources preserves other pinned content', async () => {
   const { root, seed } = await fixture();
   await updateReferences({ root, fetcher, readOffline: readerFor(seed) });
   const before = await snapshot(root);

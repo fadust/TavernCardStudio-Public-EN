@@ -1,0 +1,20 @@
+name: people·Heidi
+enabled: true
+keys:
+  - Heidi
+  - broker
+  - informant
+secondary_keys: []
+selective: true
+use_regex: false
+order: 14
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: after_character
+role: system
+file: src/worldbook/characters/heidi.md
+link: worldbook-1835a0ba-2d20-4b20-9e88-d07add405049

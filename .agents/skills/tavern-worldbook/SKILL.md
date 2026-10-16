@@ -1,56 +1,34 @@
 ---
 name: tavern-worldbook
-description: 设计或修改 SillyTavern 世界书的蓝绿灯、关键词、分类、顺序、深度、递归，以及注入给模型的条目正文。适用于写卡或调整世界书触发结构。
+description: Design or edit SillyTavern worldbook activation, keywords, categories, order, depth, recursion, and injected prose.
 ---
 
-# 世界书设计
+# Worldbook design
 
-需要按变量状态驱动关键词扫描，或用关键词表达多层范围与树状关系时，再读 [地点扫描与树状设定](references/location-scan.md)；普通卡无需加载该进阶方案。
+Read [Fields and mechanics](../../../docs/WORLDBOOK.md) and, when writing prose, [Worldbook writing](../../../docs/WORLDBOOK-WRITING.md) plus [Prompt style](../tavern-prompt-style/SKILL.md). Load [Scope scanning](references/location-scan.md) only for multi-level scopes/state-driven activation, [Dynamic worldbooks](../../../docs/WORLDBOOK-TEMPLATING.md) for macros/EJS, and [Files](../../../docs/WORLDBOOK-FILES.md) for organization/order. Do not load all upstream references. [World design](../../../docs/WORLD-DESIGN.md) is an optional content checklist.
 
-需要在条目中用宏、EJS 与变量动态生成文本时，读 [动态条目](../../../docs/WORLDBOOK-TEMPLATING.md)；重组分类、拆分文件或整理旧工程时，读 [世界书文件](../../../docs/WORLDBOOK-FILES.md)（含条目 YAML 的 `分类` 键与 `card organize`／`card arrange`）。普通条目无需加载这两种进阶流程。
+## Design each entry's responsibility
 
-读取 [世界书字段与机制](../../../docs/WORLDBOOK.md)；写正文时读取 [条目提示词](../../../docs/WORLDBOOK-WRITING.md)。不要全量读取 `references/`。
+Category is a local directory; position is a prompt region; activation is a candidate condition; parent/child relationships govern context arrival. Decide these independently. Directory types/levels are author choices. Runtime group is a mutually exclusive selection mechanism, not a folder.
 
-设计世界规模卡、决定要写哪些设定时，读 [世界设计](../../../docs/WORLD-DESIGN.md)：那是按玩家体验取舍的可选内容清单，不要求逐项填满。
+Before prose, choose enabled state, activation, primary/secondary keys and logic, position, order, depth/role, and both recursion directions. Constant entries still face budget/probability. Keyword does not mean selective. Insertion depth differs from scan depth. English keys/enums and native mappings are in [Architecture](../../../docs/ARCHITECTURE.md#authoring-field-mapping).
 
-条目中文键与卡 JSON 字段、`激活`／`位置`／`角色` 枚举的完整对照见 [中文键对照](../../../docs/ARCHITECTURE.md#中文键对照)。
+Keep always-active content to essentials; details usually use keywords. Choose traditional fields or worldbooks for the same prose, avoiding duplicates. Let presets handle general narration style. Entry names identify content but bodies must be self-contained; runtime marker names are exceptions with exact consumers.
 
-## 先明确每条的职责
+For new cards, align the index and consecutive global 1..N order with before_character → after_character → at_depth deepest first; disabled entries form a maintenance tail. Higher order normally competes for budget sooner and reads later within a block. Position/depth/role and host strategy still govern placement; numbering cannot cross position boundaries or guarantee every preset.
 
-先把分类、位置、激活与树状依赖当成四件独立的事：**分类**是本地目录，**位置**是注入到提示词的哪一段，**激活**决定什么条件下进入候选，**树状依赖**决定父子内容怎么一起到达。任何一类设定都能写在任一位置，除宿主自己的枚举限制外，没有“某类内容必须放某处”的规则。
+Secondary logic values are any (0), not_all (1), none (2), all (3), applied only after a primary match. Numeric imported values remain supported. Cross-entry wrappers require matching activation/enabled/probability/budget/position so both halves arrive; editor adjacency is insufficient.
 
-按设定、人物、地点、机制、动态条件、输出协议、维护分隔符等职责分目录只是常见起步写法；目录名与层级由创作者按本卡内容自定，默认模板里的分类可以改，不是固定分类法。分类是作者组织方式，不自动赋予运行语义；条目 YAML 的可选 `分类: 地理/北境` 只决定 `card organize` 把文件放到哪个目录、不写进卡，`extensions.group` 是互斥候选组，不要当文件夹使用。
+## Default layout and scope keywords
 
-每条在动笔前确定：是否启用、激活方式、keys/secondary_keys 及逻辑、实际插入位置、order、depth/role、递归两方向。蓝灯不保证绕过预算；绿灯不等于 `selective: true`。指定深度与关键词扫描深度是两回事。
+A small constant overview with keyword details is a useful default. Before-character often holds world foundations/institutions; after-character can hold relationships/current circumstances, but neither is restricted to those topics. At-depth mechanics need explicit depth and default role system; choose proximity by purpose. Document deliberate deviations as creative choices rather than host requirements.
 
-- 常驻仅保留缺失会破坏体验或协议的内容；地点、人物细节优先关键词。
-- 人物设定、性格与场景写在世界书条目（新卡推荐），或写进 `角色描述`、`性格`、`场景`、`对话示例` 卡字段；两组位置选一组为主，同一段设定不要两边都写。通用叙事人称与文风交给预设。正文句子按 [tavern-prompt-style](../tavern-prompt-style/SKILL.md) 写。
-- 写卡默认让总索引列表与 `顺序` 按预期 prompt 阅读次序一起全局递增：`角色定义之前` → `角色定义之后` → `指定深度`（`深度` 由深到浅），已启用条目顺次编号 1..N、步长 1，后定义的接在前一条之后，不预留十位或百位间隔；未启用条目排在列表末尾维护区。运行时仍按注入区块处理：order 只在同一区块内比较，高 order 通常更早争取预算、最终落在区块靠后，位置与宿主预算决定实际落点。位置是宿主固定枚举，这套编号只表达常规布局，不保证任意预设下完全一致。
-- 条目名供人识别，正文必须自包含。MVU 的名称标记是例外：插件会读取它们，见 [tavern-mvu](../tavern-mvu/SKILL.md)。
+Trees can describe peoples, factions, organizations, or geography. Primary keys include topics/child names; secondary any restricts the parent scope. These are independent matches in one scan window, not recursion chains. Parent activation does not guarantee children. Historical old scope names and current topics may match together, so test two topics/factions/regions in one request.
 
-条目 YAML 的 `次要关键词逻辑` 写中文值：`任一匹配`（0）、`不全部匹配`（1）、`全部不匹配`（2）、`全部匹配`（3），导入卡里的数字同样兼容。
-- 条目自成完整段落优先。若有跨条目开始/结束标签，验证它们在同样的启用、触发、概率、预算、位置条件下成对到达；不能靠编辑器中的上下相邻保证。
+Variables/UI state are not scan text. Current location needs reliable pre-scan injection if it must drive activation. Default both exclude_recursion and prevent_recursion true; deliberate recursion also needs the host's global switch and budget/cycle review.
 
-## 默认布局与关键词组合
+## Delivery
 
-公共新卡的推荐默认：世界法则、制度这类总览用蓝灯常驻，具体细节用绿灯关键词按需加载；位置按“这条内容靠近哪一段上下文最有用”决定，不按内容类型决定——角色定义之前常用世界基础与制度，角色定义之后可以放关系、当前组织处境与互动可用的设定，但不限于角色。规则类蓝灯通常放指定深度（`@D`），同时给 `深度` 与 `角色`；深度按它离最新消息要多近决定，`角色` 默认 `系统`，有明确需要再改。这是新卡默认值，不是所有宿主的硬约束，按创作目标偏离时在创作说明里写明。
+Each src/worldbook/**/*.yaml is explicitly referenced by worldbook.entries; file points to prose. Preserve link. Categorize imported entries after reading necessary bodies and use organize for backed-up moves. For deliberate renumbering, use arrange; for author-note/example/outlet layouts inspect the host then use --order index. Split/build/organize do not renumber automatically.
 
-地点、势力、种族、组织这类多层内容都能用关键词组合表达范围，地理只是其中一种：主关键词收主题词与下层名称，次要关键词用 `任一匹配` 收上层范围名。组合写在同一层，不是条目之间的递归链。条目 YAML 的键是 `关键词`／`次要关键词`／`次要关键词逻辑`。
-
-组合关键词是同一次扫描里的独立命中：父条激活不保证子条也激活，子条命中也不要求父条先到达，整棵树不必打开递归。`任一匹配`（AND ANY）适合范围约束，但所有关键词来自同一个扫描窗口，可以分别命中不同消息；它只判断范围内的词有没有出现，没有“当前状态”排他，历史里的旧地名和本轮新话题可能同时命中。双主题的卡要专门测同一轮提到两个地区、两个势力或两个话题时会不会一起全亮。
-
-关键词只匹配本轮扫描文本：聊天消息、条目显式勾选的角色描述等卡字段、允许扫描的扩展注入与递归缓冲。变量里的当前地点不会自己进入扫描，需要脚本在扫描前注入，并按跨地区移动实测一次。
-
-正文推荐用简洁 YAML 缩进，层级按实际结构安排，不为固定层数拆散相互依赖的内容；通用叙事人称与视角通常归酒馆预设，世界书不重复，细节见 [条目提示词](../../../docs/WORLDBOOK-WRITING.md)。递归默认 `不可被递归激活`／`不可激活其他条目` 都设为 true；创作者需要递归时同时核对宿主全局开关与条目设置。
-
-激活验证至少走一遍：无关键词、命中上层范围名、命中下层名称、同一轮命中两组（例如同时提到两个地区、势力或话题）、当前状态来自变量，以及递归开与关。场景表见 [世界书字段与机制](../../../docs/WORLDBOOK.md) 的激活验证。
-
-## 交付与核对
-
-每条世界书对应一个 `src/worldbook/**/*.yaml`，由 `src/index.yaml` 的 `世界书.条目` 引用；触发与注入设置写条目 YAML，正文写 `文件` 指向的 `src/...`。保留工具生成的 `关联`，不要手改或重编号。新卡从模板起步。
-
-检查典型激活场景：没有关键词、命中别称、命中排除词、同时命中多个组员、递归进入、预算不足。静态工具只能查字段和语法；准确注入顺序、实际宏值和 token 预算需要宿主提示词预览。
-
-已有工程要统一重排时用 `pnpm card arrange <名称>`：它改总索引、连续重编 `顺序`、同步 `display_index`，并带完整工程备份，`split`／`build`／`organize` 不会自动做。作者注、示例消息、outlet 等层级先按实际宿主预设手工排好索引，再 `pnpm card arrange <名称> --order index`。排序会改变跨位置预算优先级，改完用宿主提示词预览核对，不要写成工具已实测。
-
-涉及版本差异，先 `pnpm refs search <字段名> --source sillytavern --limit 12`，沿 `world-info.js` 的导入映射、激活筛选、排序与注入路径核对。
+Test no keys, aliases, scope/child names, exclusions, two groups/topics, variable state, recursion on/off, competing group members, and insufficient budget. Check/build only validate fields/syntax/packaging; actual injection/macros/budget need host previews. For version questions, search pinned world-info.js and trace import, activation, sorting, and injection rather than guessing.

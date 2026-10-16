@@ -21,7 +21,7 @@ async function writeManifest(root, { node = '>=22.12', packageManager = 'pnpm@11
   return manifest;
 }
 
-// 用真实的包目录结构模拟 pnpm 安装结果：node_modules/.modules.yaml 标记 + 每个依赖的 package.json + 锁文件副本。
+// Simulate a pnpm install with .modules.yaml, dependency manifests, and a lockfile copy.
 async function installFixture(root, { versions = { yaml: '2.8.1' }, lock = LOCK } = {}) {
   await fs.mkdir(path.join(root, 'node_modules/.pnpm'), { recursive: true });
   await fs.writeFile(path.join(root, 'node_modules/.modules.yaml'), 'hoistPattern:\n  - "*"\n');
@@ -33,7 +33,7 @@ async function installFixture(root, { versions = { yaml: '2.8.1' }, lock = LOCK 
   }
 }
 
-// 伪造命令执行：区分 where/which、pnpm --version 与 pnpm install，并记录每次调用。
+// Mock where/which, pnpm --version, and pnpm install, recording each call.
 function fakeRunner({ found = 'C:\\Users\\demo\\npm\\pnpm.cmd', version = '11.17.0', installCode = 0 } = {}) {
   const calls = [];
   const run = async (command, args, options) => {
@@ -42,7 +42,7 @@ function fakeRunner({ found = 'C:\\Users\\demo\\npm\\pnpm.cmd', version = '11.17
       return found ? { code: 0, stdout: found + '\n', stderr: '' } : { code: 1, stdout: '', stderr: '' };
     }
     if (args.includes('--version')) {
-      return version ? { code: 0, stdout: version + '\n', stderr: '' } : { code: 1, stdout: '', stderr: "'pnpm' 不是内部或外部命令" };
+      return version ? { code: 0, stdout: version + '\n', stderr: '' } : { code: 1, stdout: '', stderr: "'pnpm' is not recognized as a command" };
     }
     if (args.includes('install')) return { code: installCode, stdout: '', stderr: '' };
     return { code: 1, stdout: '', stderr: 'unexpected command' };
@@ -66,7 +66,7 @@ async function tree(root) {
   return names.sort();
 }
 
-test('parseVersion / satisfiesRange 只解析声明的写法，无法解析时交给调用方', () => {
+test('parseVersion and satisfiesRange return unsupported ranges to the caller', () => {
   assert.deepEqual(parseVersion('v24.18.0'), { major: 24, minor: 18, patch: 0 });
   assert.equal(parseVersion('nope'), null);
   assert.equal(satisfiesRange('24.18.0', '>=22.12'), true);
@@ -75,7 +75,7 @@ test('parseVersion / satisfiesRange 只解析声明的写法，无法解析时�
   assert.equal(satisfiesRange('22.12.0', 'completely-unparsable-range'), null);
 });
 
-test('完整环境通过检查，且锁定版本一致', async t => {
+test('Complete environment passes with matching pinned versions', async t => {
   const root = await workspace(t);
   await writeManifest(root);
   await installFixture(root);
@@ -91,7 +91,7 @@ test('完整环境通过检查，且锁定版本一致', async t => {
   assert.equal(run.installs().length, 0);
 });
 
-test('Node 版本过低时报告 engines.node 要求并给出安装指导', async t => {
+test('Old Node versions report engines.node requirements and install guidance', async t => {
   const root = await workspace(t);
   await writeManifest(root, { node: '>=22.12' });
   await installFixture(root);
@@ -103,7 +103,7 @@ test('Node 版本过低时报告 engines.node 要求并给出安装指导', asyn
   assert.equal(report.needsInstall, false);
 });
 
-test('依赖缺失时按 package.json 逐个列出，并标记需要安装', async t => {
+test('Missing dependencies are listed from package.json and require installation', async t => {
   const root = await workspace(t);
   await writeManifest(root, { dependencies: { yaml: '2.8.1', acorn: '8.18.0' } });
   const report = await inspectEnvironment({ root, platform: 'linux', nodeVersion: '22.12.0', runCommand: fakeRunner({ found: '/usr/local/bin/pnpm' }) });
@@ -113,13 +113,13 @@ test('依赖缺失时按 package.json 逐个列出，并标记需要安装', asy
   assert.equal(report.needsInstall, true);
 });
 
-test('依赖存在但版本漂移或锁文件漂移都会被识别', async t => {
+test('Detect installed version drift and lockfile drift', async t => {
   const root = await workspace(t);
   await writeManifest(root);
   await installFixture(root, { versions: { yaml: '2.8.0' } });
   const drifted = await inspectEnvironment({ root, platform: 'linux', nodeVersion: '22.12.0', runCommand: fakeRunner({ found: '/usr/local/bin/pnpm' }) });
   assert.equal(drifted.ok, false);
-  assert.match(drifted.dependencies.mismatched[0], /yaml：已安装 2\.8\.0/);
+  assert.match(drifted.dependencies.mismatched[0], /yaml: installed 2\.8\.0/);
   assert.equal(drifted.needsInstall, true);
 
   await installFixture(root, { versions: { yaml: '2.8.1' }, lock: LOCK + '# changed\n' });
@@ -130,24 +130,24 @@ test('依赖存在但版本漂移或锁文件漂移都会被识别', async t => 
   assert.equal(lockDrift.needsInstall, true);
 });
 
-test('缺少 pnpm 时：依赖已就绪只提醒，依赖缺失才阻断', async t => {
+test('Missing pnpm warns when dependencies are ready and blocks when missing', async t => {
   const root = await workspace(t);
   await writeManifest(root);
   await installFixture(root);
   const ready = await inspectEnvironment({ root, platform: 'win32', nodeVersion: '22.12.0', runCommand: fakeRunner({ found: '', version: '' }) });
   assert.equal(ready.ok, true);
   assert.equal(ready.pnpm.ok, false);
-  assert.ok(ready.warnings.some((line) => line.includes('没有找到可用的 pnpm')));
+  assert.ok(ready.warnings.some((line) => line.includes('No usable pnpm found')));
   assert.ok(ready.guidance.some((line) => line.includes('corepack prepare pnpm@11.17.0 --activate')));
 
   await fs.rm(path.join(root, 'node_modules'), { recursive: true, force: true });
   const broken = await inspectEnvironment({ root, platform: 'win32', nodeVersion: '22.12.0', runCommand: fakeRunner({ found: '', version: '' }) });
   assert.equal(broken.ok, false);
-  assert.ok(broken.problems.some((line) => line.includes('没有找到可用的 pnpm')));
-  assert.equal(broken.needsInstall, false, '没有 pnpm 时不能假装能安装');
+  assert.ok(broken.problems.some((line) => line.includes('No usable pnpm found')));
+  assert.equal(broken.needsInstall, false, 'Cannot install dependencies without pnpm');
 });
 
-test('pnpm 版本与 packageManager 不一致时给出精确版本，且不会用它安装', async t => {
+test('Wrong pnpm versions report the required version and never install', async t => {
   const root = await workspace(t);
   await writeManifest(root, { packageManager: 'pnpm@11.17.0' });
   const run = fakeRunner({ version: '11.16.2' });
@@ -155,11 +155,11 @@ test('pnpm 版本与 packageManager 不一致时给出精确版本，且不会�
   assert.equal(result.ok, false);
   assert.equal(result.installed, false);
   assert.equal(run.installs().length, 0);
-  assert.ok(result.problems.some((line) => line.includes('pnpm 版本不一致：当前 11.16.2')));
+  assert.ok(result.problems.some((line) => line.includes('pnpm version mismatch: current 11.16.2')));
   assert.ok(result.guidance.some((line) => line.includes('npm install -g pnpm@11.17.0')));
 });
 
-test('ensure 在 Windows 上用 cmd.exe 启动 pnpm.cmd，参数固定且安装后复查', async t => {
+test('Windows ensure launches pnpm.cmd through cmd.exe and checks after installation', async t => {
   const root = await workspace(t);
   await writeManifest(root);
   const run = fakeRunner();
@@ -181,7 +181,7 @@ test('ensure 在 Windows 上用 cmd.exe 启动 pnpm.cmd，参数固定且安装�
   assert.equal(result.report.dependencies.ok, true);
 });
 
-test('doctor（--check）只读：不安装、不写文件，问题以退出码 1 报告', async t => {
+test('doctor is read-only and reports failures with exit code 1', async t => {
   const root = await workspace(t);
   await writeManifest(root);
   const run = fakeRunner();
@@ -191,7 +191,7 @@ test('doctor（--check）只读：不安装、不写文件，问题以退出码 
   assert.equal(result.exitCode, 1);
   assert.equal(run.installs().length, 0);
   assert.deepEqual(await tree(root), before);
-  assert.ok(lines.some((line) => line.includes('只读检查不会安装依赖')));
+  assert.ok(lines.some((line) => line.includes('Read-only checks do not install dependencies')));
 
   const json = [];
   const jsonResult = await main(['--check', '--json'], { root, platform: 'win32', nodeVersion: '22.12.0', runCommand: run, log: (line) => json.push(line), logError: () => {} });
@@ -200,7 +200,7 @@ test('doctor（--check）只读：不安装、不写文件，问题以退出码 
   assert.equal(parsed.ok, false);
   assert.equal(parsed.needsInstall, true);
 
-  // --root 必须真的生效，否则 doctor 会误检仓库以外的目录。
+  // Honor --root so doctor inspects the requested workspace.
   const elsewhere = await main(['--check', '--root', root], { platform: 'win32', nodeVersion: '22.12.0', runCommand: run, log: () => {}, logError: () => {} });
   assert.equal(elsewhere.report.root, root);
   const spaced = await main(['--check', '--root=' + root], { platform: 'win32', nodeVersion: '22.12.0', runCommand: run, log: () => {}, logError: () => {} });
@@ -209,26 +209,26 @@ test('doctor（--check）只读：不安装、不写文件，问题以退出码 
   const unknown = await main(['--check', '--nope'], { root, platform: 'win32', nodeVersion: '22.12.0', runCommand: run, log: (line) => bogus.push(line), logError: (line) => bogus.push(line) });
   assert.equal(unknown.exitCode, 1);
   assert.equal(unknown.report, null);
-  assert.ok(bogus.some((line) => line.includes('无法识别的参数：--nope')));
+  assert.ok(bogus.some((line) => line.includes('Unknown arguments: --nope')));
 });
 
-test('pnpmInvocation 拒绝带 shell 元字符的参数', () => {
+test('pnpmInvocation rejects shell metacharacters', () => {
   assert.deepEqual(pnpmInvocation('win32', ['install', '--frozen-lockfile']).args, ['/d', '/s', '/c', 'pnpm.cmd', 'install', '--frozen-lockfile']);
   assert.deepEqual(pnpmInvocation('linux', ['--version']).args, ['--version']);
-  assert.throws(() => pnpmInvocation('win32', ['install', '--frozen-lockfile & calc.exe']), /不安全的命令行参数/);
-  assert.throws(() => pnpmInvocation('linux', ['install', '$(id)']), /不安全的命令行参数/);
+  assert.throws(() => pnpmInvocation('win32', ['install', '--frozen-lockfile & calc.exe']), /unsafe command argument/);
+  assert.throws(() => pnpmInvocation('linux', ['install', '$(id)']), /unsafe command argument/);
 });
 
-test('启动器先检查环境再启动，且换行格式符合平台要求', async () => {
-  const cmd = await fs.readFile(path.join(ROOT, '打开角色卡工具.cmd'), 'utf8');
-  const sh = await fs.readFile(path.join(ROOT, '打开角色卡工具.sh'), 'utf8');
+test('Launchers check the environment before startup and use platform line endings', async () => {
+  const cmd = await fs.readFile(path.join(ROOT, 'Open-TavernCardStudio.cmd'), 'utf8');
+  const sh = await fs.readFile(path.join(ROOT, 'Open-TavernCardStudio.sh'), 'utf8');
   const setupAt = cmd.indexOf('tools\\setup.mjs');
   const studioAt = cmd.indexOf('tools\\studio.mjs');
-  assert.ok(setupAt > 0, '.cmd 要调用 tools\\setup.mjs');
-  assert.ok(studioAt > setupAt, '.cmd 要先检查环境再启动 Studio');
-  assert.ok(sh.indexOf('tools/setup.mjs') > 0 && sh.indexOf('tools/studio.mjs') > sh.indexOf('tools/setup.mjs'), '.sh 要先检查环境再启动 Studio');
-  // Windows 批处理的 if(...) 块在 LF-only 文件里会被拆错行，必须保持 CRLF。
-  assert.ok(cmd.includes('\r\n'), '.cmd 需要 CRLF 换行');
-  assert.equal(cmd.replace(/\r\n/g, '').includes('\n'), false, '.cmd 不能出现单独的 LF');
-  assert.equal(sh.includes('\r'), false, '.sh 不能有 CR 字符');
+  assert.ok(setupAt > 0, '.cmd must call tools\\setup.mjs');
+  assert.ok(studioAt > setupAt, '.cmd must check the environment before starting Studio');
+  assert.ok(sh.indexOf('tools/setup.mjs') > 0 && sh.indexOf('tools/studio.mjs') > sh.indexOf('tools/setup.mjs'), '.sh must check the environment before starting Studio');
+  // Windows batch if(...) blocks require CRLF line endings.
+  assert.ok(cmd.includes('\r\n'), '.cmd requires CRLF line endings');
+  assert.equal(cmd.replace(/\r\n/g, '').includes('\n'), false, '.cmd must not contain standalone LF');
+  assert.equal(sh.includes('\r'), false, '.sh must not contain CR characters');
 });

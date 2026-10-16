@@ -1,3 +1,3 @@
-角色总览:
-  居民: 各自经营生计，与外来者的关系随实际互动发展
-  信息: 职业与身份不等于知晓全城事件
+Character overview:
+  Residents: Each earns a living; relationships with outsiders develop through actual interactions.
+  Knowledge: Occupation and identity do not imply knowledge of every event in town.

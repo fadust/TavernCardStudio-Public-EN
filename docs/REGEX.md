@@ -1,123 +1,52 @@
-# 正则
+# Regexes
 
-酒馆正则在两个时机工作：显示文本前，和把文本发进提示词前。写之前先明确你要改的是“玩家看到的”还是“模型收到的”。
+Decide whether a replacement changes player display, model input, or stored chat text before writing it.
 
-## 卡内位置
+## Source and fields
 
-角色卡作用域的正则最终保存在卡的 `data.extensions.regex_scripts[]` 数组里，跟卡一起分发，数组顺序就是执行顺序。写卡时每条正则是一个 `src/regex/*.yaml`：
+Card regexes export to data.extensions.regex_scripts in execution order. Each src/regex/*.yaml is referenced by index.regex. Legacy root-extension regexes use legacy_regex. Use find for the expression and replacement_file for the exact replacement body; trailing newlines affect results, so an empty replacement needs a truly empty file. Preserve link and existing IDs. Removing an index reference removes the regex from output without requiring source deletion.
 
-- 条目 YAML 用中文键保存匹配与设置：`查找` 是匹配表达式，`替换文件` 指向替换正文；其余键为 `名称`、`裁剪`、`禁用`、`仅显示`、`仅提示词`、`编辑时运行`、`宏替换模式`、`最小深度`、`最大深度`、`作用于`。`作用于` 从 `旧版显示`、`用户输入`、`AI输出`、`快捷命令`、`世界书`、`推理` 里多选。
-- 导入卡里根层 `extensions.regex_scripts` 的正则放在 `src/index.yaml` 的 `兼容正则` 下，条目写法相同。
-- 替换正文放在 `替换文件` 指向的 `src/...` 文件里；正文按原样回填，末尾换行也属于替换结果，空替换应是真正的空文件。文件内容与 `tests/regex.json` 的 expected 必须一致。
-- `关联` 由工具生成并保留，不要手改或重新生成。删掉 `src/index.yaml` 的 `正则` 引用即可移除该条，源文件可以留作备份，但不再打包。
-
-正则数组顺序就是执行顺序，`src/index.yaml` 的 `正则` 列表与之一致；增删或重排引用后下次打包自动生效，不需要改任何指针。
-
-完整的正则条目键与卡 JSON 字段对照见 [架构与操作](ARCHITECTURE.md#中文键对照)。
-
-## 字段
-
-下表是卡 JSON 里的字段名；写卡时改对应条目 YAML 的中文键即可，不需要直接改卡 JSON。
-
-| 字段 | 含义 |
+| Authoring YAML | Native field/meaning |
 | --- | --- |
-| `id` | 唯一编号，保留即可，不要重生成 |
-| `scriptName` | 脚本名，也是用命令触发时的标识 |
-| `findRegex` | 查找表达式，用 `/表达式/标志` 形式带标志 |
-| `replaceString` | 替换内容，支持 `$1` 捕获组和 `{{match}}` |
-| `trimStrings` | 替换前先从命中文本里去掉的字符串，每项一行 |
-| `placement` | 作用位置，数字数组，见下文 |
-| `disabled` | 单独禁用，不等于从列表移除 |
-| `markdownOnly` | 只影响显示 |
-| `promptOnly` | 只影响发送给模型的提示词 |
-| `runOnEdit` | 编辑消息后是否重新执行 |
-| `substituteRegex` | 查找表达式里的宏替换方式：0 不替换、1 原样、2 转义 |
-| `minDepth` / `maxDepth` | 生效的深度范围 |
+| name | scriptName, also command identity |
+| find | findRegex; /expression/flags form supports flags |
+| replacement_file | replaceString, capture/match replacements |
+| trim | trimStrings removed from matched text before replacement |
+| placement | target array |
+| disabled | disabled without removing the entry |
+| display_only / prompt_only | markdownOnly / promptOnly |
+| run_on_edit | runOnEdit |
+| substitute_regex | substituteRegex: 0 none, 1 raw macro substitution, 2 escaped |
+| min_depth / max_depth | minDepth / maxDepth |
 
-## 作用位置
+Placement values: legacy_display=0 (deprecated), user_input=1, ai_output=2, slash_command=3, world_info=5, reasoning=6. Historical 4 is unused and should not be authored. See [Mapping](ARCHITECTURE.md#authoring-field-mapping).
 
-`placement` 是数字数组，可同时勾选多项：
+## Display, prompt, and storage
 
-| 值 | 位置 |
-| --- | --- |
-| 0 | 旧的 Markdown 显示，已废弃，不要新用 |
-| 1 | 用户输入 |
-| 2 | AI 输出 |
-| 3 | 命令插入的文本 |
-| 4 | 历史遗留，不要使用 |
-| 5 | 世界书条目 |
-| 6 | 推理内容 |
+Display_only changes only rendered text; prompt_only changes only model input. Both true apply separately without rewriting stored messages. Both false can rewrite text when stored, with no automatic undo; use only when explicitly intended. MVU needs the raw update block preserved for parsing, so separate display folding and prompt removal.
 
-数值 4 在旧版本里用于另一种发送方式，现在空出来，不要让脚本写 4。
+Min_depth is the lower bound from newest message 0; blank/-1 is unrestricted and can apply to continuation. Max_depth is the upper bound. 0..2 means the latest three messages; equal 0 bounds means newest only. Edit behavior also depends on run_on_edit. System/tool prompts and continuation routing need host review. Regex depth is separate from worldbook depth.
 
-## 改哪里：显示、提示词，还是聊天文件
+## Replacement syntax and tests
 
-两个开关决定改动落在哪：
-
-- `markdownOnly: true`：只改玩家看到的文本，发给模型的原样不变。
-- `promptOnly: true`：只改发给模型的内容，玩家看到的原样不变。
-- 两个都不勾：酒馆在消息入库时改写保存的文本，显示和提示词一起变。脚本本身没有撤销入口，恢复要靠备份或手动编辑那条消息，所以写卡时要谨慎。
-- 两个都勾：两边都按脚本结果走，但不写回聊天文件。
-
-MVU 模板按这个模式配置四条：完整块与未闭合流式块各有显示折叠、提示词删除两条。界面模板另外配了两条：显示时把占位符换成界面，提示词里去掉占位符。
-
-## 深度
-
-- `minDepth` 表示只对深度不低于该值的消息生效，0 是最新一条；留空或 -1 表示不限制，也能作用于继续生成的那条消息。
-- `maxDepth` 表示只对深度不超过该值的消息生效，可以等于 `minDepth`：两个都写 0 就只处理最新一条。
-- 深度从最新一条消息算起；不在深度范围内的消息会被跳过，编辑消息时是否重跑还取决于 `runOnEdit`。
-- 系统提示词和工具提示词不受深度限制影响。
-
-例：`minDepth: 0`、`maxDepth: 2` 只作用于最近三条消息。
-
-## 替换语法
-
-- `$1`、`$2` 引用捕获组，查找表达式里必须有对应的括号。
-- `$<名字>` 引用命名捕获组。
-- `{{match}}` 表示整个命中的文本，常用来加 Markdown 或 HTML 包裹。
-- `trimStrings` 先做删除，再做替换；想改命中文本的一部分时用它。
-- 常用标志：`i` 忽略大小写、`g` 全部匹配、`s` 让 `.` 匹配换行、`m` 多行、`u` Unicode。
-- JavaScript 的 `\d` 与 `\w` 不会因为加 `u` 就变成中文字符类。汉字用显式字符范围或 Unicode 属性转义（例如 `\p{Script=Han}` 配合 `u`）。
-
-## 用样例验证
-
-每个卡片目录里的 `tests/regex.json` 是正则样例文件，内容是一个数组：
+Use $1/$2 for capture groups, $<name> for named captures, and {{match}} for the complete match. Trim runs before substitution. Common flags are i/g/s/m/u. Unicode mode does not make JavaScript's digit/word classes cover all scripts; use explicit ranges or Unicode property escapes where needed.
 
 ```json
 [
   {
-    "name": "显示备注",
-    "input": "正文<note>窗外开始下雨。</note>",
-    "expected": "正文<details><summary>备注</summary>窗外开始下雨。</details>"
+    "name": "Display note",
+    "input": "Story<note>Rain begins outside.</note>",
+    "expected": "Story<details><summary>Note</summary>Rain begins outside.</details>"
   }
 ]
 ```
 
-`pnpm card check <名称>` 会按 `id` 或 `name` 找到对应正则，执行一次替换并与 `expected` 比较，不一致就是错误。样例只覆盖当前实现固定的那一层语义：查找、捕获组替换和 trim。宏展开、深度判断和触发路由需要真实宿主，静态检查不会替它们背书。新建带 `regex` 模块的卡时会自动写入一条示例样例。
+Store meaningful examples under the card's tests/regex.json. Card check finds by id/name, executes the supported replacement/trim semantics, and compares expected output. It does not simulate host macro expansion, depth routing, global regexes, or the complete multi-rule chain. Macro substitution modes warn because static compilation cannot prove expanded expressions. Replacement HTML is also resource-audited.
 
-## 检查覆盖
+## Streaming and chain design
 
-- 条目 YAML 的 `查找` 必须能编译，`替换文件` 必须存在且在 `src/` 内，作用位置必须是数组。
-- `substituteRegex` 非 0 时会给出警告：查找表达式里带宏，静态编译无法验证展开结果。
-- 替换正文里的 HTML 会被资源审计扫描，引用未声明外链或本机路径会报错。
+Complete and unclosed streaming `<UpdateVariable>` blocks need separate coverage; matching only a closing tag leaks streaming structure. Use non-greedy or explicit boundaries and test two blocks with normal prose between them, multiline text, no match, adjacent prose, and unfinished blocks.
 
-## 常见用法
+UI display regexes render markers; prompt regexes remove them. Standard MVU consumes automatic `<StatusPlaceHolderImpl/>`, not a second model-output requirement. Independent UIs need their own marker producer. To limit rendering to recent messages, pair recent-range rendering with old-range cleanup and all-range prompt cleanup; max_depth 2 covers three messages, and old cleanup starts at min_depth 3.
 
-- **隐藏变量更新块**：用 `promptOnly` 把 `<UpdateVariable>…</UpdateVariable>` 从发送内容里去掉，让模型看不到自己上一轮的原始更新。
-- **折叠显示**：用 `markdownOnly` 把更新块包进 `<details>`，玩家想看时再展开。
-- **渲染占位符**：把楼层中的占位标签替换成界面加载代码。MVU 使用框架自动添加的 `<StatusPlaceHolderImpl/>`，不提示模型输出；独立界面才另设标记来源。
-
-## 流式与多条正则的配合
-
-变量更新块有两种显示时态：未闭合的流式片段与完整块。只匹配 `</UpdateVariable>` 的表达式会在流式阶段泄露尚未闭合的结构文本。模板分别覆盖完整块和以消息末尾结束的未闭合块，并在提示词清理路径保留同样边界；测试还应覆盖一条消息两个更新块夹着正常正文的情况，避免贪婪匹配误删正文。
-
-状态栏可按需求分三条：最近范围显示渲染、旧范围显示清空、所有范围提示词清空。例如显示 `maxDepth: 2` 覆盖 0、1、2 三个深度，旧范围从 `minDepth: 3` 起；这是对称边界，不是“最近两条”。是否在编辑后重跑由 `runOnEdit` 与预期决定，不是所有正则都必须开启。
-
-卡内数组按顺序运行，后面的规则会看到前面的替换结果；全局正则和其他扩展还可能插入自己的处理。不要把单条测试通过当成多条组合已正确，也不要执行导入卡内脚本来自动“修好”正则。
-
-## 写卡检查
-
-- 每个正则都有一条能通过的真实样例，放在 `tests/regex.json`。
-- 多个脚本顺序会互相影响，新脚本放在不破坏既有链条的位置。
-- 替换成 HTML 时确认玩家没有开启转义显示，否则标签会被当成文本展示。
-- 直接改写聊天记录的脚本慎用，玩家无法撤回；能只用显示或提示词路径解决就不要改文件。
+Later rules see earlier replacements. Global rules/extensions can add processing, so a single-rule pass is not chain verification. Use the Base64 HTML transport to protect capture/macro-like characters. Check HTML rendering settings, card/regex enabled state, and actual host streaming behavior. Run check/build and report any unverified host behavior explicitly.

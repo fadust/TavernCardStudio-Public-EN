@@ -32,7 +32,7 @@ test('semantic category is authoring-only; organize follows the chosen nested ca
   assert.ok(inventory.worldbook.every(row => !Object.hasOwn(row, 'content')));
   const file = inventory.worldbook[0].file;
   const config = await readYAML(dir, file);
-  config.分类 = '地理/北境';
+  config.category = '地理/北境';
   await writeYAML(dir, file, config);
   const staged = await loadProject(name, root);
   assert.deepEqual(staged.card, before.card);
@@ -50,24 +50,24 @@ test('semantic category is authoring-only; organize follows the chosen nested ca
   assert.equal(result.classification.pending.length, 1, 'tool must not pretend to classify the unreviewed bird');
   assert.equal((await organizeWorldbook(name, root)).organized, false);
   const backup = await readYAML(path.join(root, moved.backup), file);
-  assert.equal(backup.分类, '地理/北境');
+  assert.equal(backup.category, '地理/北境');
 });
 
 test('classification rejects unsafe or non-string paths during load, before moving any files', async t => {
   const { root, name, dir } = await imported(t);
   const index = await readYAML(dir, 'src/index.yaml');
-  const file = index.世界书.条目[0];
+  const file = index.worldbook.entries[0];
   const original = await readYAML(dir, file);
   for (const category of ['../outside', '地理//北境', '地理\\北境', '/地理', 'CON', '地理/', '', 42, null]) {
-    await writeYAML(dir, file, { ...original, 分类: category });
-    await assert.rejects(() => loadProject(name, root), /无效世界书分类目录/);
+    await writeYAML(dir, file, { ...original, category: category });
+    await assert.rejects(() => loadProject(name, root), /Invalid worldbook category folder/);
     await fs.stat(path.join(dir, file));
   }
 });
 
 test('category maps do not mistake Object prototype properties for recognized titles', () => {
   for (const title of ['constructor', '__proto__', 'toString', 'constructor-甲']) {
-    assert.equal(worldbookLocation(title).folder, '未分类');
+    assert.equal(worldbookLocation(title).folder, "uncategorized");
   }
   assert.equal(validateWorldbookFolder('自然/种族'), '自然/种族');
 });
@@ -79,9 +79,9 @@ test('map exposes actionable metadata; CLI keeps organize and explicit renumberi
   assert.equal(mapped.results[0].classification.pending.length, 2);
   assert.equal(mapped.results[0].worldbook[0].name, '雾岭');
   assert.ok(!JSON.stringify(mapped).includes('位于北境的山岭'));
-  await assert.rejects(() => main(['split', 'input.json', '--order', 'index'], root), /不接受 --order/);
-  await assert.rejects(() => main(['new', '新卡', '--order', 'index'], root), /不接受 --order/);
-  await assert.rejects(() => main(['organize', name, '--order', 'index'], root), /不接受/);
+  await assert.rejects(() => main(['split', 'input.json', '--order', 'index'], root), /does not accept --order/);
+  await assert.rejects(() => main(['new', '新卡', '--order', 'index'], root), /does not accept --order/);
+  await assert.rejects(() => main(['organize', name, '--order', 'index'], root), /does not accept/);
   const invalid = await main(['arrange', name, '--order', 'oops'], root);
   assert.equal(invalid.ok, false);
   const ordered = await main(['arrange', name, '--order', 'index'], root);

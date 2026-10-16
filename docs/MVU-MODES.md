@@ -1,38 +1,34 @@
-# MVU 更新模式与阶段标记
+# MVU update modes and stage markers
 
-本页解释工作区锁定的 MVU 行为。先按创作者需求选择模式；卡片的 `project.modules` 是模板记录，条目名是筛选标记，它们都不是玩家 MVU 面板的更新方式开关。
+This guide describes the pinned MVU implementation. Choose the intended experience first. Project modules records template choices, and entry markers filter stages; neither changes the player's MVU mode setting automatically.
 
-## 两种更新方式
-
-| 选择 | 正文与变量的来源 | 创作时要准备什么 |
+| Mode | Narration and state | Authoring requirements |
 | --- | --- | --- |
-| 随 AI 输出（主 API） | 主聊天回复给出正文和变量更新块，MVU 解析后保存楼层状态 | 当前状态、更新规则与文本补丁协议同时对主模型可见 |
-| 额外模型解析（额外请求） | 主聊天写正文，额外请求根据本轮事实与旧状态计算更新 | 正文/更新条目分工；额外请求可见必要事实、当前状态、更新规则和选定应答协议 |
+| Main output | main response contains narration and update block | state, rules, and text patch contract reach the main model together |
+| Extra model analysis | main response narrates; another request computes state from new events and prior state | divide plot/update content and provide the extra request with facts, state, rules, and selected response contract |
 
-额外请求可以复用当前连接，也可以使用创作者或玩家选择的其它模型连接，不等于必须购买或配置另一家 API。玩家通常在 MVU 面板选择；作者明确需要固定模式时可用下述角色配置覆盖。卡片不得携带密钥，工作区不自动改变连接或启用额外调用。额外请求带来的耗时、失败重试和状态刷新时机也要纳入体验设计。
+The extra request can reuse the current connection or a player-selected model; a second provider is not required. The player normally chooses in the MVU panel. Cards must not carry credentials, and workspace tools do not change connections or enable calls. Account for latency, retries, failures, and refresh timing.
 
-**运行前提**：锁定版本检查当前角色的主世界书是否可读，且其中至少有一个标题含 `[mvu_update]` 或 `[mvu_plot]` 的条目。只有附加/全局世界书有标记不够；单张卡内有多个人物，也不等于酒馆的多人群聊。没有有效角色主世界书的场合（包括部分群聊用法）不能假定支持额外模型解析。以此模式为前提的作品要在创作者备注写明绑定与模式要求，或提供“随 AI 输出”的兼容路径，并检查导入后的实际绑定。
+## Runtime prerequisites
 
-文本应答沿用本仓库 `<UpdateVariable>`/`<JSONPatch>` 协议；若选择工具调用，先核对锁定实现和提供方能力，不要求模型同时输出文本补丁和工具调用来重复更新。
+The pinned version requires the current character's readable primary worldbook with at least one title containing `[mvu_update]` or `[mvu_plot]` markers. Markers only in additional/global books are insufficient. Multiple NPCs inside one card are different from a host group chat. Do not assume extra analysis works without a valid primary character worldbook, including some group-chat cases. State the binding/mode requirements in creator notes or provide a main-output path, and verify actual binding after import.
 
-## 条目名如何分工
+Text responses use the fixed UpdateVariable/JSONPatch contract. Tool calling requires pinned implementation/provider review; do not request both forms and apply the same update twice.
 
-下面是角色绑定世界书在额外模式下的阶段筛选，不替代蓝绿灯、关键词、预算、禁用状态等条件。
+## Stage filtering in extra mode
 
-| 条目标题标记 | 主聊天正文请求 | 额外变量请求 | 推荐内容 |
+| Name marker | Main request | Extra request | Typical content |
 | --- | --- | --- | --- |
-| 无阶段标记 | 可保留 | 可保留 | 两边需要的世界事实、变量列表和共享约束 |
-| 只有 `[mvu_update]` | 移除 | 可保留 | 更新规则、变量输出协议、更新所需的专用材料 |
-| 只有 `[mvu_plot]` | 可保留 | 移除 | 只供正文生成的玩法表现与场景机制 |
-| 同时含两种标记 | 两阶段的标记筛选均不移除 | 两阶段的标记筛选均不移除 | 特殊共享设计才使用，不作为默认分类 |
+| none | eligible | eligible | shared facts, variable list, common constraints |
+| only `[mvu_update]` | removed | eligible | update rules/format/material |
+| only `[mvu_plot]` | eligible | removed | plot-only mechanics |
+| both | neither stage filter removes it | neither stage filter removes it | deliberate shared special case |
 
-在“随 AI 输出”模式中，这套阶段过滤直接返回，两类标记都不表示“不会注入主模型”。不要据此复制两份互相冲突的更新协议。
+Eligible does not bypass enabled state, activation, budget, or other filtering. In main-output mode this stage filter returns immediately, so both marker types can reach the main model. `[initvar]` is an initialization marker, not an extra-API marker.
 
-`[initvar]` 由初始化读取器消费，可禁用以免原始初值每轮注入；它不是“额外 API 专用”的意思。`[config_override]` 属于框架配置，改它必须核对版本与字段，不照抄别卡。
+## Optional character configuration override
 
-## 作者需要固定模式时：角色配置覆盖
-
-这是创作者主动选择的可选机制，默认骨架不添加。锁定版本支持在角色绑定的主世界书中放置**禁用**条目，名称必须恰为 `[config_override]`（忽略大小写及首尾空白），不能追加中文后缀或分类前缀。正文使用合法 **JSON**，不因其它提示词偏好 YAML 而改写它：
+Only when the author explicitly needs to override the player's mode, add one **disabled** entry whose name is exactly `[config_override]`, ignoring case/outer whitespace. No category prefix or suffix is allowed. Its body must be valid JSON. Upstream MVU configuration keys/values are runtime API tokens and remain in their original spelling:
 
 ```json
 {
@@ -41,34 +37,24 @@
 }
 ```
 
-这个例子会覆盖玩家的更新方式并启用额外自动请求，仅在作品确有此要求时采用并写进使用说明；API 连接与密钥仍由玩家管理。省略某字段表示继承全局配置，不用空字符串表示“继承”。保持一条有效配置，避免重复条目；如果通过 MVU 面板编辑过世界书，需要将这项创作变更同步回本地源文件，再构建分发。
+This sets extra analysis and automatic requests, overriding the player's choice. Explain it in usage instructions. Connections/credentials remain player-managed. Omitted properties inherit global settings; an empty string is not inheritance. Keep one valid override and synchronize panel-edited changes back into local source before distribution.
 
-这里与阶段标记不同：`[mvu_update]`/`[mvu_plot]` 是包含匹配，而 `[config_override]` 是名称精确匹配，禁用状态也是被读取的条件。对应实现已纳入锁定参考资料 `src/function/character_override/schema.ts` 与 `index.ts`；支持字段与覆盖关系以这两个文件和 `src/store.ts` 为准。
+Unlike substring stage markers, `[config_override]` uses exact-name matching and reads disabled entries. Supported fields/precedence come from pinned src/function/character_override/schema.ts, index.ts, and src/store.ts. Other controls include primary/additional-book support and title allow/denylists. `[mvu_update]` entries bypass title allow/deny filtering but are not unconditional injection. Concurrent/nonblocking requests have request-specific scan ownership; do not use one global boolean to guess the stage.
 
-额外模式还受角色主世界书是否支持阶段标记、附加世界书支持情况、用户/角色标题黑白名单等影响。锁定版本里 `[mvu_update]` 条目豁免标题黑白名单过滤，但仍不等于无条件注入。非阻塞模式存在请求级扫描区分；不要在并发请求中靠一个自定义全局布尔值猜当前阶段。
+## Authoring and switching
 
-## 创作与切换
+Keep the same Schema, initialization, variable list, and field rules. Main mode sends narration/update contract together. Extra mode avoids duplicate main-output patches and receives actual current input/reply plus old state. Add special materials only when the selected request chain lacks them, not to duplicate chat history from another card.
 
-1. 保留共同的 Schema、初值、变量列表和字段更新规则；变化的是请求分工，不是随意改变量路径。
-2. 主 API 模式确保正文和更新协议一起到达；额外模式确保主请求不再被迫重复补丁，额外请求获得本轮实际输入/回复与旧状态。
-3. 只在发现所选请求链未提供所需材料时增加专用条目。不要照搬名为“用户最新输入”的条目并重复注入历史，也不依靠未注入的简报补事实。
-4. 在 MVU 面板切换更新模式，同时核对角色配置是否覆盖该选择、是否自动触发、采用文本还是工具调用；需要手动触发时写给玩家，不伪装成每轮自动更新。
-5. 检查两次请求的实际提示词与结果：字段、事实和更新协议是否齐全，是否重复计算增量，额外请求失败时旧状态是否仍被正确展示。重试、重生成、swipe 和切聊天也需宿主验证。
+Switch in the MVU panel and check overrides, auto/manual trigger, and text/tool response style. Inspect both actual prompts/results for complete facts, duplicate deltas, and correct old-state display after failure. Test retry, regenerate, swipe, and chat switch.
 
-变量地点只是状态值。世界书关键词扫描通常不会遍历 `stat_data`；宏把状态显示在提示词中，也不保证它在本次扫描前成为扫描材料。需要可靠的地点驱动激活时，由脚本在正确阶段提供扫描材料或走明确激活接口，见 [世界书机制](WORLDBOOK.md)。
+Variables such as current location are not automatically worldbook scan material. State visible in a prompt may still arrive after scanning; use a reviewed pre-scan injection path where needed. See [Worldbooks](WORLDBOOK.md).
 
-## 固定状态栏占位符
+## Standard status placeholder
 
-MVU 的消息更新路径在已有 `stat_data` 的前提下，为非用户消息补上缺失的 `<StatusPlaceHolderImpl/>`；不会为了每次更新重复追加同一标记。因此默认只需让显示正则消费它，不要求模型输出，也不必手工加进开场白。用户消息、尚未初始化、未启用脚本等路径不能一概视作已经具备标记。
+When stat_data exists, MVU's update path appends a missing `<StatusPlaceHolderImpl/>` to non-user messages without repeatedly adding it. User messages, uninitialized state, and disabled/failed scripts are not guaranteed to contain it. Default display regexes consume it; no model-output instruction or manual opening marker is required.
 
-工作区的新 MVU＋界面模板使用该标记；无界面的 MVU 模板仅在显示/提示词路径清理标记，保留原消息。没有 MVU 的独立界面继续使用 `<CardStatus/>` 并提供自己的产出路径。已有自定义标记的卡不自动迁移；改动时同步开场、规则、正则和实际生产者，避免两个状态栏或残留标签。
+MVU without UI only hides/removes the marker in display/prompt paths, retaining raw messages. Independent non-MVU interfaces retain `<CardStatus/>` with their own producer. Existing custom chains do not auto-migrate; synchronize openings, rules, regexes, and producers to avoid duplicate panels.
 
-## 实现依据
+## Implementation evidence
 
-- 锁定版本见 `maintenance/references.lock.json` 的 `mvu` 来源；本地 `references/upstream/mvu/src/store.ts` 定义更新方式与额外请求设置。
-- [阶段筛选源码](https://github.com/MagicalAstrogy/MagVarUpdate/blob/3377b494cd7277230f3056230062124fe117f93f/src/function/request/filter_entries.ts)：`filterEntries` 的提前返回、阶段标记和标题过滤。
-- 本地 `src/function/request/worldinfo_scan.ts` 与 `worldinfo_request.ts`：请求级扫描归属；`src/function/request/filter_prompts.ts`：提示词清理。
-- 本地 `src/function/update_variables.ts` 的 `handleVariablesInMessage`、`src/function/function_call.ts`：补状态栏标记的普通和工具调用路径。
-- 本地 `src/function/is_extra_model_supported.ts`：角色主世界书与标记前提；`src/function/character_override/`：配置读取、名称匹配、JSON 解析和写回。
-
-这些是源码事实；完整跨模型/宿主行为仍需实测。没有宿主证据时不修改 `runtimeVerified: null`。
+Pins: maintenance/references.lock.json, mvu. Sources: src/store.ts; src/function/request/filter_entries.ts; worldinfo_scan.ts/worldinfo_request.ts for request ownership; filter_prompts.ts; update_variables.ts handleVariablesInMessage; function_call.ts; is_extra_model_supported.ts; character_override/. These are source-level conclusions, not real-host tests. Leave runtimeVerified null without host evidence.

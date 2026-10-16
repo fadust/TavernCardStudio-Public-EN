@@ -1,0 +1,55 @@
+character:
+  name: Fogharbor Bureau
+  creator: TavernCardStudio example
+  version: 0.1.0
+  tags:
+    - Investigation
+    - Mystery
+    - Ensemble
+    - Multiple greetings
+    - Status panel
+text:
+  first_mes: src/text/first_mes.md
+  creator_notes: src/text/creator_notes.md
+alternate_greetings:
+  - src/greetings/001-lighthouse-outage.md
+  - src/greetings/002-fish-market-accounts.md
+  - src/greetings/003-drydock-repair-schedule.md
+group_only_greetings: []
+worldbook:
+  entries:
+    - src/worldbook/setting/world-setting.yaml
+    - src/worldbook/geography/geography-overview.yaml
+    - src/worldbook/geography/north-breakwater-lighthouse.yaml
+    - src/worldbook/geography/tide-lane-fish-market.yaml
+    - src/worldbook/geography/old-drydock.yaml
+    - src/worldbook/geography/bureau-headquarters.yaml
+    - src/worldbook/events/lighthouse-outage-investigation.yaml
+    - src/worldbook/events/fog-season-missing-person-cases.yaml
+    - src/worldbook/setting/harbor-terminology.yaml
+    - src/worldbook/characters/character-overview.yaml
+    - src/worldbook/characters/dahlia-crane.yaml
+    - src/worldbook/characters/moran-weiss.yaml
+    - src/worldbook/characters/otto-lamb.yaml
+    - src/worldbook/characters/heidi.yaml
+    - src/worldbook/characters/perry-dawn.yaml
+    - src/worldbook/rules/bureau-procedures.yaml
+    - src/worldbook/variables/variable-list.yaml
+    - src/worldbook/variables/[mvu_update]variable-update-rules.yaml
+    - src/worldbook/variables/[mvu_update]variable-output-format.yaml
+    - src/worldbook/variables/[initvar]initial-variables-keep-disabled.yaml
+  name: example-fogharbor-bureau
+regex:
+  - src/regex/001-fold-variable-updates-display.yaml
+  - src/regex/002-fold-incomplete-variable-updates-display-streaming.yaml
+  - src/regex/003-remove-variable-updates-prompt.yaml
+  - src/regex/004-remove-incomplete-variable-updates-prompt-streaming.yaml
+  - src/regex/005-hide-greeting-initial-variables-display.yaml
+  - src/regex/006-remove-greeting-initial-variables-prompt.yaml
+  - src/regex/007-embedded-status-panel.yaml
+  - src/regex/008-remove-status-placeholder-prompt.yaml
+scripts:
+  - src/scripts/001-fogharbor-bureau-buttons.yaml
+  - src/scripts/002-mvu-framework-pinned-commit.yaml
+  - src/scripts/003-variable-schema-zod-registration.yaml
+helper_variables: {}

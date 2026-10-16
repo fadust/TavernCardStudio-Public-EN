@@ -1,41 +1,42 @@
-# TavernCardStudio
+# TavernCardStudio — English edition
 
-和 AI 一起写 SillyTavern 角色卡的本地工作区。可以从零创作，也可以导入已有 PNG / JSON 修改；支持文字、世界书、变量、脚本和前端等简单或复杂卡。
+A local workspace for creating SillyTavern character cards with an AI agent. Start from scratch or import an existing PNG / JSON, then edit text, worldbooks, variables, scripts, and HTML/Vue interfaces.
 
-## 首次使用
+This is the English localization of [TavernCardStudio](https://github.com/rhys-3/TavernCardStudio-Public), maintained in [fadust/TavernCardStudio-Public-EN](https://github.com/fadust/TavernCardStudio-Public-EN). Original authorship, license terms, and third-party attribution are retained.
 
-1. 下载并解压 [最新版工作区](https://github.com/rhys-3/TavernCardStudio-Public/releases/latest)，在你常用的 agent 中打开这个文件夹。
-2. 不清楚环境怎么装，直接说：**“帮我检查并安装这个工作区需要的环境，确认角色卡工具能打开。”** 想自己安装，看 [简短安装说明](docs/INSTALL.md)。
-3. 环境就绪后，Windows 双击 **`打开角色卡工具.cmd`**。可以新建卡、复制示例，或点击“导入并拆分 PNG / JSON”。也可以让 agent 直接帮你导入。
+## Getting started
 
-## 导入后直接说需求
+1. Download and extract the [English workspace source archive](https://github.com/fadust/TavernCardStudio-Public-EN/archive/refs/heads/main.zip), or clone this repository. Open the folder in your usual coding agent.
+2. Ask: **“Check and install the environment this workspace needs, then confirm that the character card tool opens.”** For manual setup, see [Installation](docs/INSTALL.md).
+3. Once the environment is ready, run **`pnpm studio`**. Create a card, copy an example, or choose **Import and split PNG / JSON**. Your agent can also import the card for you.
 
-在同一个工作区继续和 agent 对话就行，例如：
+## Continue in the same conversation
 
-> 帮我看看刚导入的这张卡，把世界书整理好，再把开场改成主角刚到城里。
+> Review the card I just imported, organize its worldbook, and change the opening so the protagonist has just arrived in town.
 
-> 想做一张有多个种族和势力的大世界卡，先一起聊聊设定。
+> I want a large world with several peoples and factions. Let's discuss the setting first.
 
-不用先填创作简报，也不用复制长开工指令。Codex、Claude Code、DSH 等能在项目中读写文件、运行命令的 agent 都可以参与；如果它没有读取工作区说明，提醒一句 **“先看 AGENTS.md”** 即可。只有聊天能力、不能访问本地文件的窗口，需要另行提供文件，无法直接操作工作区。
+You do not need to complete a creative brief or paste a long startup prompt. Codex, Claude Code, DSH, and other agents that can read local files and run commands can work here. If your agent has not read the workspace instructions, say **“Read AGENTS.md first.”** A chat window without local file access needs files supplied separately.
 
-工作区把创作流程和专业知识放在 [AGENTS.md](AGENTS.md) 与 `.agents/skills/`，由 agent 按任务读取。你只管说明想要的效果、必须保留的内容，边做边补充就可以。
+The workflow and specialist knowledge live in [AGENTS.md](AGENTS.md) and `.agents/skills/`. The agent reads the relevant material as needed. Describe the result you want and anything that must be preserved; refine the details as you work.
 
-## 文件放在哪里
+## Your files
 
-| 目录 | 用途 |
+| Directory | Purpose |
 | --- | --- |
-| `imports/` | 完整导入原卡，导入时自动归档 |
-| `cards/<名称>/src/` | 你和 AI 共同修改的正文、配置与代码 |
-| `dist/<名称>/` | 打包后的 JSON / PNG，可以导入酒馆 |
+| `imports/` | Complete original cards, archived during import |
+| `cards/<name>/src/` | Text, configuration, and code that you and the agent edit |
+| `dist/<name>/` | Built JSON / PNG files ready to import into SillyTavern |
 
-修改完成后，让 agent 检查并打包，或在本地工具里点击“检查”“打包”。已经拆分过的卡直接继续修改，不要重新导入覆盖。备份时保存整个 `cards/<名称>/`，包括隐藏的 `.card/` 和 `original/`；自建卡默认不随 Git 提交。
+After editing, ask the agent to check and build the card, or use **Check** and **Build** in the local tool. Continue editing an existing split project; importing the original again would discard your editing workflow. Back up the entire `cards/<name>/` directory, including hidden `.card/` and `original/`. Personal cards are ignored by Git by default.
 
-## 需要时再看
+## Further reading
 
-- [安装环境](docs/INSTALL.md) · [本地工具怎么用](docs/STUDIO.md)
-- [创作与模块选择](docs/CREATION.md) · [大世界内容与组织](docs/WORLD-DESIGN.md)
-- [世界书分类与顺序](docs/WORLDBOOK-FILES.md) · [复杂卡模块联动](docs/COMPLEX-CARDS.md)
-- [文件格式与完整命令](docs/ARCHITECTURE.md) · [备份与升级](docs/UPDATING.md)
-- [检查范围](docs/VERIFICATION.md) · [参考资料来源](docs/SOURCES.md)
+- [Installation](docs/INSTALL.md) · [Local Studio](docs/STUDIO.md)
+- [Creation and modules](docs/CREATION.md) · [World design](docs/WORLD-DESIGN.md)
+- [Worldbook files and order](docs/WORLDBOOK-FILES.md) · [Complex cards](docs/COMPLEX-CARDS.md)
+- [Architecture and commands](docs/ARCHITECTURE.md) · [Backup and updates](docs/UPDATING.md)
+- [Verification limits](docs/VERIFICATION.md) · [Reference sources](docs/SOURCES.md)
+- [English localization principles](docs/LOCALIZATION.md)
 
-检查与打包不等于真实酒馆实测，最终效果仍需在自己的酒馆和预设里确认。本工作区内容限非商业使用，详见 [LICENSE](LICENSE)。
+Checks and builds do not establish compatibility with a real SillyTavern installation. Confirm the result with your own host, extensions, and preset. Workspace content is for non-commercial use; see [LICENSE](LICENSE).

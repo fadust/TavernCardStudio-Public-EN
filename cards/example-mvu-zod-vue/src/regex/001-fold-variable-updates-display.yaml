@@ -1,0 +1,15 @@
+link: regex-6
+name: Fold variable updates (display)
+find: /<update(?:variable)?>\s*([\s\S]*?)\s*<\/update(?:variable)?>/gi
+trim: []
+disabled: false
+display_only: true
+prompt_only: false
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - user_input
+  - ai_output
+replacement_file: src/regex/001-fold-variable-updates-display.txt

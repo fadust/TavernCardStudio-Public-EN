@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------------
-   TavernCardStudio 创作者桌面工具 · 样式
-   浅色淡紫 + 米白，本地管理界面；无外部字体与外部资源。
+   TavernCardStudio Creator desktop tool · Styles
+   Light lavender and off-white local management UI; no external fonts or resources.
    --------------------------------------------------------------------------- */
 
 :root {
@@ -42,7 +42,7 @@
 }
 @media (max-width: 640px) { .workflow-note { margin-inline: 12px; } }
 
-/* ---------------- 入门引导 ---------------- */
+/* ---------------- Onboarding ---------------- */
 
 .onboarding {
   background: var(--panel);
@@ -111,7 +111,7 @@
   box-sizing: border-box;
 }
 
-/* 这里的元素都带 display 规则，需要显式压过 hidden 属性。 */
+/* These elements have display rules, so explicitly override them for the hidden attribute. */
 [hidden] {
   display: none !important;
 }
@@ -154,7 +154,7 @@ code {
   padding: 1px 5px;
 }
 
-/* ---------------- 布局 ---------------- */
+/* ---------------- Layout ---------------- */
 
 .app {
   display: flex;
@@ -243,7 +243,7 @@ code {
   gap: 8px;
 }
 
-/* ---------------- 按钮 ---------------- */
+/* ---------------- Buttons ---------------- */
 
 .btn {
   background: var(--panel);
@@ -354,7 +354,7 @@ summary:focus-visible {
   color: var(--text);
 }
 
-/* ---------------- 忙碌提示 ---------------- */
+/* ---------------- Busy indicator ---------------- */
 
 .busy-bar {
   align-items: center;
@@ -432,7 +432,7 @@ body.is-busy .card-item {
   opacity: 0.65;
 }
 
-/* ---------------- 提示条 ---------------- */
+/* ---------------- Alert bars ---------------- */
 
 .alert {
   align-items: flex-start;
@@ -475,7 +475,7 @@ body.is-busy .card-item {
   font-size: 13px;
 }
 
-/* ---------------- 主区 ---------------- */
+/* ---------------- Main area ---------------- */
 
 .layout {
   align-items: start;
@@ -670,7 +670,7 @@ body.is-busy .card-item {
   margin-top: 6px;
 }
 
-/* ---------------- 详情 ---------------- */
+/* ---------------- Details ---------------- */
 
 .detail {
   display: flex;
@@ -879,7 +879,7 @@ body.is-busy .card-item {
   gap: 8px;
 }
 
-/* ---------------- 运行结果 ---------------- */
+/* ---------------- Results ---------------- */
 
 .results {
   background: var(--panel);
@@ -1038,7 +1038,7 @@ body.is-busy .card-item {
   word-break: break-word;
 }
 
-/* ---------------- 对话框 ---------------- */
+/* ---------------- Dialogs ---------------- */
 
 .sheet {
   background: var(--panel);
@@ -1330,7 +1330,7 @@ body.is-busy .card-item {
   object-fit: contain;
 }
 
-/* ---------------- 吐司与拖放 ---------------- */
+/* ---------------- Toasts and drag and drop ---------------- */
 
 .toast-area {
   bottom: 18px;
@@ -1408,7 +1408,7 @@ body.is-busy .card-item {
   font-size: 13px;
 }
 
-/* ---------------- 启动提示 ---------------- */
+/* ---------------- Startup notice ---------------- */
 
 .boot-notice {
   align-items: center;
@@ -1470,7 +1470,7 @@ body.is-busy .card-item {
   margin-top: 4px;
 }
 
-/* ---------------- 响应式 ---------------- */
+/* ---------------- Responsive layout ---------------- */
 
 @media (max-width: 1000px) {
   .layout {

@@ -1,0 +1,10 @@
+name: Geography overview
+enabled: true
+activation: constant
+keys: []
+position: before_character
+order: 2
+exclude_recursion: true
+prevent_recursion: true
+file: src/worldbook/geography/geography-overview.md
+link: worldbook-694777f0-5bd4-4247-b430-690ee80713fd

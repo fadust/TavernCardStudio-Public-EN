@@ -1,0 +1,18 @@
+link: worldbook-2
+name: Used bookshop
+enabled: true
+keys:
+  - Used bookshop
+secondary_keys: []
+selective: true
+use_regex: false
+order: 2
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: before_character
+role: system
+file: src/worldbook/geography/used-bookshop.md

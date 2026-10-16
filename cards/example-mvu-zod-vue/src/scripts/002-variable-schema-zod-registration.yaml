@@ -1,0 +1,13 @@
+link: script-13
+name: Variable schema (Zod registration)
+enabled: true
+info: ""
+button:
+  enabled: false
+  buttons: []
+data: {}
+type: script
+file: src/scripts/002-variable-schema-zod-registration.js
+build:
+  type: script
+  entry: src/scripts/002-variable-schema-zod-registration.js

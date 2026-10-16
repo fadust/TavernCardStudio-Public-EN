@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light" />
-<title>TavernCardStudio · 卡片工作台</title>
+<title>TavernCardStudio · Card Studio</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237c66c9'/%3E%3Crect x='10' y='10' width='12' height='12' rx='3' fill='%23fffdfa'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="./style.css" />
 </head>
@@ -12,8 +12,8 @@
 <noscript>
   <div class="boot-notice">
     <div class="boot-card">
-      <h2>需要启用 JavaScript</h2>
-      <p>本工具是本地管理界面，请在浏览器中启用 JavaScript 后重新打开。</p>
+      <h2>JavaScript required</h2>
+      <p>Enable JavaScript in your browser, then reopen this local management tool.</p>
     </div>
   </div>
 </noscript>
@@ -23,82 +23,82 @@
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
       <div class="brand-text">
-        <h1>卡片工作台</h1>
-        <p class="root-line"><span class="root-label">仓库</span><span id="rootPath" class="root-path">读取中…</span></p>
+        <h1>Card Studio</h1>
+        <p class="root-line"><span class="root-label">Repository</span><span id="rootPath" class="root-path">Loading…</span></p>
       </div>
     </div>
     <div class="topbar-actions">
-      <button type="button" id="refreshBtn" class="btn btn-ghost">刷新</button>
-      <button type="button" id="importsDirBtn" class="btn btn-ghost">原卡文件夹</button>
-      <button type="button" id="importBtn" class="btn">导入并拆分 PNG / JSON</button>
-      <button type="button" id="newBtn" class="btn">新建卡</button>
-      <button type="button" id="shutdownBtn" class="btn btn-quiet-danger">关闭工具</button>
+      <button type="button" id="refreshBtn" class="btn btn-ghost">Refresh</button>
+      <button type="button" id="importsDirBtn" class="btn btn-ghost">Original cards folder</button>
+      <button type="button" id="importBtn" class="btn">Import and split PNG / JSON</button>
+      <button type="button" id="newBtn" class="btn">New card</button>
+      <button type="button" id="shutdownBtn" class="btn btn-quiet-danger">Stop tool</button>
     </div>
   </header>
 
-  <div class="workflow-note"><strong>完整原卡 imports</strong> → <strong>拆分编辑 cards/卡名/src</strong> → <strong>打包成品 dist/卡名</strong><br>导入时自动归档并拆分。AI 和手动修改使用同一编辑区；修改后直接打包，无需重新导入。</div>
+  <div class="workflow-note"><strong>Original cards in imports</strong> → <strong>Edit split files in cards/card-name/src</strong> → <strong>Build output in dist/card-name</strong><br>Imports are automatically archived and split. You and AI edit the same files; build after editing without importing again.</div>
 
-  <section id="onboarding" class="onboarding" aria-label="入门引导" hidden>
+  <section id="onboarding" class="onboarding" aria-label="Onboarding" hidden>
     <div class="onboarding-head">
-      <h2>第一次用？先看这三条路</h2>
-      <button type="button" id="onboardingDismissBtn" class="btn btn-small btn-ghost">知道了</button>
+      <h2>First time? Start here</h2>
+      <button type="button" id="onboardingDismissBtn" class="btn btn-small btn-ghost">Got it</button>
     </div>
-    <p class="onboarding-note">AI 和你改的是同一份文件：<code>cards/工程名/src</code>；打包后的成品在 <code>dist/工程名</code>，可以直接导入酒馆。</p>
+    <p class="onboarding-note">You and AI edit the same files: <code>cards/project-name/src</code>; builds are saved in <code>dist/project-name</code>, ready to import into SillyTavern.</p>
     <div class="onboarding-grid">
       <article class="onboarding-item">
-        <h3>新建卡</h3>
-        <p>从空白开始写自己的卡；需要世界书、正则、脚本或界面模块时再勾上。</p>
-        <button type="button" id="onboardingNewBtn" class="btn btn-small">新建卡</button>
+        <h3>New card</h3>
+        <p>Start a new card. Select worldbook, regex, script, or interface modules as needed.</p>
+        <button type="button" id="onboardingNewBtn" class="btn btn-small">New card</button>
       </article>
       <article class="onboarding-item">
-        <h3>导入已有卡</h3>
-        <p>把 PNG / JSON 角色卡拆成可编辑文件，原卡会完整归档到 imports/。</p>
-        <button type="button" id="onboardingImportBtn" class="btn btn-small">导入并拆分</button>
+        <h3>Import existing card</h3>
+        <p>Split a PNG / JSON character card into editable files; the complete original is archived in imports/.</p>
+        <button type="button" id="onboardingImportBtn" class="btn btn-small">Import and split</button>
       </article>
       <article class="onboarding-item">
-        <h3>复制示例</h3>
-        <p>官方示例可以整卡复制成自己的工程，随便改；示例本身不会被动到。</p>
-        <button type="button" id="onboardingExampleBtn" class="btn btn-small">复制示例</button>
+        <h3>Copy example</h3>
+        <p>Copy an official example into your own project and edit freely; the original stays unchanged.</p>
+        <button type="button" id="onboardingExampleBtn" class="btn btn-small">Copy example</button>
       </article>
     </div>
   </section>
   <div id="busyBar" class="busy-bar" role="status" aria-live="polite" hidden>
     <span class="spinner" aria-hidden="true"></span>
-    <span id="busyText" class="busy-text">正在处理…</span>
-    <span id="busyElapsed" class="busy-elapsed">0.0 秒</span>
+    <span id="busyText" class="busy-text">Working…</span>
+    <span id="busyElapsed" class="busy-elapsed">0.0 seconds</span>
     <span class="busy-track" aria-hidden="true"><span class="busy-indicator"></span></span>
   </div>
 
   <div id="loadError" class="alert alert-error" hidden>
     <p id="loadErrorText" class="alert-text"></p>
-    <button type="button" id="loadRetryBtn" class="btn btn-small">重试</button>
+    <button type="button" id="loadRetryBtn" class="btn btn-small">Retry</button>
   </div>
 
   <main class="layout">
-    <aside class="sidebar" aria-label="卡片列表">
+    <aside class="sidebar" aria-label="Card list">
       <div class="sidebar-head">
         <label class="search" for="searchInput">
           <span class="search-icon" aria-hidden="true"></span>
-          <input id="searchInput" type="search" placeholder="搜索工程名 / 角色名 / 标签" autocomplete="off" spellcheck="false" />
+          <input id="searchInput" type="search" placeholder="Search projects / characters / tags" autocomplete="off" spellcheck="false" />
         </label>
         <p id="listMeta" class="list-meta"></p>
       </div>
-      <div id="cardList" class="card-list" aria-label="卡片"></div>
+      <div id="cardList" class="card-list" aria-label="Cards"></div>
       <div id="listEmpty" class="list-empty" hidden>
-        <p class="empty-title">还没有卡片</p>
-        <p class="empty-hint">用「新建卡」从模板开始，「导入 PNG / JSON」拆分已有卡，或用「复制示例」把官方示例变成自己的工程。</p>
+        <p class="empty-title">No cards yet</p>
+        <p class="empty-hint">Use “New card” to start from a template, “Import PNG / JSON” to split a card, or “Copy example” to create your own project from an official example.</p>
       </div>
     </aside>
 
-    <section id="detailPanel" class="detail" aria-label="卡片详情"></section>
+    <section id="detailPanel" class="detail" aria-label="Card details"></section>
   </main>
 
-  <section id="resultsPanel" class="results" aria-label="运行结果">
+  <section id="resultsPanel" class="results" aria-label="Results">
     <header class="results-head">
-      <h2>运行结果<span id="resultsCount" class="results-count"></span></h2>
+      <h2>Results<span id="resultsCount" class="results-count"></span></h2>
       <div class="results-tools">
-        <button type="button" id="resultsToggle" class="btn btn-small btn-ghost">折叠</button>
-        <button type="button" id="resultsClear" class="btn btn-small btn-ghost">清空</button>
+        <button type="button" id="resultsToggle" class="btn btn-small btn-ghost">Collapse</button>
+        <button type="button" id="resultsClear" class="btn btn-small btn-ghost">Clear</button>
       </div>
     </header>
     <div id="resultsBody" class="results-body"></div>
@@ -107,34 +107,34 @@
 
 <div id="bootNotice" class="boot-notice" hidden>
   <div class="boot-card">
-    <h2>请从仓库根目录的启动器打开</h2>
-    <p id="bootNoticeText" class="boot-message">没有找到访问令牌：可能是直接打开了链接、换了浏览器，或令牌已经失效。</p>
+    <h2>Open using the launcher in the repository root</h2>
+    <p id="bootNoticeText" class="boot-message">No access token found. You may have opened the link directly, changed browsers, or used an expired token.</p>
     <p id="bootNoticeDetail" class="boot-detail" hidden></p>
-    <p class="boot-hint">回到 <code>TavernCardStudio</code> 文件夹，重新双击<strong>「打开角色卡工具.cmd」</strong>（或在根目录运行 <code>pnpm studio</code>），再用新打开的页面继续。已经在启动器里打开的页面可以直接刷新，令牌会保留在当前标签页。</p>
-    <button type="button" id="bootRetryBtn" class="btn btn-primary">重新检查</button>
+    <p class="boot-hint">Return to the <code>TavernCardStudio</code> folder and double-click <strong>“Open-TavernCardStudio.cmd”</strong> (or run <code>pnpm studio</code> in the repository root), then continue in the newly opened page. You can refresh a page opened by the launcher; its token stays in the current tab.</p>
+    <button type="button" id="bootRetryBtn" class="btn btn-primary">Check again</button>
   </div>
 </div>
 
 <div id="shutdownNotice" class="boot-notice" hidden>
   <div class="boot-card">
-    <h2>工具已关闭</h2>
-    <p class="boot-message">本地服务已停止，现在可以安全关闭这个页面。</p>
-    <p class="boot-hint">需要继续使用时，请重新从仓库根目录运行启动器。</p>
+    <h2>Tool stopped</h2>
+    <p class="boot-message">The local service has stopped. You can close this page.</p>
+    <p class="boot-hint">Run the launcher from the repository root to use the tool again.</p>
   </div>
 </div>
 
 <div id="dropOverlay" class="drop-overlay" hidden>
   <div class="drop-card">
-    <strong>松开以导入</strong>
-    <span>支持 PNG 与 JSON，单个文件最大 64 MiB</span>
+    <strong>Drop to import</strong>
+    <span>PNG and JSON supported, up to 64 MiB per file</span>
   </div>
 </div>
 
 <dialog id="importDialog" class="sheet" aria-labelledby="importDialogTitle">
   <form id="importForm" class="sheet-form" method="dialog" novalidate>
     <header class="sheet-head">
-      <h2 id="importDialogTitle">导入原卡并拆分</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="importDialogTitle">Import and split original card</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
       <p class="file-line">
@@ -142,16 +142,16 @@
         <span id="importFileSize" class="file-size"></span>
       </p>
       <label class="field">
-        <span class="field-label">工程名</span>
+        <span class="field-label">Project name</span>
         <input id="importName" type="text" autocomplete="off" spellcheck="false" maxlength="80" />
-        <span class="field-hint">由文件名推导，可以在导入前修改。</span>
+        <span class="field-hint">Derived from the filename; you can change it before importing.</span>
       </label>
       <p id="importNote" class="note"></p>
       <p id="importError" class="error-text" hidden></p>
     </div>
     <footer class="sheet-foot">
-      <button type="button" class="btn btn-ghost" data-close>取消</button>
-      <button type="submit" class="btn btn-primary">归档原卡并拆分</button>
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Archive and split</button>
     </footer>
   </form>
 </dialog>
@@ -159,32 +159,32 @@
 <dialog id="newDialog" class="sheet" aria-labelledby="newDialogTitle">
   <form id="newForm" class="sheet-form" method="dialog" novalidate>
     <header class="sheet-head">
-      <h2 id="newDialogTitle">新建卡</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="newDialogTitle">New card</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
       <label class="field">
-        <span class="field-label">工程名</span>
-        <input id="newName" type="text" autocomplete="off" spellcheck="false" maxlength="80" placeholder="例如：示例-世界书创作" />
-        <span class="field-hint">同时作为 <code>cards/&lt;工程名&gt;/</code> 目录名。</span>
+        <span class="field-label">Project name</span>
+        <input id="newName" type="text" autocomplete="off" spellcheck="false" maxlength="80" placeholder="e.g. my-worldbook-card" />
+        <span class="field-hint">Also used as the <code>cards/&lt;project-name&gt;/</code> directory name.</span>
       </label>
       <fieldset class="field modules">
-        <legend class="field-label">模块</legend>
-        <p class="field-hint">不选模块时生成纯文字卡；HTML 与 Vue 初始模板只能选一个。</p>
+        <legend class="field-label">Modules</legend>
+        <p class="field-hint">With no modules selected, creates a text-only card. Choose either the HTML or Vue starter template.</p>
         <div class="module-grid">
-          <label class="module"><input type="checkbox" value="worldbook" /><span><strong>世界书</strong><em>条目化设定与提示词</em></span></label>
-          <label class="module"><input type="checkbox" value="regex" /><span><strong>正则</strong><em>显示与提示词清理</em></span></label>
-          <label class="module"><input type="checkbox" value="script" /><span><strong>脚本</strong><em>酒馆助手脚本</em></span></label>
-          <label class="module"><input type="checkbox" value="mvu" /><span><strong>MVU</strong><em>变量表与更新规则</em></span></label>
-          <label class="module"><input type="checkbox" value="html" /><span><strong>HTML 界面</strong><em>与 Vue 互斥</em></span></label>
-          <label class="module"><input type="checkbox" value="vue" /><span><strong>Vue 界面</strong><em>与 HTML 互斥</em></span></label>
+          <label class="module"><input type="checkbox" value="worldbook" /><span><strong>Worldbook</strong><em>Settings and prompts as entries</em></span></label>
+          <label class="module"><input type="checkbox" value="regex" /><span><strong>Regex</strong><em>Display and prompt cleanup</em></span></label>
+          <label class="module"><input type="checkbox" value="script" /><span><strong>Scripts</strong><em>Tavern Helper scripts</em></span></label>
+          <label class="module"><input type="checkbox" value="mvu" /><span><strong>MVU</strong><em>Variables and update rules</em></span></label>
+          <label class="module"><input type="checkbox" value="html" /><span><strong>HTML interface</strong><em>Cannot combine with Vue</em></span></label>
+          <label class="module"><input type="checkbox" value="vue" /><span><strong>Vue interface</strong><em>Cannot combine with HTML</em></span></label>
         </div>
       </fieldset>
       <p id="newError" class="error-text" hidden></p>
     </div>
     <footer class="sheet-foot">
-      <button type="button" class="btn btn-ghost" data-close>取消</button>
-      <button type="submit" class="btn btn-primary">创建</button>
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Create</button>
     </footer>
   </form>
 </dialog>
@@ -192,25 +192,25 @@
 <dialog id="renameDialog" class="sheet" aria-labelledby="renameDialogTitle">
   <form id="renameForm" class="sheet-form" method="dialog" novalidate>
     <header class="sheet-head">
-      <h2 id="renameDialogTitle">重命名</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="renameDialogTitle">Rename</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
       <label class="field">
-        <span class="field-label">工程名</span>
+        <span class="field-label">Project name</span>
         <input id="renameProject" type="text" autocomplete="off" spellcheck="false" maxlength="80" />
-        <span class="field-hint">对应 <code>cards/&lt;工程名&gt;/</code> 目录名。</span>
+        <span class="field-hint">Used as the <code>cards/&lt;project-name&gt;/</code> directory name.</span>
       </label>
       <label class="field">
-        <span class="field-label">角色名</span>
+        <span class="field-label">Character name</span>
         <input id="renameCharacter" type="text" autocomplete="off" maxlength="120" />
-        <span class="field-hint">写进卡片的角色名，可以和工程名不同；留空表示不改动。</span>
+        <span class="field-hint">Character name stored in the card; it can differ from the project name. Leave blank to keep it unchanged.</span>
       </label>
       <p id="renameError" class="error-text" hidden></p>
     </div>
     <footer class="sheet-foot">
-      <button type="button" class="btn btn-ghost" data-close>取消</button>
-      <button type="submit" class="btn btn-primary">保存</button>
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Save</button>
     </footer>
   </form>
 </dialog>
@@ -218,21 +218,21 @@
 <dialog id="duplicateDialog" class="sheet" aria-labelledby="duplicateDialogTitle">
   <form id="duplicateForm" class="sheet-form" method="dialog" novalidate>
     <header class="sheet-head">
-      <h2 id="duplicateDialogTitle">复制卡</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="duplicateDialogTitle">Copy card</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
       <p id="duplicateSource" class="note"></p>
       <label class="field">
-        <span class="field-label">新工程名</span>
+        <span class="field-label">New project name</span>
         <input id="duplicateName" type="text" autocomplete="off" spellcheck="false" maxlength="80" />
-        <span class="field-hint">必须与现有工程名不同。</span>
+        <span class="field-hint">Must differ from existing project names.</span>
       </label>
       <p id="duplicateError" class="error-text" hidden></p>
     </div>
     <footer class="sheet-foot">
-      <button type="button" class="btn btn-ghost" data-close>取消</button>
-      <button type="submit" class="btn btn-primary">复制</button>
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Copy</button>
     </footer>
   </form>
 </dialog>
@@ -240,26 +240,26 @@
 <dialog id="exampleDialog" class="sheet" aria-labelledby="exampleDialogTitle">
   <form id="exampleForm" class="sheet-form" method="dialog" novalidate>
     <header class="sheet-head">
-      <h2 id="exampleDialogTitle">复制官方示例</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="exampleDialogTitle">Copy official example</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
-      <p class="note">官方示例是参考用的完整卡；复制后会生成你自己的工程，后续修改都只影响副本。</p>
+      <p class="note">Official examples are complete reference cards. Copy one to create your own project; edits affect only the copy.</p>
       <fieldset class="field">
-        <legend class="field-label">选择示例</legend>
+        <legend class="field-label">Choose example</legend>
         <div id="exampleList" class="example-list"></div>
       </fieldset>
       <label class="field">
-        <span class="field-label">新工程名</span>
+        <span class="field-label">New project name</span>
         <input id="exampleName" type="text" autocomplete="off" spellcheck="false" maxlength="80" />
-        <span class="field-hint">编辑区 <code>cards/&lt;工程名&gt;/src</code>，打包成品 <code>dist/&lt;工程名&gt;</code>。</span>
+        <span class="field-hint">Source: <code>cards/&lt;project-name&gt;/src</code>; build output: <code>dist/&lt;project-name&gt;</code>.</span>
       </label>
       <p id="exampleNote" class="note"></p>
       <p id="exampleError" class="error-text" hidden></p>
     </div>
     <footer class="sheet-foot">
-      <button type="button" class="btn btn-ghost" data-close>取消</button>
-      <button type="submit" id="exampleSubmit" class="btn btn-primary">复制成我的卡</button>
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" id="exampleSubmit" class="btn btn-primary">Copy as my card</button>
     </footer>
   </form>
 </dialog>
@@ -267,24 +267,24 @@
 <dialog id="coverDialog" class="sheet" aria-labelledby="coverDialogTitle">
   <form id="coverForm" class="sheet-form" method="dialog" novalidate>
     <header class="sheet-head">
-      <h2 id="coverDialogTitle">更换封面</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="coverDialogTitle">Change cover</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
       <label class="field">
-        <span class="field-label">选择图片</span>
+        <span class="field-label">Choose image</span>
         <input id="coverFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
-        <span class="field-hint">支持 PNG、JPEG、WebP；原图不超过 2400 万像素，写入前会等比缩放到长边不超过 4096 像素并转成 PNG。</span>
+        <span class="field-hint">Supports PNG, JPEG, and WebP up to 24 megapixels. Images are resized proportionally to a maximum edge of 4096 pixels and converted to PNG before saving.</span>
       </label>
       <div id="coverPreview" class="cover-preview" hidden>
-        <img id="coverPreviewImage" alt="待写入的封面预览" />
+        <img id="coverPreviewImage" alt="Preview of the cover to save" />
       </div>
       <p id="coverNote" class="note"></p>
       <p id="coverError" class="error-text" hidden></p>
     </div>
     <footer class="sheet-foot">
-      <button type="button" class="btn btn-ghost" data-close>取消</button>
-      <button type="submit" id="coverSubmit" class="btn btn-primary" disabled>写入封面</button>
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" id="coverSubmit" class="btn btn-primary" disabled>Save cover</button>
     </footer>
   </form>
 </dialog>
@@ -292,16 +292,16 @@
 <dialog id="confirmDialog" class="sheet sheet-compact" aria-labelledby="confirmTitle">
   <form method="dialog" class="sheet-form">
     <header class="sheet-head">
-      <h2 id="confirmTitle">请确认</h2>
-      <button type="button" class="icon-btn" data-close aria-label="关闭">×</button>
+      <h2 id="confirmTitle">Please confirm</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
     </header>
     <div class="sheet-body">
       <p id="confirmMessage" class="confirm-message"></p>
       <p id="confirmExtra" class="note"></p>
     </div>
     <footer class="sheet-foot">
-      <button type="submit" value="cancel" class="btn btn-ghost">取消</button>
-      <button type="submit" id="confirmOk" value="confirm" class="btn btn-primary">确认</button>
+      <button type="submit" value="cancel" class="btn btn-ghost">Cancel</button>
+      <button type="submit" id="confirmOk" value="confirm" class="btn btn-primary">Confirm</button>
     </footer>
   </form>
 </dialog>

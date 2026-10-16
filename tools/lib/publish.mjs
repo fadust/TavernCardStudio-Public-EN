@@ -24,7 +24,7 @@ export async function replaceFiles(staging, destination, backup) {
     const rollbackErrors = [];
     for (const relative of installed.reverse()) try { await fs.unlink(path.join(destination, relative)); } catch (failure) { rollbackErrors.push(failure); }
     for (const relative of saved.reverse()) try { await fs.rename(path.join(backup, relative), path.join(destination, relative)); } catch (failure) { rollbackErrors.push(failure); }
-    if (rollbackErrors.length) throw new AggregateError([error, ...rollbackErrors], `产物替换失败，部分备份保留在 ${backup}，请勿删除。`);
+    if (rollbackErrors.length) throw new AggregateError([error, ...rollbackErrors], `Output replacement failed; partial backups remain at ${backup}; do not delete them.`);
     await fs.rm(backup, { recursive: true, force: true });
     throw error;
   }
@@ -43,7 +43,7 @@ export async function publishDirectory(staging, destination, backup) {
   try { await fs.rename(staging, destination); }
   catch (error) {
     try { await fs.rename(backup, destination); }
-    catch (restoreError) { throw new AggregateError([error, restoreError], `构建切换失败，旧产物仍在 ${backup}。`); }
+    catch (restoreError) { throw new AggregateError([error, restoreError], `Build switch failed; previous output remains at ${backup}.`); }
     throw error;
   }
   await fs.rm(backup, { recursive: true, force: true });

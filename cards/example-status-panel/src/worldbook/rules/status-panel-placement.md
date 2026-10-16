@@ -1,0 +1,1 @@
+After each narrative, output <CardStatus/> on a separate line as the interface position. Place it before any variable update block.

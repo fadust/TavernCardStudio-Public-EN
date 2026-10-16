@@ -1,0 +1,17 @@
+link: worldbook-3
+name: "[mvu_update]Variable update rules"
+enabled: true
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 2
+depth: 0
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: at_depth
+role: system
+file: src/worldbook/variables/[mvu_update]variable-update-rules.md

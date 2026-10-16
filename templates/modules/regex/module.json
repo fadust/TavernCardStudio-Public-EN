@@ -1,8 +1,18 @@
 {
   "regex": [
-    { "scriptName": "显示备注", "findRegex": "/<note>([\\s\\S]*?)<\\/note>/g", "replacementFile": "replacement.txt", "markdownOnly": true, "promptOnly": false }
+    {
+      "scriptName": "Show notes",
+      "findRegex": "/<note>([\\s\\S]*?)<\\/note>/g",
+      "replacementFile": "replacement.txt",
+      "markdownOnly": true,
+      "promptOnly": false
+    }
   ],
   "fixtures": [
-    { "name": "显示备注", "input": "正文<note>窗外开始下雨。</note>", "expected": "正文<details><summary>备注</summary>窗外开始下雨。</details>" }
+    {
+      "name": "Show notes",
+      "input": "Narrative<note>Rain begins outside.</note>",
+      "expected": "Narrative<details><summary>notes</summary>Rain begins outside.</details>"
+    }
   ]
 }

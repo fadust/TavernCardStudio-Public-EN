@@ -27,25 +27,25 @@ test('pure text creation and build have no optional modules or UI', async t => {
   assert.deepEqual(built.files, ['文字测试.json']);
   assert.deepEqual(await readJSON(path.join(built.directory, built.files[0])), card);
   assert.equal((await checkProject('文字测试', root)).report.ok, true);
-  await assert.rejects(newCard('文字测试', { root }), /拒绝覆盖/);
+  await assert.rejects(newCard('文字测试', { root }), /refusing to overwrite/);
 });
 test('PowerShell joined module argument and invalid CLI parameters', async t => {
   const root = await workspace(t);
   await main(['new', '组合', '--modules', 'worldbook regex'], root);
   assert.deepEqual((await loadProject('组合', root)).project.modules, ['worldbook', 'regex']);
   assert.equal((await checkProject('组合', root)).report.regexFixtures, 1);
-  await assert.rejects(main(['new', '坏', '--modules', 'html,vue'], root), /html 或 vue/);
-  await assert.rejects(main(['split', 'a.json', '--modules', 'mvu'], root), /不自动应用/);
+  await assert.rejects(main(['new', '坏', '--modules', 'html,vue'], root), /html or vue/);
+  await assert.rejects(main(['split', 'a.json', '--modules', 'mvu'], root), /does not apply/);
 });
 test('script module is a single bundle and retains helper metadata', async t => {
-  const root = await workspace(t); await newCard('脚本', { root, modules: ['script'] });
-  const original = (await loadProject('脚本', root)).card;
-  const built = await buildCard('脚本', root); const card = await readJSON(path.join(built.directory, '脚本.json'));
+  const root = await workspace(t); await newCard("scripts", { root, modules: ['script'] });
+  const original = (await loadProject("scripts", root)).card;
+  const built = await buildCard("scripts", root); const card = await readJSON(path.join(built.directory, 'scripts.json'));
   const before = structuredClone(original.data.extensions.tavern_helper.scripts[0]);
   const after = structuredClone(card.data.extensions.tavern_helper.scripts[0]);
   delete before.content; delete after.content; assert.deepEqual(after, before);
   assert.match(card.data.extensions.tavern_helper.scripts[0].content, /eventOn/);
-  assert.deepEqual(built.files, ['scripts/1.js', '脚本.json']);
+  assert.deepEqual(built.files, ['scripts/1.js', 'scripts.json']);
 });
 test('HTML assets are embedded; local Vite config is not executed; replacement protects macros and dollars', async t => {
   const root = await workspace(t); const dir = await newCard('界面', { root, modules: ['html'] });
@@ -59,7 +59,7 @@ test('HTML assets are embedded; local Vite config is not executed; replacement p
   assert.match(preview, /data:image\/svg\+xml/);
   assert.match(preview, /\$1 \$<name> \{\{user\}\} 中文/);
   const card = await readJSON(path.join(built.directory, '界面.json'));
-  const regex = card.data.extensions.regex_scripts.find(r => r.scriptName === '内嵌状态栏');
+  const regex = card.data.extensions.regex_scripts.find(r => r.scriptName === "Embedded status panel");
   assert.equal(applyRegexFixture(regex, '<CardStatus/>'), regex.replaceString);
   assert.doesNotMatch(regex.replaceString, /\$\d|\$<|\{\{/);
   const encoded = regex.replaceString.match(/atob\("([A-Za-z0-9+/=]+)"\)/)[1];
@@ -69,7 +69,7 @@ test('Vue and MVU are independent, fixed external MVU is preserved', async t => 
   const root = await workspace(t);
   await newCard('Vue', { root, modules: ['vue'] });
   const simple = await buildCard('Vue', root);
-  assert.match(await fs.readFile(path.join(simple.directory, 'ui/1.html'), 'utf8'), /Vue · 无需 MVU/);
+  assert.match(await fs.readFile(path.join(simple.directory, 'ui/1.html'), 'utf8'), /Vue · No MVU required/);
   await newCard('变量界面', { root, modules: ['mvu', 'vue'] });
   const built = await buildCard('变量界面', root);
   const report = await readJSON(path.join(built.directory, 'build-report.json'));
@@ -80,7 +80,7 @@ test('Vue and MVU are independent, fixed external MVU is preserved', async t => 
   const card = await readJSON(path.join(built.directory, '变量界面.json'));
   assert.equal(card.data.character_book.entries.find(e => e.comment.startsWith('[initvar]')).enabled, false);
   assert.match(card.data.extensions.tavern_helper.scripts[0].content, /import 'https:/);
-  assert.deepEqual(card.data.extensions.tavern_helper.scripts.map(s => s.name), ['MVU 框架（固定提交）', '变量结构（zod 注册）']);
+  assert.deepEqual(card.data.extensions.tavern_helper.scripts.map(s => s.name), ['MVU framework (pinned commit)', 'Variable schema (Zod registration)']);
   assert.match(card.data.extensions.tavern_helper.scripts[1].content, /registerMvuSchema\(Schema\)/);
 });
 test('failed build leaves previous deliverable intact', async t => {
@@ -88,7 +88,7 @@ test('failed build leaves previous deliverable intact', async t => {
   const built = await buildCard('原子构建', root);
   const old = await fs.readFile(path.join(built.directory, '原子构建.json'));
   await fs.appendFile(path.join(dir, 'src/ui/html/main.js'), '\nfetch("http://localhost:5173/private.json");');
-  await assert.rejects(buildCard('原子构建', root), /未声明|开发/);
+  await assert.rejects(buildCard('原子构建', root), /undeclared|development/);
   assert.deepEqual(await fs.readFile(path.join(built.directory, '原子构建.json')), old);
 });
 test('resource auditing distinguishes resources, missing assets, external versions, and dynamic calls', async () => {
@@ -147,13 +147,13 @@ test('EJS syntax is compiled without rendering or running template statements', 
   const root = await workspace(t); const dir = await newCard('模板语法', { root });
   const file = path.join(dir, 'src/text/description.md');
   const index = await readYAML(dir, 'src/index.yaml');
-  index.文本.角色描述 = 'src/text/description.md';
+  index.text.description = 'src/text/description.md';
   await writeYAML(dir, 'src/index.yaml', index);
   await fs.writeFile(file, '<% throw new Error("Do not render me"); %><%= getvar("name") %>');
   const valid = await checkProject('模板语法', root);
   assert.equal(valid.report.ok, true); assert.deepEqual(valid.report.warnings, []);
   await fs.writeFile(file, '<% if ( %>');
   const fragment = await checkProject('模板语法', root);
-  assert.ok(fragment.report.warnings.some(w => w.includes('EJS 单文件编译未通过')));
+  assert.ok(fragment.report.warnings.some(w => w.includes('EJS standalone compilation failed')));
   assert.ok(fragment.report.warnings.every(w => !w.includes('is not a function')));
 });

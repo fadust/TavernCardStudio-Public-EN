@@ -10,8 +10,8 @@ import { buildCard } from '../tools/lib/build.mjs';
 import { main } from '../tools/card.mjs';
 import { chunk, writeCardPNG } from '../tools/lib/png.mjs';
 
-// 导入全景：imports/<原文件名> 逐字节保存完整原卡，original/ 只是工程内部的校验副本。
-// 归档按“同名同字节复用、同名不同字节另存编号”收敛，拆分失败不留下半成品归档。
+// Import overview: imports/<original filename> preserves exact card bytes; original/ is the internal verification copy.
+// Archives reuse identical named content and number differing content; failed splits leave no partial archives.
 
 async function workspace(t) {
   await fs.mkdir(path.join(ROOT, 'work'), { recursive: true });
@@ -52,7 +52,7 @@ function pngImage({ width = 2, height = 2 } = {}) {
   ]);
 }
 
-test('外部文件拆分把原卡逐字节归档到 imports/，original/ 仍是工程内部校验副本', async t => {
+test("splitting external files archives exact bytes in imports while original remains an internal verification copy", async t => {
   const root = await workspace(t);
   const card = await sampleCard('归档源');
   const bytes = cardBytes(card);
@@ -71,7 +71,7 @@ test('外部文件拆分把原卡逐字节归档到 imports/，original/ 仍是�
   assert.deepEqual(loaded.card, card, '归档不改内容，拆分结果与原卡一致');
 });
 
-test('PNG 原卡同样逐字节归档，头像与原件都取自输入文件', async t => {
+test("PNG cards are archived byte-for-byte with avatar and original taken from the input", async t => {
   const root = await workspace(t);
   const card = await sampleCard('图片源');
   const bytes = writeCardPNG(pngImage({ width: 3, height: 2 }), card);
@@ -87,7 +87,7 @@ test('PNG 原卡同样逐字节归档，头像与原件都取自输入文件', a
   assert.deepEqual(await readBytes(loaded.dir, loaded.project.avatar), bytes, 'PNG 原卡同时作为头像源');
 });
 
-test('同名归档：相同字节复用同一份，不同字节另存编号且不覆盖', async t => {
+test("same-name archives reuse identical bytes and number differing content without overwriting", async t => {
   const root = await workspace(t);
   const first = await sampleCard('复用源');
   await splitCard(await put(root, path.join('素材', '来源.json'), cardBytes(first)), { name: '复用一', root });
@@ -105,7 +105,7 @@ test('同名归档：相同字节复用同一份，不同字节另存编号且�
   assert.equal((await loadProject('另一版卡', root)).project.original.importPath, 'imports/来源 (2).json');
 });
 
-test('直接拆分 imports/ 里的文件不自覆盖、不重复复制', async t => {
+test("splitting files already in imports avoids overwriting or duplicate copying", async t => {
   const root = await workspace(t);
   const bytes = cardBytes(await sampleCard('自归档'));
   const inbox = await put(root, path.join('imports', '内档.json'), bytes);
@@ -121,13 +121,13 @@ test('直接拆分 imports/ 里的文件不自覆盖、不重复复制', async t
   assert.equal((await loadProject('内档卡二', root)).project.original.importPath, 'imports/内档.json');
 });
 
-test('非法原件、重名工程与创建失败都不新增归档，也不动已有归档', async t => {
+test("invalid inputs, duplicate projects, and creation failures leave archives unchanged", async t => {
   const root = await workspace(t);
   const rejected = [
-    ['坏JSON.json', '{ 不是 JSON', /JSON 无效/],
-    ['旧版.json', JSON.stringify({ spec: 'chara_card_v1', data: {} }), /不支持的角色卡格式/],
-    ['数组.json', '[1,2]', /必须是 JSON 对象/],
-    ['不支持.txt', 'hello', /只支持/],
+    ['坏JSON.json', '{ 不是 JSON', /Invalid card JSON/],
+    ['旧版.json', JSON.stringify({ spec: 'chara_card_v1', data: {} }), /Unsupported card format/],
+    ['数组.json', '[1,2]', /must be a JSON object/],
+    ['不支持.txt', 'hello', /supported/],
   ];
   for (const [filename, content, message] of rejected) {
     await assert.rejects(splitCard(await put(root, path.join('素材', filename), content), { name: '失败卡', root }), message);
@@ -137,25 +137,25 @@ test('非法原件、重名工程与创建失败都不新增归档，也不动�
 
   const occupied = cardBytes(await sampleCard('占位源'));
   await splitCard(await put(root, path.join('素材', '占位.json'), occupied), { name: '占位卡', root });
-  await assert.rejects(splitCard(await put(root, path.join('素材', '第二个.json'), cardBytes(await sampleCard('另一个'))), { name: '占位卡', root }), /已存在/);
+  await assert.rejects(splitCard(await put(root, path.join('素材', '第二个.json'), cardBytes(await sampleCard('另一个'))), { name: '占位卡', root }), /Already exists/);
   assert.deepEqual(await entries(root, 'imports'), ['占位.json'], '重名工程不会多留一份归档');
 
   const broken = await sampleCard('无法创作');
   broken.data.alternate_greetings = [42];
   const brokenBytes = cardBytes(broken);
   const brokenFile = await put(root, path.join('素材', '失败源.json'), brokenBytes);
-  await assert.rejects(splitCard(brokenFile, { name: '创建失败卡', root }), /开场白不是文本/);
+  await assert.rejects(splitCard(brokenFile, { name: '创建失败卡', root }), /greeting is not text/);
   assert.deepEqual(await entries(root, 'imports'), ['占位.json'], '创建失败要清掉本次新建的归档');
   assert.deepEqual(tempNames(await entries(root, 'cards')), [], '创建失败不留临时工程目录');
   assert.equal((await loadProject('占位卡', root)).project.original.importPath, 'imports/占位.json');
 
   await put(root, path.join('imports', '失败源.json'), brokenBytes);
-  await assert.rejects(splitCard(brokenFile, { name: '创建失败卡二', root }), /开场白不是文本/);
+  await assert.rejects(splitCard(brokenFile, { name: '创建失败卡二', root }), /greeting is not text/);
   assert.deepEqual(await entries(root, 'imports'), ['占位.json', '失败源.json'].sort(), '复用已有归档时不能因创建失败删掉它');
   assert.deepEqual(await readBytes(root, 'imports', '失败源.json'), brokenBytes);
 });
 
-test('界面导入后手工改 src 正文即可打包，imports 与 original 原件都不变，命令行读同一工程', async t => {
+test("UI imports allow source edits and builds without changing originals and share projects with the CLI", async t => {
   const root = await workspace(t);
   const ops = createOperations({ root, openFolder: async () => { throw new Error('测试中不应打开系统文件夹'); } });
   const card = await sampleCard('界面源');
@@ -198,7 +198,7 @@ test('界面导入后手工改 src 正文即可打包，imports 与 original 原
   assert.deepEqual(await entries(root, 'imports'), ['界面来源.json']);
 });
 
-test('删除 imports/ 归档后工程仍能加载与打包，内部 original 独立校验', async t => {
+test("projects load and build after archive deletion using independently verified internal originals", async t => {
   const root = await workspace(t);
   const card = await sampleCard('独立源');
   const bytes = cardBytes(card);

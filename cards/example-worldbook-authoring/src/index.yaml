@@ -1,0 +1,25 @@
+character:
+  name: example-worldbook-authoring
+  creator: ""
+  version: 0.1.0
+  tags: []
+text:
+  first_mes: src/text/first_mes.md
+  creator_notes: src/text/creator_notes.md
+alternate_greetings:
+  - src/greetings/001-returning-a-book.md
+group_only_greetings: []
+worldbook:
+  entries:
+    - src/worldbook/setting/world-setting.yaml
+    - src/worldbook/geography/geography-overview.yaml
+    - src/worldbook/geography/used-bookshop.yaml
+    - src/worldbook/characters/character-overview.yaml
+    - src/worldbook/characters/bookseller.yaml
+    - src/worldbook/rules/knowledge-boundaries.yaml
+  name: example-worldbook-authoring
+regex:
+  - src/regex/001-show-notes.yaml
+scripts:
+  - src/scripts/001-message-event-example.yaml
+helper_variables: {}

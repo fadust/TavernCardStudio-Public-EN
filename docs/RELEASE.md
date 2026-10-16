@@ -1,6 +1,6 @@
-# 发布公开工作区
+# Releasing the public workspace
 
-发布范围由 `maintenance/public-release.json` 明确列出。导出工具不会遍历个人作品、导入件、成品、会话记录、参考缓存、依赖目录或 Git 对象库；新增示例和根文件必须先更新清单。
+`maintenance/public-release.json` explicitly defines the export. The exporter does not traverse personal work, imports, builds, conversations, reference caches, dependencies, or Git objects. Add root files and official examples to the manifest before publishing them.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -8,12 +8,10 @@ pnpm verify
 pnpm release:export ../TavernCardStudio-release
 ```
 
-目标目录必须不存在；导出失败后应检查已生成的目录，换一个新的空目标重新导出，工具不会删除或覆盖已有目录。导出前必须完成工具测试、官方示例构建和链接检查。需要参考源码时，使用 `pnpm refs restore` 恢复固定版本，再运行 `pnpm verify:refs`。
+The destination must not exist. If export fails, inspect its partial output and choose a fresh destination; the tool does not delete/overwrite existing directories. Complete tool tests, official-example builds, and link checks first. If reference research is required, restore pinned sources and run `pnpm verify:refs`.
 
-导出包内含 `release-manifest.json`，记录逐文件 SHA-256 与版本。压缩时必须包含 `.agents/`、`.github/`、`.gitignore`、示例内的 `.card/` 等隐藏路径；不要用会遗漏隐藏文件的打包方式。检查解压后的文件与清单一致，并在干净目录重新安装、运行 `pnpm verify`。正式源码仓库采用独立初始化的 Git 历史，不携带其它工作区的 `.git`。
+The export includes `release-manifest.json` with version and per-file SHA-256. Archive hidden paths, including `.agents/`, `.github/`, `.gitignore`, and example `.card/` directories. Check extracted files against the manifest, install dependencies in a clean directory, and rerun `pnpm verify`. A standalone source publication must not carry another workspace's Git object database/history.
 
-公开前检查所有新增文件、PNG 中内嵌的角色数据、脚本与模板中的文字。自动检查只能识别一部分凭据形状和发布边界，不能替代对内容的审核。
+Review every newly published file, embedded PNG card data, script, and template. Automated checks detect only some credential patterns and release-boundary mistakes. Confirm `git status` contains only reviewed tools, documentation, templates, and official examples. Personal cards, generated reference indexes, and caches remain excluded.
 
-普通用户作品默认忽略，官方示例按明确名单纳入。向源码仓库提交时，确认 `git status` 中只有经过审核的工具、文档、模板与官方示例。运行时生成的参考索引与源码缓存不提交。发布工作区不需要连接酒馆服务器，也不会部署到任何远程主机。
-
-CI 运行离线工具测试、官方示例构建、公开包检查与本地管理界面测试。它不替代真实酒馆、扩展、模型或设备验证。浏览器检查使用 Playwright 自带 Chromium；本地环境也可选择已安装的 Chrome，见验证文档。
+Publishing the workspace does not require a SillyTavern connection or deploy to a remote host. CI runs offline tests, example builds, public-package checks, and local Studio browser tests. Browser checks use Playwright Chromium in CI and may use local Chrome; see [Verification](VERIFICATION.md). Neither CI nor a source publication verifies real host/model behavior.

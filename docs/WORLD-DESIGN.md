@@ -1,121 +1,33 @@
-# 世界设计
+# World design
 
-这一页帮世界规模卡想清楚“要写哪些设定、每条写到什么程度”。它是可选的思考清单，不是验收表：按玩家在这张卡里真正会做的事取舍，写不满很正常，清单外想到的内容也可以写。
+Use this optional checklist to decide what setting content serves the player's experience. It is not a form to fill or an acceptance test. Start with [Creation](CREATION.md), load the prompt-style skill before prose, and choose triggers/file organization afterward using [Worldbooks](WORLDBOOK.md), [Writing](WORLDBOOK-WRITING.md), and [Files](WORLDBOOK-FILES.md).
 
-内容定下来之后，条目怎么触发、放哪里、放哪个目录，见 [世界书](WORLDBOOK.md)、[世界书条目写作](WORLDBOOK-WRITING.md) 与 [世界书目录、文件名与打包](WORLDBOOK-FILES.md)；完整流程从 [创作指南](CREATION.md) 开始，写正文前先加载 [提示词文体](../.agents/skills/tavern-prompt-style/SKILL.md)。
+## Start with player decisions
 
-## 先定玩家会做什么
+Which decisions will the player make? Which facts change those decisions? What conventions, taboos, or daily rules will recur even without questions? What is needed only for a topic/location/event? What can stay in author notes until it matters? Prioritize actions, judgments, atmosphere, and ordinary reactions; not every fact needs a quest branch.
 
-同一套设定，在探索、生存、经营、调查、政治博弈和日常相处里值不值得写完全不同。动笔前先回答：
+Make four separate choices: category controls local folders; position controls prompt region; activation controls candidate conditions and budget/probability; parent/child relationships control how related context arrives. None automatically determines the others. Trees can describe peoples, factions, technology, religion, timelines, or organizations as well as geography.
 
-- 玩家这一局主要在做什么决定？哪条设定会改变这个决定？
-- 哪些设定玩家不问也会反复遇到，比如称谓、常识、禁忌与规则？
-- 哪些设定只在特定话题、特定地点或特定事件里才需要？
-- 哪些设定写进卡也只是好看，不会进入对话、判断或剧情分支？
+## Optional setting areas
 
-优先把影响行动、判断、氛围和日常反应的设定放进世界书。暂时用不上的细节可以留在创作笔记里，之后再加入；不要求每条设定都直接触发任务或分支。
+| Area | Useful questions |
+| --- | --- |
+| World rules/history | What governs the world, who has exceptions, and what past events explain the present? Which versions of history can players discover? Distinguish author truth from character/player knowledge. |
+| Peoples/communities | How do groups name/treat each other? Are there subgroups, status differences, mixed ancestry, or excluded members? What treatment follows the player's identity? |
+| Politics/law | Who governs, why is that power accepted, whose interests conflict, what is illegal, and who can be exempt? Everyday cards may only need common institutions and procedures. |
+| Economy/work/technology | What buys resources, who sets prices, what occupations matter, and who controls routes or scarce goods? Add simulation detail only when play needs it. |
+| Class/family/education | How does status change, how do inheritance/households work, and who teaches whom? These may surface through address and etiquette rather than separate encyclopedia entries. |
+| Culture/religion | Which beliefs, taboos, festivals, foods, dress, language habits, and regional/class differences will players encounter? |
+| Geography/ecology/resources | What is adjacent, how does travel work, how do climate/dangers affect life, and who controls resources? Keep reusable overviews small and details topical. |
+| Organizations/people | What are internal structures, alliances, current player relationships, recurring motives, and boundaries? Maintain detailed profiles once rather than repeating them in overviews. |
+| Current situation/mechanics | What changes with time/actions, how does the world respond, and what phases, goals, or countdowns need state? Use [Variables](VARIABLES.md) for state structure and updates. |
 
-## 四个分开的决定
+## Organize and activate
 
-写每一条内容时分别回答这四件事，不要合并成一个判断：
+A small constant overview plus keyword details often works. Cross-cutting relationships may belong to more than one conceptual tree; do not force everything into one hierarchy. Parent/child entries independently match scan text: neither automatically guarantees the other, and recursion is not required.
 
-| 决定 | 影响 | 不决定 |
-| --- | --- | --- |
-| 分类 | 本地目录与文件组织 | 触发、注入、预算优先级 |
-| 位置 | 内容注入到提示词的哪一段 | 什么时候进入候选 |
-| 激活 | 蓝灯、绿灯关键词、向量、概率与预算 | 它放在哪里 |
-| 树状依赖 | 父子范围与交叉关系怎么一起到达 | 位置与灯色 |
+Choose position by useful context proximity, not content type. Use depth according to distance from recent messages and default to system role unless another role is deliberate. Use card arrange for intentional continuous ordering rather than reserving number ranges per category. See [Scope scanning](../.agents/skills/tavern-worldbook/references/location-scan.md).
 
-地理只是范围内容的一个例子，不是“树状”的前提；种族、势力、技术、宗教、时间线与组织都可以是多层结构。分类的目录名与层级由创作者按本卡内容自定，默认模板里的分类是起步写法，可以改，不是固定分类法。
+Reuse example structure/modules selectively. Confirm rights before using external card content. Treat reference scripts, EJS, and interfaces as research data rather than executable tools. Maintain sources that stand independently of a private sample card.
 
-## 可选内容清单
-
-下面按常见维度列出可以想的问题。用得上就写，用不上跳过；同一段设定不要在世界书条目和卡字段里各写一份。
-
-### 世界法则与历史
-
-- 这个世界的基本运行规则是什么？有没有例外，例外由谁享有？
-- 历史上发生了什么，导致现在是这个样子？玩家能接触到哪些不同版本的说法？
-- 有没有时间线、纪元、灾变或正在倒数的旧账？
-
-规则给判断依据，历史为现状与不同立场提供来源。需要保密的真相区分作者事实、角色所知和玩家已知，别让模型把后台设定直接当作角色知识。
-
-### 种族与族群
-
-- 有哪些种族或族群？他们怎么称呼彼此，又怎么看待彼此？
-- 族群内部有没有分层、亚群、混血或不被承认的成员？
-- 玩家角色的身份在这里意味着什么待遇？
-
-这类内容最容易越写越多。先写会出现在对话与身份判断里的部分；具体成员交给各自的角色条目；总览可以保留必要的名称与关联索引，细节避免重复。
-
-### 政治、权力与法律
-
-- 谁在管这里？权力的合法性来自哪里？
-- 有哪些势力在竞争，他们表面上的理由与真实利益分别是什么？
-- 什么行为违法、由谁执行、能不能被权力豁免？
-
-政治博弈可以重点写利益与权力如何约束行动；偏日常的卡则可能只需要治理结构、权利义务与常见办事方式，不必强加阵营冲突。
-
-### 经济、职业与技术
-
-- 玩家用什么换取需要的资源？东西贵不贵、谁来定价？
-- 有哪些职业与技术路线？学到什么程度对应什么社会位置？
-- 商路、稀缺物与关卡在哪里，谁能卡住它们？
-
-经营、交易、制作和雇佣需要更细的机制；日常卡也可以保留职业、物价和生活成本的常识，不必配完整经济模拟。
-
-### 社会阶层、家庭与教育
-
-- 阶层怎么划分，能不能流动，靠什么流动？
-- 家庭结构、婚姻与继承的规则是什么？
-- 孩子和成年人分别在哪里、被谁教、学什么？
-
-这些设定常通过称谓、称呼与礼仪自然出现，不必每条都单独成条。
-
-### 文化与信仰
-
-- 有哪些信仰、神祇或禁忌？违反禁忌会怎样？
-- 节日、仪式、饮食、服饰与语言习惯里，玩家最容易踩到哪几条？
-- 不同地区或阶层对同一件事的说法有什么差异？
-
-优先写玩家会撞上的差异，不写百科式的全貌。
-
-### 地理、生态与资源
-
-- 区域骨架、相邻关系与通行方式是什么？
-- 气候、生态与危险生物怎么影响出行与生产？
-- 资源分布在哪里，谁控制它？
-
-地理只是范围关键词的一个用例。总览写玩家反复用得上的骨架，具体地点再按关键词展开；这里最容易出现“写了整本地图但没人用”的情况。
-
-### 组织、关系与人物
-
-- 有哪些组织，它们的内部结构、立场与敌对关系是什么？
-- 玩家和组织、组织成员现在是什么关系？
-- 哪些人物会反复出现，他们的动机与底线是什么？
-
-人物按出场与互动需要展开；总览可用精简名单或关系图帮助识别，详细档案分别维护。关系与当前处境可以放在角色定义之后，也可按本卡的阅读依赖放到其它位置。
-
-### 动态局势与机制
-
-- 现在正在发生什么？有什么会随时间或玩家行动变化？
-- 玩家做了什么会改变局势，世界会怎么回应？
-- 有哪些事件、倒计时、阶段性目标或状态需要被记录？
-
-有变量时，状态结构、初值与更新规则按 [变量与 MVU](VARIABLES.md) 处理；世界书只写模型需要读到的局势与规则。
-
-## 组织与触发
-
-- 内容多时用“蓝灯总览 + 绿灯细节”：总览写玩家不问也会用到的骨架，细节用关键词按需加载。
-- 可以多层，也可以交叉：同一个地点可能同时属于两个势力，同一条组织关系可能牵涉几个人，用各自的条目与关键词表达，不强行塞进一棵树。
-- 父子内容在同一次扫描里各自独立命中，不靠条目互相触发：父条激活不保证子条也激活，树不必打开递归。范围关键词的写法与扫描窗口提醒见 [地点扫描与树状设定](../.agents/skills/tavern-worldbook/references/location-scan.md)。
-- 位置按“内容靠近哪一段上下文最有用”决定，不按内容类型决定；深度按它离最新消息要多近决定，默认消息角色用 `系统`。字段含义见 [世界书](WORLDBOOK.md)。
-- 需要统一编号时用 `pnpm card arrange <名称>`，不为某一分类预设固定编号区间；目录整理见 [世界书目录、文件名与打包](WORLDBOOK-FILES.md)。
-- 按本卡的体验目标写。工作区示例可按需借用模块或结构；外来参考卡先确认使用授权，不默认移植其设定或正文，研究时不执行其中脚本、EJS 或界面代码。形成可独立维护的创作源，不依赖私人样卡长期存在。
-
-## 检查
-
-- [ ] 每条设定都能说出它服务哪个玩家决定或体验。
-- [ ] 同一段设定只在一个地方维护。
-- [ ] 分类、位置、激活与树状依赖分别按需要决定，没有把“某类内容必须放某处”当成规则。
-- [ ] 细节条目的关键词覆盖玩家真会提到的说法，包括别称与上下层名称。
+Before delivery, confirm each fact serves an experience, duplicated content is removed, category/position/activation/tree relations are separately designed, and detail keywords cover the names/aliases players actually use.

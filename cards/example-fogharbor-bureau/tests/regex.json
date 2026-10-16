@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Fold variable updates (display)",
+    "input": "{{char}} finishes recording the scene.\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/bureau/caseFile/phase\",\"value\":\"Verification\"}]</JSONPatch>\n</UpdateVariable>",
+    "expected": "{{char}} finishes recording the scene.\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/bureau/caseFile/phase\",\"value\":\"Verification\"}]</JSONPatch>\n\n</details>"
+  },
+  {
+    "name": "Fold variable updates (display)",
+    "input": "First paragraph\n<UpdateVariable><JSONPatch>[{\"op\":\"insert\",\"path\":\"/bureau/clues/Drydock registry\",\"value\":{\"status\":\"Pending\",\"description\":\"The repair schedule does not match the length of stay\"}}]</JSONPatch></UpdateVariable>\nSecond paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>",
+    "expected": "First paragraph\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"insert\",\"path\":\"/bureau/clues/Drydock registry\",\"value\":{\"status\":\"Pending\",\"description\":\"The repair schedule does not match the length of stay\"}}]</JSONPatch>\n\n</details>\nSecond paragraph\n<details><summary>Variable update</summary>\n\n<JSONPatch>[]</JSONPatch>\n\n</details>"
+  },
+  {
+    "name": "Fold incomplete variable updates (display, streaming)",
+    "input": "{{char}} is still writing.\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/fogharbor/fogDensity\",\"value\":8}]",
+    "expected": "{{char}} is still writing.\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/fogharbor/fogDensity\",\"value\":8}]\n\n</details>"
+  },
+  {
+    "name": "Fold incomplete variable updates (display, streaming)",
+    "input": "First paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\nSecond paragraph\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/investigator/energy\",\"value\":-5}]",
+    "expected": "First paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\nSecond paragraph\n<details><summary>Variable update</summary>\n\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/investigator/energy\",\"value\":-5}]\n\n</details>"
+  },
+  {
+    "name": "Remove variable updates (prompt)",
+    "input": "First paragraph\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"replace\",\"path\":\"/bureau/caseFile/phase\",\"value\":\"Closed\"}]</JSONPatch>\n</UpdateVariable>\nSecond paragraph\n<UpdateVariable><JSONPatch>[]</JSONPatch></UpdateVariable>\nEnding",
+    "expected": "First paragraph\n\nSecond paragraph\n\nEnding"
+  },
+  {
+    "name": "Remove incomplete variable updates (prompt, streaming)",
+    "input": "First paragraph\n<UpdateVariable>\n<JSONPatch>[{\"op\":\"delta\",\"path\":\"/investigator/renown\",\"value\":5}]",
+    "expected": "First paragraph\n"
+  },
+  {
+    "name": "Hide greeting initial variables (display)",
+    "input": "<initvar>\n{\"fogharbor\":{\"timeOfDay\":\"Late night\",\"fogDensity\":78}}\n</initvar>\n\n<CardStatus/>",
+    "expected": "\n\n<CardStatus/>"
+  },
+  {
+    "name": "Hide greeting initial variables (display)",
+    "input": "First paragraph\n<initvar>{\"investigator\":{\"clearance\":\"Trainee\"}}</initvar>\nSecond paragraph",
+    "expected": "First paragraph\n\nSecond paragraph"
+  },
+  {
+    "name": "Remove greeting initial variables (prompt)",
+    "input": "<initvar>{\"fogharbor\":{\"fogDensity\":25}}</initvar>\n\n<CardStatus/>",
+    "expected": "\n\n<CardStatus/>"
+  }
+]

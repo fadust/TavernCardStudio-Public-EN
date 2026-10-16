@@ -7,8 +7,8 @@ import { replaceFiles, publishDirectory } from '../tools/lib/publish.mjs';
 import { write } from '../tools/lib/files.mjs';
 import { auditResources, findResourceReferences } from '../tools/lib/resources.mjs';
 
-// 依赖登记与资源扫描决定一份产物能不能发布：卡里加载的外部地址必须在 dependencies 里，
-// 自写内容与本地文件不能借由脚本、样式或 jQuery 调用留在产物里。
+// Dependency declarations and resource scanning gate publication: loaded external URLs must appear in dependencies.
+// Authored content and local files must not remain as unresolved script, stylesheet, or jQuery loads in artifacts.
 const PINNED = 'https://cdn.jsdelivr.net/gh/owner/card-assets@abc1234/dist/panel.js';
 const pinned = { url: PINNED, purpose: '创作者自己的固定提交外链', version: 'abc1234' };
 
@@ -51,12 +51,12 @@ const jqueryOptions = '$.ajax({ url: ' + JSON.stringify(PINNED) + ', dataType: "
 test('jQuery ajax and get loaders reach the dependency audit', async () => {
   const undeclared = await auditResources(jqueryOptions, { file: 'src/scripts/panel.js', javascript: true, bundled: true });
   assert.equal(undeclared.errors.length, 1);
-  assert.match(undeclared.errors[0], /未声明的外部资源/);
+  assert.match(undeclared.errors[0], /undeclared external resource/);
   const declared = await auditResources(jqueryOptions, { file: 'src/scripts/panel.js', javascript: true, bundled: true, dependencies: [pinned] });
   assert.deepEqual(declared.errors, []);
   assert.deepEqual(declared.external, [PINNED]);
   const shorthand = await auditResources('$.get(' + JSON.stringify(PINNED) + ');', { file: 'src/scripts/panel.js', javascript: true, bundled: true });
-  assert.match(shorthand.errors[0], /未声明的外部资源/);
+  assert.match(shorthand.errors[0], /undeclared external resource/);
 });
 test('relative and variable jQuery addresses warn without failing the audit', async () => {
   const relative = await auditResources("$.get('/api/status');", { file: 'src/scripts/panel.js', javascript: true, bundled: true });
@@ -94,5 +94,5 @@ test('blob addresses warn and protocol-relative links match their https declarat
   const relative = await auditResources('<script src="//cdn.jsdelivr.net/gh/owner/card-assets@abc1234/dist/panel.js"></script>', { file: 'src/ui/panel.html', bundled: true, dependencies: [pinned] });
   assert.deepEqual(relative.errors, []);
   const undeclared = await auditResources('<script src="//cdn.example.com/lib@1.0.0.js"></script>', { file: 'src/ui/panel.html' });
-  assert.match(undeclared.errors[0], /未声明的外部资源/);
+  assert.match(undeclared.errors[0], /undeclared external resource/);
 });

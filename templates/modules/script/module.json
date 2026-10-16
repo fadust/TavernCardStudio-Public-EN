@@ -1,3 +1,9 @@
 {
-  "scripts": [ { "name": "消息事件示例", "source": "index.js", "bundle": true } ]
+  "scripts": [
+    {
+      "name": "Message event example",
+      "source": "index.js",
+      "bundle": true
+    }
+  ]
 }

@@ -46,7 +46,7 @@ test('a destination appearing during retry is preserved without another rename',
     await fs.writeFile(path.join(destination, 'existing.txt'), 'keep');
     throw Object.assign(new Error('sharing failure'), { code: 'EBUSY' });
   });
-  await assert.rejects(newCard('已有编辑', { root }), /拒绝覆盖/);
+  await assert.rejects(newCard('已有编辑', { root }), /refusing to overwrite/);
   assert.equal(attempts, 1);
   assert.equal(await fs.readFile(path.join(root, 'cards/已有编辑/existing.txt'), 'utf8'), 'keep');
   assert.deepEqual(await fs.readdir(path.join(root, 'cards')), ['已有编辑']);

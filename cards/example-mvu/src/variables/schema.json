@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MVU state reference (does not register runtime validation)",
+  "type": "object",
+  "properties": {
+    "scene": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "location",
+        "phase"
+      ],
+      "additionalProperties": false
+    },
+    "character": {
+      "type": "object",
+      "properties": {
+        "mood": {
+          "type": "string"
+        },
+        "trust": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "mood",
+        "trust"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "scene",
+    "character"
+  ],
+  "additionalProperties": false
+}

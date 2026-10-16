@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { parseDocument } from 'yaml';
+import { normalizeAuthoringDocument } from './authoring-language.mjs';
 import { ROOT, exists, safeName, safeFile, readJSON, writeJSON, write, walk } from './files.mjs';
 import { listProjects, loadProject, splitCard } from './project.mjs';
 import { helperScriptLists } from './authoring.mjs';
@@ -17,19 +18,19 @@ import { worldbookInventory } from './worldbook-inventory.mjs';
 export const MAX_UPLOAD = 64 * 1024 * 1024;
 function nameOf(value) {
   safeName(value);
-  if (value.length > 100) throw new Error('工程名称请控制在 100 个字符以内。');
+  if (value.length > 100) throw new Error('Project names must be at most 100 characters.');
   return value;
 }
 function decode(base64) {
-  if (typeof base64 !== 'string' || !base64.length || base64.length > Math.ceil(MAX_UPLOAD / 3) * 4 || base64.length % 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) throw new Error('文件为空、编码无效或超过 64 MB。');
+  if (typeof base64 !== 'string' || !base64.length || base64.length > Math.ceil(MAX_UPLOAD / 3) * 4 || base64.length % 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) throw new Error('File is empty, invalidly encoded, or exceeds 64 MiB.');
   const bytes = Buffer.from(base64, 'base64');
-  if (bytes.length > MAX_UPLOAD || bytes.toString('base64') !== base64) throw new Error('文件编码无效或超过 64 MB。');
+  if (bytes.length > MAX_UPLOAD || bytes.toString('base64') !== base64) throw new Error('File encoding is invalid or exceeds 64 MiB.');
   return bytes;
 }
 async function regularDirectory(dir, create = false) {
   if (create) await fs.mkdir(dir, { recursive: true });
   const entry = await fs.lstat(dir);
-  if (!entry.isDirectory() || entry.isSymbolicLink()) throw new Error(`不支持链接或非文件夹路径：${dir}`);
+  if (!entry.isDirectory() || entry.isSymbolicLink()) throw new Error(`Symlinks and non-directory paths are unsupported: ${dir}`);
   return dir;
 }
 function countScripts(card) {
@@ -40,7 +41,7 @@ function countScripts(card) {
 }
 // UI receives only the fields needed to explain each order change.
 function orderChanges(changes) {
-  return (changes ?? []).map(change => ({ name: change.file, from: change.orderFrom == null ? '未设置' : String(change.orderFrom), to: String(change.orderTo) }));
+  return (changes ?? []).map(change => ({ name: change.file, from: change.orderFrom == null ? 'unset' : String(change.orderFrom), to: String(change.orderTo) }));
 }
 
 export function createOperations({ root = ROOT, openFolder = async () => {} } = {}) {
@@ -53,8 +54,8 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
   async function available(name, except) {
     nameOf(name);
     const names = await listProjects(root);
-    if (names.some(n => n !== except && n.toLocaleLowerCase() === name.toLocaleLowerCase())) throw new Error('同名工程已存在，请换一个名称；现有卡片不会被覆盖。');
-    if (name !== except && await exists(path.join(root, 'cards', name))) throw new Error('该名称的路径已经存在，请换一个名称。');
+    if (names.some(n => n !== except && n.toLocaleLowerCase() === name.toLocaleLowerCase())) throw new Error('A project with that name already exists. Choose another name; existing cards will not be overwritten.');
+    if (name !== except && await exists(path.join(root, 'cards', name))) throw new Error('A path with that name already exists. Choose another name.');
   }
   async function listCards() {
     await cardsRoot();
@@ -75,7 +76,7 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
   async function edit(name, newName, mutate, copy = false) {
     nameOf(newName);
     const dir = await projectDir(name); await walk(dir); await loadProject(name, root);
-    if (name !== newName && name.toLowerCase() === newName.toLowerCase()) throw new Error('仅修改英文字母大小写时，请先改成一个不同名称，再改回来。');
+    if (name !== newName && name.toLowerCase() === newName.toLowerCase()) throw new Error('To change only letter case, rename to a different name first, then rename back.');
     await available(newName, copy ? undefined : name);
     const staging = await fs.mkdtemp(path.join(root, 'cards/.tmp-studio-'));
     const backup = path.join(root, 'cards/.tmp-backup-' + randomUUID());
@@ -85,7 +86,7 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
       manifest.name = newName;
       await mutate(staging, manifest);
       await writeJSON(path.join(staging, 'project.json'), manifest);
-      const nav = path.join(staging, '内容导航.md');
+      const nav = path.join(staging, 'CONTENTS.md');
       if (name !== newName && await exists(nav)) {
         let content = await fs.readFile(nav, 'utf8');
         content = content.replaceAll(`pnpm card map "${name}"`, `pnpm card map "${newName}"`).replaceAll(`pnpm card build "${name}"`, `pnpm card build "${newName}"`).replaceAll(`dist/${name}/`, `dist/${newName}/`);
@@ -111,7 +112,7 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
       }
     } finally { await fs.rm(staging, { recursive: true, force: true }); }
   }
-  // 分类信息只在导入、整理这类必要动作里读取；列表接口不逐条读世界书，避免整库变慢。
+  // Read classification only when importing or organizing; listing every entry would slow down the card list.
   async function classificationOf(name) {
     const { worldbook, classification } = await worldbookInventory(await loadProject(name, root));
     const files = value => Array.isArray(value) ? value.filter(item => typeof item === 'string') : [];
@@ -126,7 +127,7 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
   return {
     listCards,
     async importCard({ filename, base64, name }) {
-      if (typeof filename !== 'string' || !/\.(png|json)$/i.test(filename)) throw new Error('请选择 PNG 或 JSON 角色卡。普通图片请在封面处添加。');
+      if (typeof filename !== 'string' || !/\.(png|json)$/i.test(filename)) throw new Error('Choose a PNG or JSON character card. Add ordinary images using the cover action.');
       safeName(filename);
       await cardsRoot(); await available(name);
       const bytes = decode(base64);
@@ -138,24 +139,25 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
         await splitCard(file, { root, name });
       } finally { await fs.rm(temp, { recursive: true, force: true }); }
       const manifest = await readJSON(path.join(root, 'cards', name, 'project.json'));
-      return { ok: true, name, importPath: manifest.original.importPath, classification: await classificationOf(name), message: `完整原卡：${manifest.original.importPath}；拆分编辑区：cards/${name}/src；打包成品：dist/${name}。AI 和手动打包均读取同一份编辑文件。` };
+      return { ok: true, name, importPath: manifest.original.importPath, classification: await classificationOf(name), message: `Archived original: ${manifest.original.importPath}; editable source: cards/${name}/src; build output: dist/${name}. AI and manual builds read the same source files.` };
     },
     async newCard({ name, modules = [] }) {
       await cardsRoot(); await available(name);
-      if (!Array.isArray(modules) || modules.some(m => typeof m !== 'string')) throw new Error('模块列表无效。');
+      if (!Array.isArray(modules) || modules.some(m => typeof m !== 'string')) throw new Error('Invalid module list.');
       await newCard(name, { root, modules });
-      return { ok: true, name, message: '新卡已创建，可以打开内容文件夹继续编写。' };
+      return { ok: true, name, message: 'New card created. Open the source folder to continue writing.' };
     },
     async renameCard({ name, newName, characterName }) {
       nameOf(newName);
-      if (characterName !== undefined && (typeof characterName !== 'string' || !characterName.trim() || characterName.length > 200 || /[\x00-\x1f]/.test(characterName))) throw new Error('角色显示名不能为空，最多 200 个字符。');
+      if (characterName !== undefined && (typeof characterName !== 'string' || !characterName.trim() || characterName.length > 200 || /[\x00-\x1f]/.test(characterName))) throw new Error('Character display names must be nonempty and at most 200 characters.');
       await edit(name, newName, async (dir, manifest) => {
         if (characterName === undefined) return;
         if (manifest.schemaVersion === 2) {
           const file = await safeFile(dir, manifest.source);
           const document = parseDocument(await fs.readFile(file, 'utf8'));
           if (document.errors.length) throw new Error(document.errors[0].message);
-          document.setIn(['角色', '名称'], characterName);
+          normalizeAuthoringDocument(document);
+          document.setIn(['character', 'name'], characterName);
           await fs.writeFile(file, document.toString({ lineWidth: 0 }));
         } else {
           const file = await safeFile(dir, 'src/card.json'); const card = await readJSON(file);
@@ -164,16 +166,16 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
           await writeJSON(file, card);
         }
       });
-      return { ok: true, name: newName, message: '名称已保存。原件保持不变；请重新打包生成新名称的成品，旧成品保留在原目录。' };
+      return { ok: true, name: newName, message: 'Name saved. The original is unchanged. Build again to generate output with the new name; previous output remains in its original directory.' };
     },
     async duplicateCard({ name, newName }) {
       await edit(name, newName, async () => {}, true);
-      return { ok: true, name: newName, message: '副本已创建，源卡保留不变。角色显示名沿用原卡，可单独修改。' };
+      return { ok: true, name: newName, message: 'Copy created; the source card is unchanged. Its character display name is retained and can be edited separately.' };
     },
     async setCover({ name, base64 }) {
       const bytes = decode(base64); const chunks = parsePNG(bytes);
       const width = chunks[0].data.readUInt32BE(0); const height = chunks[0].data.readUInt32BE(4);
-      if (!width || !height || width > 8192 || height > 8192 || width * height > 24_000_000) throw new Error('封面尺寸过大或无效，请选择不超过 2400 万像素的图片。');
+      if (!width || !height || width > 8192 || height > 8192 || width * height > 24_000_000) throw new Error('Cover dimensions are invalid or too large. Choose an image of at most 24 megapixels.');
       // Keep only image chunks. Selecting another card as a cover must not retain its character data.
       const image = Buffer.concat([bytes.subarray(0, 8), ...chunks.filter(c => !['tEXt', 'zTXt', 'iTXt'].includes(c.type)).map(c => c.raw)]);
       await edit(name, name, async (dir, manifest) => {
@@ -181,15 +183,15 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
         await write(path.join(dir, relative), image);
         manifest.avatar = relative;
       });
-      return { ok: true, name, message: '封面已保存。重新打包后会同时生成 PNG 角色卡与 JSON。' };
+      return { ok: true, name, message: 'Cover saved. Building again will produce both PNG and JSON character cards.' };
     },
     async removeCover({ name }) {
       await edit(name, name, async (_dir, manifest) => { manifest.avatar = null; });
-      return { ok: true, name, message: '已取消封面，图片源文件保留。下一次打包仅生成 JSON 角色卡。' };
+      return { ok: true, name, message: 'Cover removed; its source image is retained. The next build produces only a JSON character card.' };
     },
     async cover(name) {
       const dir = await projectDir(name); const manifest = await readJSON(await safeFile(dir, 'project.json'));
-      if (!manifest.avatar) throw new Error('这张卡还没有封面。');
+      if (!manifest.avatar) throw new Error('This card has no cover.');
       return fs.readFile(await safeFile(dir, manifest.avatar));
     },
     async checkCard({ name }) {
@@ -205,19 +207,19 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
     },
     async organizeCard({ name }) {
       const dir = await projectDir(name); await walk(dir);
-      // organize 会在 cards/ 下建临时目录，并把原工程备份到 work/layout-backups/；两处都必须是真实目录，不能是链接。
+      // organize stages in cards/ and backs up to work/layout-backups/; both must be real directories.
       await regularDirectory(path.join(root, 'work'), true);
       await regularDirectory(path.join(root, 'work/layout-backups'), true);
       const result = await organizeWorldbook(name, root);
       const changes = Array.isArray(result.changes)
         ? result.changes.map(change => ({ from: String(change.from), to: String(change.to), bodyFrom: String(change.bodyFrom), bodyTo: String(change.bodyTo) }))
         : [];
-      // 整理结果顺带回读分类状态：还剩哪些条目要由 AI 读正文后补「分类」再整理。
+      // Return classification state so AI can read remaining bodies, add category, and organize again.
       return { ok: true, name, organized: result.organized === true, backup: typeof result.backup === 'string' ? result.backup : null, changes, classification: await classificationOf(name) };
     },
     async arrangeCard({ name }) {
       const dir = await projectDir(name); await walk(dir);
-      // arrange 和 organize 一样会在 cards/ 下建临时目录，并把原工程备份到 work/order-backups/；两处都必须是真实目录，不能是链接。
+      // arrange stages in cards/ and backs up to work/order-backups/; both must be real directories.
       await regularDirectory(path.join(root, 'work'), true);
       await regularDirectory(path.join(root, 'work/order-backups'), true);
       const result = await arrangeWorldbook(name, root);
@@ -240,7 +242,7 @@ export function createOperations({ root = ROOT, openFolder = async () => {} } = 
       else if (target === 'dist') {
         await projectDir(name); await regularDirectory(path.join(root, 'dist'));
         dir = await regularDirectory(path.join(root, 'dist', name));
-      } else throw new Error('未知的文件夹类型。');
+      } else throw new Error('Unknown folder type.');
       await openFolder(dir); return { ok: true };
     },
   };

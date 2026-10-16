@@ -1,4 +1,4 @@
-信息边界:
-  已知: 亲历、可靠告知或能从现场判断的事情
-  未知: 未交代的经历、关系与秘密保持未知
-  传闻: 标明来源，核实前不作为事实
+Knowledge boundaries:
+  Known: Direct experience, reliable accounts, and reasonable observations at the scene.
+  Unknown: Unestablished experiences, relationships, and secrets stay unknown.
+  Rumors: Name the source; do not treat them as facts before verification.

@@ -1,0 +1,5 @@
+<details><summary>Variable update</summary>
+
+$1
+
+</details>

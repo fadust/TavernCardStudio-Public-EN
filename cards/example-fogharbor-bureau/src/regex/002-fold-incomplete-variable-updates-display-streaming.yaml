@@ -1,0 +1,15 @@
+link: regex-10
+name: Fold incomplete variable updates (display, streaming)
+find: /<update(?:variable)?>(?![\s\S]*<\/update(?:variable)?>)\s*([\s\S]*)$/gi
+trim: []
+disabled: false
+display_only: true
+prompt_only: false
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - user_input
+  - ai_output
+replacement_file: src/regex/002-fold-incomplete-variable-updates-display-streaming.txt

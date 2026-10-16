@@ -1,0 +1,16 @@
+name: Fogharbor Bureau buttons
+enabled: true
+info: Two read-only buttons show case and fog summaries from MVU without changing chat history or variables.
+button:
+  enabled: true
+  buttons:
+    - name: View current case
+      visible: true
+    - name: Fog report
+      visible: true
+data: {}
+type: script
+file: src/scripts/001-fogharbor-bureau-buttons.js
+build:
+  type: script
+  entry: src/scripts/001-fogharbor-bureau-buttons.js

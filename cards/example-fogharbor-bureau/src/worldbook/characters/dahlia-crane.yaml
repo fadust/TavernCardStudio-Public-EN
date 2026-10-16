@@ -1,0 +1,17 @@
+name: Partner·Dahlia Crane
+enabled: true
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 11
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: after_character
+role: system
+file: src/worldbook/characters/dahlia-crane.md
+link: worldbook-7af8244b-1057-44ef-9494-da9644de3953

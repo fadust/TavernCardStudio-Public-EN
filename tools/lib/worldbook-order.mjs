@@ -4,11 +4,11 @@ export function entryPosition(entry) {
 }
 
 export function planWorldbookOrder(entries, { order = 'prompt' } = {}) {
-  if (!['prompt', 'index'].includes(order)) throw new Error('顺序模式只能是 prompt 或 index。');
+  if (!['prompt', 'index'].includes(order)) throw new Error('Order mode must be prompt or index.');
   const rows = entries.map((entry, index) => ({ index, entry, position: entryPosition(entry) }));
   if (order === 'prompt') {
     const unknown = rows.filter(({ entry, position }) => entry.enabled !== false && (!Number.isFinite(entry.insertion_order) || ![0, 1, 4].includes(position) || (position === 4 && (!Number.isInteger(entry.extensions?.depth ?? 4) || (entry.extensions?.depth ?? 4) < 0 || ![0, 1, 2].includes(entry.extensions?.role ?? 0)))));
-    if (unknown.length) throw new Error('存在依赖宿主布局的位置或缺失、异常的顺序设置，不能自动判断全局次序：' + unknown.map(({ entry, index }) => entry.comment || `条目 ${index + 1}`).join('、') + '。请核对宿主提示词后排好总索引，再使用 --order index。');
+    if (unknown.length) throw new Error('Some positions depend on the host layout, or order settings are missing/invalid. Global order cannot be inferred: ' + unknown.map(({ entry, index }) => entry.comment || `entry ${index + 1}`).join(', ') + '. Check the host prompt, arrange the index manually, then use --order index.');
     const rank = row => row.entry.enabled === false ? 3 : row.position === 0 ? 0 : row.position === 1 ? 1 : 2;
     rows.sort((a, b) => {
       const group = rank(a) - rank(b);

@@ -1,0 +1,13 @@
+name: Bookseller
+enabled: true
+activation: keyword
+position: after_character
+order: 5
+file: src/worldbook/characters/bookseller.md
+keys:
+  - Bookseller
+  - bookseller
+  - Used bookshop
+exclude_recursion: true
+prevent_recursion: true
+link: worldbook-8bd409e0-0e2c-4766-8e7d-1cdf08bc5c2d

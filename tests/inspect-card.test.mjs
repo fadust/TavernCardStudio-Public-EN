@@ -1,5 +1,5 @@
-// tools/inspect-card.mjs 的测试：只用公开导出与临时目录。
-// 夹具全部在测试里现造，不依赖任何私有大卡，也不读写仓库里的示例卡。
+// Tests for tools/inspect-card.mjs using public exports and temporary directories only.
+// Fixtures are created in tests without private cards or reads and writes to repository examples.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -28,7 +28,7 @@ const SECRETS = [
   'ZZ_SECRET_SCRIPT_3_ZZ',
 ];
 
-// ---------- 最小 PNG ----------
+// ---------- Minimal PNG ----------
 
 function ihdr(width = 1, height = 1) {
   const data = Buffer.alloc(13);
@@ -57,7 +57,7 @@ function buildPNG(extraChunks = []) {
   return Buffer.concat([PNG_SIGNATURE, ihdr(), ...extraChunks, idat(), chunk('IEND', Buffer.alloc(0))]);
 }
 
-// ---------- 夹具 ----------
+// ---------- Fixtures ----------
 
 function worldEntry(options) {
   const index = options.index;
@@ -95,14 +95,14 @@ function worldEntry(options) {
 function fixtureCard() {
   const entries = [
     worldEntry({ index: 0, comment: '===变量开始===', enabled: false, position: 0, order: 100, vectorized: true }),
-    worldEntry({ index: 1, comment: '[initvar]变量初始化', enabled: false, constant: true, position: 0, order: 101, group: '变量', content: 'ZZ_SECRET_ENTRY_1_ZZ ' + '初'.repeat(40) }),
-    worldEntry({ index: 2, comment: '[mvu_update]变量更新规则', constant: true, position: 4, depth: 0, order: 102, group: '变量', content: 'ZZ_SECRET_ENTRY_2_ZZ ' + '规'.repeat(60) }),
-    worldEntry({ index: 3, comment: '旧书店', keys: ['旧书店', '书店'], useRegex: true, position: 1, order: 103, content: 'ZZ_SECRET_ENTRY_3_ZZ ' + '店'.repeat(80) }),
+    worldEntry({ index: 1, comment: '[initvar]变量初始化', enabled: false, constant: true, position: 0, order: 101, group: "variables", content: 'ZZ_SECRET_ENTRY_1_ZZ ' + '初'.repeat(40) }),
+    worldEntry({ index: 2, comment: '[mvu_update]变量更新规则', constant: true, position: 4, depth: 0, order: 102, group: "variables", content: 'ZZ_SECRET_ENTRY_2_ZZ ' + '规'.repeat(60) }),
+    worldEntry({ index: 3, comment: "Used bookshop", keys: ["Used bookshop", '书店'], useRegex: true, position: 1, order: 103, content: 'ZZ_SECRET_ENTRY_3_ZZ ' + '店'.repeat(80) }),
     worldEntry({ index: 4, comment: '深巷', keys: [], vectorized: true, position: 4, depth: 2, role: 1, order: 103, sticky: 5, cooldown: 9999, delay: 3, content: 'ZZ_SECRET_ENTRY_4_ZZ' }),
     worldEntry({ index: 5, comment: '===变量结束===', enabled: false, position: 0, order: 105, vectorized: true }),
     worldEntry({ index: 6, comment: '未连接条目', keys: [], position: 1, order: 106, content: 'ZZ_SECRET_ENTRY_6_ZZ' }),
   ];
-  // 用字符串位置字段、不带 extensions.position 的条目：验证别名映射。
+  // Verify alias mapping with a string position field and no extensions.position.
   delete entries[6].extensions.position;
   entries[6].position = 'after_char';
 
@@ -123,7 +123,7 @@ function fixtureCard() {
 
   const scripts = [
     {
-      type: 'folder', id: 'f1', name: '变量', icon: 'fa-cog', enabled: true,
+      type: 'folder', id: 'f1', name: "variables", icon: 'fa-cog', enabled: true,
       scripts: [
         {
           type: 'script', id: 's1', name: '变量结构', enabled: true,
@@ -164,7 +164,7 @@ function fixtureCard() {
   };
 }
 
-// ---------- 临时目录 ----------
+// ---------- Temporary directories ----------
 
 async function tempDir(t, prefix = 'tcs-inspect-') {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -183,9 +183,9 @@ function assertNoSecrets(value, secrets, label) {
   for (const secret of secrets) assert.ok(!json.includes(secret), label + ' 不应包含正文片段 ' + secret);
 }
 
-// ---------- 摘要 ----------
+// ---------- Summaries ----------
 
-test('默认摘要给出哈希与计数，且不打印正文和大段替换文本', async t => {
+test("default summaries show hashes and counts without body text or large replacement strings", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   const file = await writeCard(dir, 'card.json', card);
@@ -213,8 +213,8 @@ test('默认摘要给出哈希与计数，且不打印正文和大段替换文�
   assert.equal(result.counts.greetings.alternate, 2);
   assert.equal(result.counts.tags, 1);
   assert.deepEqual(result.notes, [
-    '有 3 条设置向量策略，其中启用 1 条；启用者需要宿主向量扩展参与。',
-    '有 1 条已启用但既非常驻、也无关键字、也未向量化，常规扫描下不会触发。',
+    'There are 3 vector-strategy entries, of which 1 are enabled and require the host vector extension.',
+    'There are 1 enabled entries with no constant, keyword, or vector trigger; ordinary scanning will not activate them.',
   ]);
 
   const summary = inspectCard(card);
@@ -222,7 +222,7 @@ test('默认摘要给出哈希与计数，且不打印正文和大段替换文�
   assert.equal(summary.card.sha256, result.card.sha256);
 });
 
-test('摘要统计蓝／绿／向量、启用、位置、深度、顺序、分类与分隔符', async t => {
+test("summaries count activation modes, enabled state, position, depth, order, categories, and separators", async t => {
   const dir = await tempDir(t);
   const file = await writeCard(dir, 'card.json', fixtureCard());
   const result = await main([file]);
@@ -231,7 +231,7 @@ test('摘要统计蓝／绿／向量、启用、位置、深度、顺序、分�
   assert.equal(worldbook.enabled, 4);
   assert.equal(worldbook.disabled, 3);
   assert.equal(worldbook.trigger.constant, 2);
-  assert.equal(worldbook.trigger.keyword, 2); // 绿灯包括没有关键词的未连接条目。
+  assert.equal(worldbook.trigger.keyword, 2); // Keyword mode includes disconnected entries with no keywords.
   assert.equal(worldbook.trigger.vectorized, 3);
   assert.equal(worldbook.trigger.selective, 7);
   assert.equal(worldbook.trigger.noTrigger, 1);
@@ -241,7 +241,7 @@ test('摘要统计蓝／绿／向量、启用、位置、深度、顺序、分�
   assert.equal(worldbook.keys.regexLiteralEntries, 0);
 
   assert.deepEqual(worldbook.position, { 0: 3, 1: 2, 4: 2 });
-  assert.deepEqual(worldbook.positionLabels, { 0: '角色定义之前', 1: '角色定义之后', 4: '指定深度' });
+  assert.deepEqual(worldbook.positionLabels, { 0: "before_character", 1: "after_character", 4: "at_depth" });
   assert.deepEqual(worldbook.depth, { 0: 1, 2: 1 });
   assert.equal(worldbook.depthMissing, 0);
   assert.deepEqual(worldbook.role, { 0: 1, 1: 1 });
@@ -283,9 +283,9 @@ test('摘要统计蓝／绿／向量、启用、位置、深度、顺序、分�
   assert.equal(result.scripts.items[0].dataKeys, 1);
 });
 
-// ---------- 条目索引与正文 ----------
+// ---------- Entry index and body ----------
 
-test('--entries 只打印条目索引元数据', async t => {
+test("--entries prints only entry index metadata", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   const file = await writeCard(dir, 'card.json', card);
@@ -293,11 +293,11 @@ test('--entries 只打印条目索引元数据', async t => {
   const result = await main([file, '--entries']);
   assert.equal(result.mode, 'entries');
   assert.deepEqual(result.entries.map(entry => entry.index), [0, 1, 2, 3, 4, 5, 6]);
-  assert.equal(result.entries[3].name, '旧书店');
-  assert.deepEqual(result.entries[3].keys.sample, ['旧书店', '书店']);
+  assert.equal(result.entries[3].name, "Used bookshop");
+  assert.deepEqual(result.entries[3].keys.sample, ["Used bookshop", '书店']);
   assert.equal(result.entries[3].keys.count, 2);
   assert.equal(result.entries[3].position, 1);
-  assert.equal(result.entries[3].positionLabel, '角色定义之后');
+  assert.equal(result.entries[3].positionLabel, "after_character");
   assert.equal(result.entries[3].useRegex, true);
   assert.equal(result.entries[6].position, 1);
   assert.equal(result.entries[0].separator, true);
@@ -309,7 +309,7 @@ test('--entries 只打印条目索引元数据', async t => {
   assertNoSecrets(result, SECRETS, '--entries');
 });
 
-test('--entry 支持 id、精确条目名与序号回退', async t => {
+test("--entry supports IDs, exact names, and ordinal fallback", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   card.data.character_book.entries[1].id = 'entry-beta';
@@ -326,7 +326,7 @@ test('--entry 支持 id、精确条目名与序号回退', async t => {
   assert.equal(byId.selected.truncated, false);
   assert.equal(byId.selected.totalChars, byId.body.length);
 
-  const byName = await main([file, '--entry', '旧书店']);
+  const byName = await main([file, '--entry', "Used bookshop"]);
   assert.equal(byName.selected.index, 3);
   assert.equal(byName.body, card.data.character_book.entries[3].content);
   assert.equal(byName.worldbook, undefined, '选中正文的模式不重复整份摘要');
@@ -337,10 +337,10 @@ test('--entry 支持 id、精确条目名与序号回退', async t => {
   assert.equal(byIndex.selected.index, 1);
   assert.equal(byIndex.body, card.data.character_book.entries[1].content);
 
-  await assert.rejects(() => main([file, '--entry', '不存在的条目']), /找不到世界书条目/);
+  await assert.rejects(() => main([file, '--entry', '不存在的条目']), /Cannot find worldbook entry/);
 });
 
-test('--script 与 --regex 精确选中并带元数据', async t => {
+test("--script and --regex select exact matches with metadata", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   const file = await writeCard(dir, 'card.json', card);
@@ -357,7 +357,7 @@ test('--script 与 --regex 精确选中并带元数据', async t => {
 
   const byName = await main([file, '--script', '顶层脚本']);
   assert.equal(byName.selected.id, 's3');
-  await assert.rejects(() => main([file, '--script', '没有这个脚本']), /找不到脚本/);
+  await assert.rejects(() => main([file, '--script', '没有这个脚本']), /Cannot find script/);
 
   const regex = await main([file, '--regex', 'r-long']);
   assert.equal(regex.mode, 'regex');
@@ -378,12 +378,12 @@ test('--script 与 --regex 精确选中并带元数据', async t => {
   const byIndex = await main([file, '--regex', '1']);
   assert.equal(byIndex.selected.id, 'r-off');
   assert.equal(byIndex.parts.replaceString.body, 'ZZ_SECRET_REPLACE2_ZZ');
-  await assert.rejects(() => main([file, '--regex', 'r-none']), /找不到正则/);
+  await assert.rejects(() => main([file, '--regex', 'r-none']), /Cannot find regex/);
 });
 
-// ---------- 预算 ----------
+// ---------- Budgets ----------
 
-test('createBudget 依次消费额度并报告总量', () => {
+test("createBudget consumes limits sequentially and reports the total", () => {
   const budget = createBudget(10);
   const first = budget.take('abcdef');
   assert.deepEqual([first.body, first.chars, first.totalChars, first.truncated], ['abcdef', 6, 6, false]);
@@ -392,37 +392,37 @@ test('createBudget 依次消费额度并报告总量', () => {
   assert.equal(second.sha256, sha256(Buffer.from('ghijklmn', 'utf8')));
   assert.equal(budget.remaining, 0);
   assert.deepEqual([budget.take('x').body, budget.take('x').truncated], ['', true]);
-  assert.throws(() => createBudget(-1), /非负整数/);
-  assert.throws(() => createBudget(1.5), /非负整数/);
+  assert.throws(() => createBudget(-1), /non-negative integer/);
+  assert.throws(() => createBudget(1.5), /non-negative integer/);
 });
 
-test('正文按默认预算与 --limit 截断', async t => {
+test("body text respects the default budget and --limit", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   const body = 'Z'.repeat(20000);
   card.data.character_book.entries[3].content = body;
   const file = await writeCard(dir, 'card.json', card);
 
-  const dflt = await main([file, '--entry', '旧书店']);
+  const dflt = await main([file, '--entry', "Used bookshop"]);
   assert.equal(dflt.body.length, DEFAULT_LIMIT);
   assert.equal(dflt.selected.totalChars, body.length);
   assert.equal(dflt.selected.truncated, true);
   assert.equal(dflt.selected.sha256, sha256(Buffer.from(body, 'utf8')));
 
-  const small = await main([file, '--entry', '旧书店', '--limit', '100']);
+  const small = await main([file, '--entry', "Used bookshop", '--limit', '100']);
   assert.equal(small.limit, 100);
   assert.equal(small.body, body.slice(0, 100));
 
-  const none = await main([file, '--entry', '旧书店', '--limit', '0']);
+  const none = await main([file, '--entry', "Used bookshop", '--limit', '0']);
   assert.equal(none.body, '');
   assert.equal(none.selected.truncated, true);
   assert.equal(none.selected.totalChars, body.length);
 
-  const roomy = await main([file, '--entry', '旧书店', '--limit', '20000']);
+  const roomy = await main([file, '--entry', "Used bookshop", '--limit', '20000']);
   assert.equal(roomy.body, body);
   assert.equal(roomy.selected.truncated, false);
 
-  const partial = await inspectCard(card, { mode: 'entry', selector: '旧书店', limit: 5 });
+  const partial = await inspectCard(card, { mode: 'entry', selector: "Used bookshop", limit: 5 });
   assert.equal(partial.body, body.slice(0, 5));
 
   const script = await main([file, '--script', 's3', '--limit', '4']);
@@ -430,9 +430,9 @@ test('正文按默认预算与 --limit 截断', async t => {
   assert.equal(script.selected.totalChars, card.data.extensions.tavern_helper.scripts[1].content.length);
 });
 
-// ---------- PNG 输入 ----------
+// ---------- PNG input ----------
 
-test('PNG 输入按 chara／ccv3 读取，损坏时明确报错', async t => {
+test("PNG input reads chara/ccv3 and reports corruption clearly", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   const charaFile = path.join(dir, 'card.png');
@@ -459,28 +459,28 @@ test('PNG 输入按 chara／ccv3 读取，损坏时明确报错', async t => {
   const truncated = path.join(dir, 'truncated.png');
   const image = buildPNG([cardChunk('chara', card)]);
   await fs.writeFile(truncated, image.subarray(0, image.length - 8));
-  await assert.rejects(() => main([truncated]), /截断|越界|IEND/);
+  await assert.rejects(() => main([truncated]), /Truncated|out of bounds|IEND/);
 
   const broken = path.join(dir, 'broken.png');
   await fs.writeFile(broken, Buffer.from('这不是 PNG', 'utf8'));
-  await assert.rejects(() => main([broken]), /PNG 签名无效/);
+  await assert.rejects(() => main([broken]), /Invalid PNG signature/);
 });
 
-// ---------- 参数与错误 ----------
+// ---------- Arguments and errors ----------
 
-test('CLI 参数被校验，--help 给出用法', async t => {
+test("CLI arguments are validated and --help shows usage", async t => {
   const dir = await tempDir(t);
   const file = await writeCard(dir, 'card.json', fixtureCard());
 
-  await assert.rejects(() => main([]), /缺少输入文件/);
-  await assert.rejects(() => main([file, '--nope']), /未知参数/);
-  await assert.rejects(() => main([file, '--entry']), /--entry 缺少值/);
-  await assert.rejects(() => main([file, '--limit', 'abc']), /--limit 需要非负整数/);
-  await assert.rejects(() => main([file, '--limit', '-1']), /--limit 需要非负整数/);
-  await assert.rejects(() => main([file, '--entry', '0', '--script', 's1']), /一次只能选择一种输出模式/);
-  await assert.rejects(() => main([file, '--entries', '--regex', 'r-long']), /一次只能选择一种输出模式/);
-  await assert.rejects(() => main([file, '再来一个.json']), /一次只能检查一个文件/);
-  await assert.rejects(() => main([path.join(dir, '不存在.json')]), /无法读取/);
+  await assert.rejects(() => main([]), /Missing input file/);
+  await assert.rejects(() => main([file, '--nope']), /Unknown argument/);
+  await assert.rejects(() => main([file, '--entry']), /--entry is missing a value/);
+  await assert.rejects(() => main([file, '--limit', 'abc']), /--limit requires a non-negative integer/);
+  await assert.rejects(() => main([file, '--limit', '-1']), /--limit requires a non-negative integer/);
+  await assert.rejects(() => main([file, '--entry', '0', '--script', 's1']), /Choose only one output mode/);
+  await assert.rejects(() => main([file, '--entries', '--regex', 'r-long']), /Choose only one output mode/);
+  await assert.rejects(() => main([file, '再来一个.json']), /Inspect one file at a time/);
+  await assert.rejects(() => main([path.join(dir, '不存在.json')]), /Cannot read/);
 
   const help = await main(['--help']);
   assert.equal(help.ok, true);
@@ -489,17 +489,17 @@ test('CLI 参数被校验，--help 给出用法', async t => {
 
   assert.deepEqual(parseArgs(['a.json', '--entries']), { file: 'a.json', mode: 'entries', selector: null, limit: DEFAULT_LIMIT, help: false });
   assert.equal(parseArgs(['a.json', '--regex', 'r1', '--limit', '12']).limit, 12);
-  assert.throws(() => parseArgs(['a.json', '--entry', '--limit', '5']), /--entry 缺少值/);
+  assert.throws(() => parseArgs(['a.json', '--entry', '--limit', '5']), /--entry is missing a value/);
 });
 
-test('非对象输入被拒绝，legacy 根层与拆分占位给出提示', async t => {
+test("nonobject input is rejected while legacy roots and split placeholders receive guidance", async t => {
   const dir = await tempDir(t);
 
   const arrayFile = path.join(dir, 'array.json');
   await fs.writeFile(arrayFile, '[1,2]');
-  await assert.rejects(() => main([arrayFile]), /必须是 JSON 对象/);
-  assert.throws(() => inspectCard('文本'), /必须是 JSON 对象/);
-  assert.throws(() => inspectCard([1, 2]), /必须是 JSON 对象/);
+  await assert.rejects(() => main([arrayFile]), /must be a JSON object/);
+  assert.throws(() => inspectCard("text"), /must be a JSON object/);
+  assert.throws(() => inspectCard([1, 2]), /must be a JSON object/);
 
   const legacy = {
     description: '根层描述',
@@ -513,18 +513,18 @@ test('非对象输入被拒绝，legacy 根层与拆分占位给出提示', asyn
   assert.equal(legacyResult.card.sources.regex, '/extensions/regex_scripts');
   assert.equal(legacyResult.texts.description.source, '/description');
   assert.equal(legacyResult.counts.regex.total, 1);
-  assert.ok(legacyResult.notes.some(note => note.includes('没有 spec 字段')));
+  assert.ok(legacyResult.notes.some(note => note.includes('No spec field')));
 
   const split = fixtureCard();
   for (const field of ['description', 'personality', 'scenario', 'first_mes', 'mes_example', 'creator_notes', 'system_prompt', 'post_history_instructions']) split.data[field] = '';
   const splitFile = await writeCard(dir, 'split.json', split);
   const splitResult = await main([splitFile]);
-  assert.ok(splitResult.notes.some(note => note.includes('拆分后的 src/card.json')));
+  assert.ok(splitResult.notes.some(note => note.includes('a split src/card.json')));
 });
 
-// ---------- 只读与不执行 ----------
+// ---------- Read-only inspection without execution ----------
 
-test('不执行卡内代码、不写文件，导入模块也不会自动运行 main', async t => {
+test("inspection executes no card code, writes no files, and module imports do not run main", async t => {
   const dir = await tempDir(t);
   const card = fixtureCard();
   const file = await writeCard(dir, 'card.json', card);
@@ -544,10 +544,10 @@ test('不执行卡内代码、不写文件，导入模块也不会自动运行 m
   assert.equal(result.notes.length, 2);
 });
 
-test('灯色与selective/关键词独立，箭头分隔符和多级分类仅作元数据识别', () => {
+test("activation is independent of selective keywords and separator/category detection stays metadata-only", () => {
   const card = fixtureCard();
   card.data.character_book.entries = [
-    { id: 1, comment: '[本体][系统]➡️变量开始', content: '<变量>', enabled: true, constant: true, selective: false, keys: ['变量'], extensions: { vectorized: true } },
+    { id: 1, comment: '[本体][系统]➡️变量开始', content: '<变量>', enabled: true, constant: true, selective: false, keys: ["variables"], extensions: { vectorized: true } },
     { id: 2, comment: '[本体][系统]无关键词', content: '', enabled: true, constant: false, selective: false, keys: [], extensions: {} },
     { id: 3, comment: '[本体][系统]➡️变量结束', content: '', enabled: false, constant: false, selective: true, keys: [], extensions: { vectorized: true } },
   ];

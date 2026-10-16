@@ -19,22 +19,22 @@ export function openLocal(target) {
       child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(command, 'utf16le').toString('base64')], { windowsHide: true, stdio: 'ignore' });
     } else child = spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [target], { stdio: 'ignore' });
     child.once('error', reject);
-    child.once('exit', code => code === 0 ? resolve() : reject(new Error('无法自动打开，请使用页面显示的文件夹路径。')));
+    child.once('exit', code => code === 0 ? resolve() : reject(new Error('Cannot open automatically. Use the folder path shown on the page.')));
   });
 }
 async function body(req) {
   const maximum = Math.ceil(MAX_UPLOAD / 3) * 4 + 64 * 1024;
-  if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] ?? '')) throw new Error('请求必须为 JSON。');
+  if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] ?? '')) throw new Error('Request must be JSON.');
   const parts = []; let size = 0;
   for await (const bytes of req) {
     size += bytes.length;
-    if (size > maximum) throw new Error('文件超过 64 MB，请缩小后重试。');
+    if (size > maximum) throw new Error('File exceeds 64 MiB. Reduce its size and try again.');
     parts.push(bytes);
   }
   let data;
   try { data = JSON.parse(Buffer.concat(parts).toString('utf8')); }
-  catch { throw new Error('请求数据无效。'); }
-  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('请求数据必须为对象。');
+  catch { throw new Error('Invalid request data.'); }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Request data must be an object.');
   return data;
 }
 
@@ -54,12 +54,12 @@ export async function createStudioServer({ root = ROOT, token = randomBytes(32).
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
     const json = (status, data) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); };
     try {
-      if (req.headers.host !== new URL(url).host) return json(403, { ok: false, error: '请使用启动器打开本地工具。' });
+      if (req.headers.host !== new URL(url).host) return json(403, { ok: false, error: 'Open the local tool using the launcher.' });
       const request = new URL(req.url, url);
       if (request.pathname.startsWith('/api/')) {
-        if (req.headers['x-studio-token'] !== token || (req.headers.origin && req.headers.origin !== url)) return json(403, { ok: false, error: '连接已失效，请从仓库根目录重新打开工具。' });
+        if (req.headers['x-studio-token'] !== token || (req.headers.origin && req.headers.origin !== url)) return json(403, { ok: false, error: 'Connection expired. Reopen the tool from the repository root.' });
         if (req.method === 'GET' && request.pathname === '/api/ping') return json(200, { ok: true, app: APP, root: path.resolve(root) });
-        if (busy) return json(409, { ok: false, error: '正在处理上一项操作，请完成后再试。' });
+        if (busy) return json(409, { ok: false, error: 'An operation is in progress. Try again when it finishes.' });
         if (req.method === 'GET' && request.pathname === '/api/cards') {
           busy = true;
           try { return json(200, await operations.listCards()); } finally { busy = false; }
@@ -68,7 +68,7 @@ export async function createStudioServer({ root = ROOT, token = randomBytes(32).
           const bytes = await operations.cover(request.searchParams.get('name'));
           res.writeHead(200, { 'Content-Type': 'image/png' }); return res.end(bytes);
         }
-        if (req.method !== 'POST') return json(404, { ok: false, error: '未知操作。' });
+        if (req.method !== 'POST') return json(404, { ok: false, error: 'Unknown operation.' });
         // Hold the lock during body reception too: two browser tabs cannot mutate one card concurrently.
         busy = true;
         try {
@@ -79,11 +79,11 @@ export async function createStudioServer({ root = ROOT, token = randomBytes(32).
             return;
           }
           const method = routes[request.pathname];
-          if (!method) return json(404, { ok: false, error: '未知操作。' });
+          if (!method) return json(404, { ok: false, error: 'Unknown operation.' });
           return json(200, await operations[method](data));
         } finally { busy = false; }
       }
-      if (req.method !== 'GET') return json(405, { ok: false, error: '不支持此操作。' });
+      if (req.method !== 'GET') return json(405, { ok: false, error: 'Unsupported operation.' });
       const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const item = files[request.pathname];
       if (!item) { res.writeHead(404); return res.end(); }
@@ -109,7 +109,7 @@ export async function createStudioServer({ root = ROOT, token = randomBytes(32).
 export async function launch({ root = ROOT, open = false } = {}) {
   root = path.resolve(root);
   const work = path.join(root, 'work'); await fs.mkdir(work, { recursive: true });
-  if ((await fs.lstat(work)).isSymbolicLink()) throw new Error('work 文件夹不能是链接。');
+  if ((await fs.lstat(work)).isSymbolicLink()) throw new Error('The work folder cannot be a symlink.');
   const sessionFile = path.join(work, 'studio-session.json');
   const lockFile = path.join(work, 'studio-launch.lock');
   async function existing() {
@@ -128,7 +128,7 @@ export async function launch({ root = ROOT, open = false } = {}) {
     else console.log(address);
   }
   const running = await existing();
-  if (running) { await show(running); console.log('已打开正在运行的创作工具。'); return; }
+  if (running) { await show(running); console.log('Opened the running creator tool.'); return; }
   let lock;
   try { lock = await fs.open(lockFile, 'wx'); }
   catch (error) {
@@ -140,7 +140,7 @@ export async function launch({ root = ROOT, open = false } = {}) {
     }
     let live = false;
     try { const pid = Number(await fs.readFile(lockFile, 'utf8')); if (pid > 0) { process.kill(pid, 0); live = true; } } catch {}
-    if (live) throw new Error('另一个工具正在启动，请稍后再双击。');
+    if (live) throw new Error('Another instance is starting. Try again shortly.');
     await fs.unlink(lockFile); lock = await fs.open(lockFile, 'wx');
   }
   await lock.writeFile(String(process.pid)); await lock.close();
@@ -149,8 +149,8 @@ export async function launch({ root = ROOT, open = false } = {}) {
     app = await createStudioServer({ root });
     const stopped = new Promise(resolve => app.server.once('close', resolve));
     await fs.writeFile(sessionFile, JSON.stringify({ url: app.url, token: app.token, pid: process.pid }));
-    console.log('角色卡创作工具已启动。保留此窗口；关闭窗口或点击页面中的“关闭工具”即可停止。');
-    console.log(`工作区：${root}`);
+    console.log('TavernCardStudio is running. Keep this window open; close it or click “Stop tool” on the page to stop the service.');
+    console.log(`Workspace: ${root}`);
     await show(app);
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => app.close());
     await stopped;
@@ -160,5 +160,5 @@ export async function launch({ root = ROOT, open = false } = {}) {
   }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  launch({ open: process.argv.includes('--open') }).catch(error => { console.error('启动失败：' + error.message); process.exitCode = 1; });
+  launch({ open: process.argv.includes('--open') }).catch(error => { console.error('Launch failed: ' + error.message); process.exitCode = 1; });
 }

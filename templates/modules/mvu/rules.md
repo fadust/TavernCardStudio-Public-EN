@@ -1,20 +1,20 @@
 ---
-变量更新规则:
-  场景:
-    地点:
+Variable update rules:
+  scene:
+    location:
       check:
-        - 双方实际到达新的地点时更新。
-    阶段:
+        - Update when both participants actually arrive at a new location.
+    phase:
       check:
-        - 场景目标或处境发生明确变化时更新。
-  角色:
-    心情:
+        - Update when the scene's goal or circumstances clearly change.
+  character:
+    mood:
       check:
-        - 依据角色在本轮的具体经历更新，使用简短自然语言。
-        - 普通寒暄不改变心情。
-    信任:
+        - Update from the character's concrete experiences this turn using a short natural-language description.
+        - Ordinary small talk does not change mood.
+    trust:
       type: number
       range: 0~100
       check:
-        - 明确的守信、帮助或伤害才影响该值；普通寒暄不改变。
-        - 一次事件只计一次，单次变化不超过 ±10。
+        - Only clear acts of keeping promises, helping, or causing harm affect this value; ordinary small talk does not.
+        - Count each event once; each change must stay within ±10.

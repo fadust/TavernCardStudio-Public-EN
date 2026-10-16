@@ -1,0 +1,17 @@
+link: worldbook-3
+name: "[initvar]Initial variables - keep disabled"
+enabled: false
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 20
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: before_character
+role: system
+file: src/worldbook/variables/[initvar]initial-variables-keep-disabled.md

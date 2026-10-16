@@ -1,155 +1,48 @@
-# 助手脚本与 EJS
+# Tavern Helper scripts and EJS
 
-卡里能放两种“脚本”，用途完全不同：
+Helper scripts run JavaScript in browser iframes and can handle events, variables, and UI. EJS is evaluated by Prompt Template to produce text at generation/render stages. Use scripts for persistent runtime behavior and EJS for conditional text.
 
-- **酒馆助手脚本**：在浏览器内的 iframe 里运行的 JavaScript，能监听事件、读写变量、挂界面。
-- **EJS 模板**：由 Prompt Template 处理的模板，产出一段文本；它不只是请求组装阶段的事，渲染楼层时也可能运行。
+## Authoring structure
 
-要改运行时行为用助手脚本；要决定发什么内容用 EJS。
+Card scripts export under data.extensions.tavern_helper.scripts; saved Helper variables live alongside them. Each src/scripts/*.yaml contains type (script/folder), stable id via link, name, enabled, info, button, data or data_file, export_with, and a file reference for code. Folders add icon/color/scripts child references. Preserve identity and ordering; network initialization can still be asynchronous.
 
-## 卡内位置
+Inline small data, and use same-name .data.yaml via data_file for data above 2000 characters. These forms are mutually exclusive. Index helper_variables and legacy_helper_variables retain their respective storage locations; additional imported groups use legacy_script_groups with their links. See [Field mapping](ARCHITECTURE.md#authoring-field-mapping).
 
-角色卡作用域的助手脚本保存在卡的 `data.extensions.tavern_helper` 下：
+Build a script with `build: { type: script, entry: src/... }`; esbuild emits one browser ESM file into the bound output content. The script template supplies a message-event example that does not modify chat history. Players need Tavern Helper and enabled card scripts.
 
-- `scripts`：脚本树数组，元素是脚本或文件夹，顺序就是加载顺序。
-- `variables`：该卡脚本保存的变量。
+## Runtime and lifecycle
 
-下表是卡 JSON 里的字段名；写卡时改条目 YAML 的对应键即可，不需要直接改卡 JSON：
+Scripts run in unsandboxed browser iframes without Node.js. Script iframe jQuery can point at the parent host document while document remains the iframe document. Create a host mount before mounting Vue there; copied host styles and mounts must be removed on unload. Message UI iframes have their own document/jQuery scope.
 
-| 字段 | 含义 |
-| --- | --- |
-| `type` | `script` 或 `folder` |
-| `id` | 唯一编号，跨版本保留 |
-| `name` | 脚本名 |
-| `enabled` | 是否启用 |
-| `content` | 脚本正文，一段 JavaScript |
-| `info` | 作者注释，展示在脚本信息里 |
-| `button` | 按钮设置：`enabled` 与 `buttons[{ name, visible }]` |
-| `data` | 脚本自带数据 |
-| `export_with` | 导出时是否携带数据和按钮 |
+Use a reliable dynamic-load entry such as $(() => {...}); DOMContentLoaded may already have fired. Clean timers, subscriptions, DOM, and styles on pagehide. Keep repeated loading/swipe/edit/chat switch idempotent. `eventOn` subscriptions auto-dispose with iframe closure, but explicit stop helps controlled cleanup. Recoverable errors can warn; fatal errors should throw through the project's error handling rather than silently continuing.
 
-文件夹额外有 `icon`、`color` 和嵌套的 `scripts`。
+## APIs, events, and buttons
 
-写卡时每个脚本条目是一个 `src/scripts/*.yaml`：`类型: 脚本` 表示一段脚本，`类型: 文件夹` 表示脚本库文件夹，文件夹的子项用 `脚本: [src/scripts/....yaml]` 列出；正文用 `文件: src/...` 引用，其余键为 `名称`、`启用`、`说明`、`按钮`、`数据`／`数据文件`、`导出设置`、`图标`、`颜色`。`关联` 由工具生成并保留，用来对上 `.card/state.json` 里的原始条目，不要手改或重新生成，见 [架构与操作](ARCHITECTURE.md)。
-
-脚本自带数据默认内联在 `数据`；数据较大（超过 2000 字符）时工具会拆到同名 `src/scripts/<条目名>.data.yaml`，条目里改用 `数据文件` 引用，这样改脚本正文时不必连带读一大段数据。`数据` 与 `数据文件` 互斥，只能出现一个。
-
-脚本保存的变量在 `src/index.yaml` 的 `助手变量` 下维护；导入卡里根层 `extensions.tavern_helper.variables` 对应 `兼容助手变量`，两者写法相同。导入卡有多个脚本组时，主组用 `脚本` 维护，其余每组在 `兼容脚本组` 里用 `脚本: [...]` 列出并保留各自的 `关联`。
-
-需要先编译再用时，在条目 YAML 上写 `构建: { 类型: script, 入口: src/... }`；构建结果写回该条目的正文，重排条目不需要改指针。`pnpm card new my-card --modules "script"` 会生成一个只监听消息事件、不改聊天记录的示例脚本，并在该脚本条目上登记一项 `构建`：入口就是脚本源码文件，构建结果覆盖同一段正文。
-
-完整的脚本条目键与卡 JSON 字段对照见 [架构与操作](ARCHITECTURE.md#中文键对照)。
-
-运行前提：玩家需要安装酒馆助手，并启用卡内的酒馆助手脚本；只导入卡而没有酒馆助手时，脚本不会执行。
-
-## 运行环境
-
-助手脚本运行在无沙盒 iframe 中，只有浏览器能力，没有 Node.js：
-
-- 需要访问宿主页面时，脚本里的 jQuery 指向酒馆页面本身，`$('body')` 选的是酒馆的 body。
-- 需要在酒馆页面上挂 Vue 组件时，先用 jQuery 创建挂载点，再挂载，卸载时移除。
-- iframe 内设置的样式只作用于 iframe；要影响酒馆页面，需要把样式复制到宿主文档。
-
-第三方库、图片、音视频等资源都要能通过内嵌或固定版本外链拿到，写法见 [前端资源](FRONTEND.md)。自己写的脚本与界面默认随卡内嵌；要把它们放到公开 Git 再用固定提交外链加载，见 [公开外链资源](REMOTE-ASSETS.md)。公开依赖要在 `project.json` 的 `dependencies` 里登记并带固定版本，否则检查会报错。
-
-## 固定版本外链
-
-自己写的脚本默认随卡内嵌：条目正文就是构建后的代码，不需要外部地址。要把源码放到公开 Git、由卡里加载时，做法是先构建、再登记、最后写引用：
-
-- 按上面的 `构建` 把源码打成单文件，把产物提交到你的仓库。
-- 在 `project.json` 的 `dependencies` 里登记这个地址：无凭据 HTTPS，`version` 写地址里的那串提交号。
-- 脚本条目正文只写加载这一行，地址与登记处完全一致：
+Prefer Helper APIs over host internals or generated slash-command strings. API groups include messages, scoped variables, worldbooks, generation, regex formatting, injection, macros, import, shared initialization, and iframe utilities. Consult pinned @types/function and @types/iframe; check ListenerType for event signatures rather than guessing. MESSAGE_RECEIVED includes message kind; CHAT_CHANGED supplies a chat filename, not a stable old-message context. Custom inter-script events should have custom names rather than impersonating host events.
 
 ```js
-import 'https://cdn.jsdelivr.net/gh/<owner>/<repo>@<完整提交号>/dist/panel.js';
+appendInexistentScriptButtons([{ name: 'Restart', visible: true }]);
+eventOn(getButtonEvent('Restart'), () => console.info('Restart clicked'));
 ```
 
-ESM 外链要求对方返回 JavaScript MIME 并允许跨域；`$.getScript`、经典 `<script src>` 与 `$.ajax({ url })` 加载的是经典脚本，不能用 `import` 语法。主机响应头、模块与经典脚本的差别、缓存与升级步骤见 [公开外链资源](REMOTE-ASSETS.md)。
+Keep button names stable. AppendInexistent adds missing entries; replaceScriptButtons replaces a whole group. Exported button lists must not grow indefinitely.
 
-`check` 与 `build` 不上传、不发布：产物只写到 `dist/<名称>/`，外链能否真正加载要靠真实环境验证。
+Use script-scoped settings with { type: 'script', script_id: getScriptId() }, validate missing/default values, and keep them separate from player world state. Before replacing variables preserve unrelated keys and choose the correct scope/message target.
 
-## 生命周期
+## MVU
 
-- 用 `$(() => { ... })` 在加载时执行，不要用 `DOMContentLoaded`：脚本可能以动态加载的方式进入页面，该事件不会触发。
-- 用 `pagehide` 处理卸载，不要用 `unload`。
-- 清理动作要成对：挂上去的界面、注册的监听、复制的样式都要在卸载时撤销。
-- 可恢复的错误用 `console.warn`、`console.error`；让脚本无法继续的错误直接抛出，并用统一的错误包装函数记录。
+Consumers await waitGlobalInitialized('Mvu') before API calls; list order is insufficient. Message UI uses getCurrentMessageId, ordinary scripts specify an ID/latest. Read Mvu.getMvuData and retain the complete table when writing with replaceMvuData. Parse independently generated/unparsed text only; never double-apply a framework-parsed delta.
 
-## 按钮
+Schema registration subscribes early and is separate from consumer waiting; see [Zod](MVU-ZOD.md). Current-value normalization belongs in Schema; old/new comparisons belong in update events. Direct helper/Mvu writes do not automatically traverse all model-patch constraints. `display_data`/`delta_data` may be absent and are deprecated in the Zod flow. UI should provide its own wait timeout because waitGlobalInitialized has none.
 
-脚本可以在脚本库里提供按钮，玩家点击时触发事件：
+## Public scripts
 
-```js
-appendInexistentScriptButtons([{ name: '重新开始', visible: true }]);
+Embed custom scripts by default. For optional hosting, build a reviewed single file, publish it at a complete commit, declare its exact URL/version, then load it through ESM import. ESM needs JavaScript MIME and CORS; classic script/getScript loaders cannot execute static import syntax. Build/check neither upload nor publish. See [Remote assets](REMOTE-ASSETS.md).
 
-eventOn(getButtonEvent('重新开始'), () => {
-  console.info('按钮被点击了');
-});
-```
+## EJS stages and safety
 
-`appendInexistentScriptButtons` 只添加缺失的按钮，玩家删掉后下次运行会补回；`replaceScriptButtons` 整体替换，适合按状态切换按钮组。按钮的最终清单会随卡导出，注意不要在一次运行里无限追加。
+Prompt Template must be installed/enabled. RunType can be generate, preparation, render, or render_permanent, with different available fields. Message_id/swipe_id are render-stage data; do not presume them in generation. Code highlighting can alter template fragments inside code blocks depending on extension settings. EJS can run more than once.
 
-## 脚本变量与设置
+Read variables as data and handle absent values. During rendering use escaped <%= output for variable values; raw <%- can insert HTML and must not interpolate untrusted content. Avoid concatenating macro-expanded values into executable JavaScript/template strings. Check only compiles EJS and records failures as warnings; it never executes templates.
 
-需要给玩家保存设置时，用脚本作用域的变量，并按作用域读写：
-
-```js
-const settings = getVariables({ type: 'script', script_id: getScriptId() });
-replaceVariables(new_settings, { type: 'script', script_id: getScriptId() });
-```
-
-写卡时给每个字段准备默认值，读取后做一次校验再使用；不要假定变量一定存在。
-
-## 事件
-
-用 `eventOn` 监听酒馆事件，例如收到消息、切换聊天、世界书更新。监听前先确认对应的接口在当前酒馆助手版本里存在；不确定就查 `@types/`，不要凭记忆写。
-
-## 接口选用
-
-酒馆助手提供了分门别类的接口，写成卡代码时优先用它们，而不是直接操作宿主内部对象或拼接命令字符串：
-
-- 楼层消息：读写、增删、移动聊天楼层。
-- 变量：读写各种作用域的变量。
-- 世界书：获取、替换、更新条目。
-- 生成：带预设或不带预设地请求一次生成。
-- 正则：按酒馆正则处理一段文本。
-- 导入：导入与酒馆导出格式一致的数据。
-
-完整清单见本地 `@types/` 目录，见 [来源索引](SOURCES.md)。
-
-## EJS 模板
-
-EJS 由 Prompt Template 扩展处理，可以写在提示词、角色卡字段、世界书条目和楼层消息里：
-
-```text
-<% if ( variables.好感度 > 60 ) { %>
-她对{{user}}已经很信任。
-<% } else { %>
-她对{{user}}还保持着距离。
-<% } %>
-```
-
-要点：
-
-- 处理时机分两阶段：发送给模型前（生成）和渲染楼层时（渲染），由玩家在 Prompt Template 里的设置决定哪些阶段生效。模板里可以用 `runType` 区分，取值 `generate`、`preparation`、`render`、`render_permanent`，可用字段随阶段变化（渲染阶段才有 `message_id`、`swipe_id` 之类）。不要假定 `<% %>` 只在请求组装时跑一次；出处是 `references/upstream/prompt-template/docs/reference_cn.md` 与 `features_cn.md`。
-- 代码块里的 `<% %>` 可能因为酒馆的代码高亮插入额外标记而失效，需要 Prompt Template 里与代码块处理相关的设置；是否生效按实际环境核对，出处同上。
-- 能否使用某段 EJS，取决于玩家是否安装并启用了 Prompt Template；没有安装时，模板会原样留在提示词里。
-- 可以在模板里读取变量、取角色卡内容和世界书条目。具体函数与可用范围以本地 Prompt Template 资料为准。
-- 用 `<%- %>` 输出时注意转义，避免把用户可控文本直接拼进提示词结构。
-- 本工作区的 `check` 只尝试编译 EJS：失败目前记为警告，因为跨条目的模板片段要放到实际注入顺序里才能核对；任何情况下都不会执行模板，也不要用执行结果来证明写卡正确。
-
-### 与世界书条目、变量组合
-
-在条目正文里同时用宿主宏、变量和 EJS 属于进阶用法。宏由 SillyTavern 在扫描时替换，`<% %>` 由 Prompt Template 按阶段执行，变量分多层作用域，缺失值与生成／渲染阶段可用的字段也各不相同。约定与独立小示例见 [世界书里的宏、EJS 与变量](WORLDBOOK-TEMPLATING.md)。
-
-变量不会自动进入世界书关键词扫描。变量里的当前地点、界面状态和 MVU 的 `stat_data` 都只是数据，不会命中绿灯条目；要让状态驱动激活，需要脚本在扫描前把内容注入允许扫描的位置，见 [地点扫描与树状设定](../.agents/skills/tavern-worldbook/references/location-scan.md)。
-
-## 选择建议
-
-| 需求 | 用哪个 |
-| --- | --- |
-| 按变量拼一段提示词 | EJS |
-| 按变量决定条目正文或激活 | 宏与 EJS，见 [世界书里的宏、EJS 与变量](WORLDBOOK-TEMPLATING.md) |
-| 在楼层里显示可交互界面 | 助手脚本或前端界面，见 [前端资源](FRONTEND.md) |
-| 监听事件、改变量、调接口 | 助手脚本 |
-| 只是替换显示文本 | 正则，见 [正则](REGEX.md) |
+For dynamic worldbook text/activation, scope APIs, decorators, and independent examples, see [Dynamic worldbooks](WORLDBOOK-TEMPLATING.md). Variables in stat_data do not automatically enter keyword scanning; use an explicit pre-scan path if needed. Runtime details and troubleshooting are in [Script runtime](../.agents/skills/tavern-scripting/references/script-runtime.md).

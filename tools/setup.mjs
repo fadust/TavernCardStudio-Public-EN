@@ -4,20 +4,20 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /* ---------------------------------------------------------------------------
-   TavernCardStudio 启动前环境检查
+   TavernCardStudio pre-launch environment check
 
-   - `node tools/setup.mjs`（或 --ensure）：检查环境；缺依赖或锁文件漂移时用
-     pnpm --frozen-lockfile 安装一次；不满足条件就打印操作指导并以退出码 1 结束。
-   - `node tools/setup.mjs --check`（doctor）：只读检查，任何情况下都不安装、
-     不写文件；问题通过退出码 1 与文字说明报告。
+   - `node tools/setup.mjs`(or --ensure): check the environment; install missing or outdated dependencies once with
+     pnpm --frozen-lockfile; print guidance and exit with code 1 if requirements are unmet.
+   - `node tools/setup.mjs --check`(doctor): read-only inspection; never install dependencies
+     or write files. Report problems through exit code 1 and explanatory text.
 
-   这里只检查与安装依赖，不会下载或安装 Node.js，也不会全局改动 pnpm。
+   Only inspect and install project dependencies; never install Node.js or change global pnpm.
    --------------------------------------------------------------------------- */
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const INSTALL_ARGS = ['install', '--frozen-lockfile'];
 
-/* ===================== 版本比较 ===================== */
+/* ===================== Version comparison ===================== */
 
 export function parseVersion(text) {
   const match = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/.exec(String(text === undefined || text === null ? '' : text).trim());
@@ -39,7 +39,7 @@ export function compareVersions(a, b) {
   return 0;
 }
 
-// 只解析 package.json 里常见的 >= 写法；无法解析时返回 null，表示交给调用方决定。
+// Parse common package.json >= ranges only; return null for the caller to handle unsupported ranges.
 export function satisfiesRange(version, range) {
   const text = String(range === undefined || range === null ? '' : range).trim();
   const match = /^(>=|>|=)?\s*v?(\d+)(?:\.(\d+))?(?:\.(\d+))?$/.exec(text);
@@ -58,7 +58,7 @@ export function parsePackageManager(spec) {
   return { name: match[1], version: match[2] };
 }
 
-/* ===================== 命令 ===================== */
+/* ===================== Commands ===================== */
 
 export function defaultRunCommand(command, args, options) {
   const settings = options || {};
@@ -90,23 +90,23 @@ export function defaultRunCommand(command, args, options) {
       code: null,
       stdout,
       stderr,
-      error: error && error.code === 'ENOENT' ? '找不到命令：' + command : (error ? error.message : String(error)),
+      error: error && error.code === 'ENOENT' ? 'Command not found: ' + command : (error ? error.message : String(error)),
     }));
     child.once('close', (code) => finish({ code, stdout, stderr }));
   });
 }
 
-// Windows 的 .cmd 文件必须经 cmd.exe 启动；这里用参数数组交给 cmd，
-// 不自己拼接命令行字符串，参数也只允许普通字符，避免注入。
+// Windows .cmd files must launch through cmd.exe; pass an argument array
+// and allow only plain argument characters to prevent command injection.
 function assertPlainArguments(args) {
   for (const arg of args) {
     if (!/^[A-Za-z0-9@=._,:\/\\-]+$/.test(String(arg))) {
-      throw new Error('内部错误：不安全的命令行参数 ' + JSON.stringify(String(arg)));
+      throw new Error('Internal error: unsafe command argument ' + JSON.stringify(String(arg)));
     }
   }
 }
 
-// 导出给测试与 doctor 复用：确认 Windows 走 cmd.exe + pnpm.cmd，其他平台直接调用 pnpm。
+// Shared with tests and doctor: Windows uses cmd.exe + pnpm.cmd; other platforms call pnpm directly.
 export function pnpmInvocation(platform, args) {
   assertPlainArguments(args);
   if (platform === 'win32') {
@@ -124,7 +124,7 @@ function locatePnpm(platform, runCommand, options) {
   return runCommand(command, ['pnpm'], { ...options }).catch(() => null);
 }
 
-/* ===================== 环境报告 ===================== */
+/* ===================== Environment report ===================== */
 
 async function readJSONFile(file) {
   try {
@@ -164,10 +164,10 @@ async function inspectDependencies(root, manifest) {
     }
     result.checked += 1;
     const wanted = String(declared[name]);
-    // 只对手写的确切版本做精确比对；带范围符的声明交给锁文件漂移检查负责。
+    // Compare exact declared versions; lockfile drift detects changes to ranges.
     if (/^v?\d+\.\d+\.\d+$/.test(wanted)) {
       const compared = compareVersions(installed.version, wanted);
-      if (compared !== 0) result.mismatched.push(name + '：已安装 ' + installed.version + '，package.json 要求 ' + wanted);
+      if (compared !== 0) result.mismatched.push(name + ': installed ' + installed.version + '; package.json requires ' + wanted);
     }
   }
   const lock = await readTextFile(path.join(root, 'pnpm-lock.yaml'));
@@ -188,8 +188,8 @@ async function inspectDependencies(root, manifest) {
 }
 
 /**
- * 只读检查：读 package.json / 锁文件 / node_modules，运行 pnpm --version 与 where/which。
- * 不安装依赖，不写任何文件。doctor 与测试复用这个函数。
+ * Read-only inspection of package.json, lockfile, and node_modules; run pnpm --version and where/which.
+ * Never install dependencies or write files. Shared with doctor and tests.
  */
 export async function inspectEnvironment(options) {
   const settings = options || {};
@@ -213,7 +213,7 @@ export async function inspectEnvironment(options) {
 
   const manifest = await readJSONFile(path.join(root, 'package.json'));
   if (!manifest) {
-    report.problems.push('读不到 package.json，请确认在完整的 TavernCardStudio 仓库里运行。');
+    report.problems.push('Cannot read package.json. Run this in a complete TavernCardStudio repository.');
     return report;
   }
 
@@ -221,25 +221,25 @@ export async function inspectEnvironment(options) {
   report.node.required = nodeRange;
   const nodeSatisfied = nodeRange ? satisfiesRange(nodeVersion, nodeRange) : true;
   if (nodeSatisfied === false) {
-    report.node.message = 'Node.js 版本过低：当前 ' + nodeVersion + '，要求 ' + nodeRange + '。';
+    report.node.message = 'Node.js version is too old: current ' + nodeVersion + '; required ' + nodeRange + '.';
     report.problems.push(report.node.message);
-    report.guidance.push('请安装 Node.js ' + nodeRange.replace(/^[>=^~\s]+/, '') + ' 或更高版本（https://nodejs.org/），安装后重新打开启动器。');
+    report.guidance.push('Install Node.js ' + nodeRange.replace(/^[>=^~\s]+/, '') + ' or newer (https://nodejs.org/), then reopen the launcher.');
   } else if (nodeSatisfied === null) {
     report.node.ok = true;
-    report.node.message = 'Node.js ' + nodeVersion + ' 无法自动比较 engines.node（' + nodeRange + '），已跳过版本判断。';
+    report.node.message = 'Node.js ' + nodeVersion + ' cannot automatically compare engines.node (' + nodeRange + '); version comparison skipped.';
   } else {
     report.node.ok = true;
-    report.node.message = 'Node.js ' + nodeVersion + ' 正常' + (nodeRange ? '（要求 ' + nodeRange + '）' : '') + '。';
+    report.node.message = 'Node.js ' + nodeVersion + ' OK' + (nodeRange ? ' (required ' + nodeRange + ')' : '') + '.';
   }
 
-  // pnpm 问题先记下来：依赖已经就绪时它只是提醒，需要安装依赖时才是阻断问题。
+  // Record pnpm issues as warnings when dependencies are ready, or blockers when installation is needed.
   let pnpmIssue = '';
   const pnpmGuidance = [];
   const manager = parsePackageManager(manifest.packageManager);
   if (!manager) {
-    pnpmIssue = 'package.json 里缺少可识别的 packageManager 字段，无法确认 pnpm 版本。';
+    pnpmIssue = 'package.json lacks a recognized packageManager field; cannot determine the pnpm version.';
   } else if (manager.name !== 'pnpm') {
-    pnpmIssue = 'packageManager 写的是 ' + manager.name + '，本工具需要 pnpm。';
+    pnpmIssue = 'packageManager specifies ' + manager.name + '; this tool requires pnpm.';
   } else {
     report.pnpm.required = manager.version;
   }
@@ -260,50 +260,50 @@ export async function inspectEnvironment(options) {
   const foundVersion = probe && probe.code === 0 && probe.stdout ? String(probe.stdout).trim().split(/\s+/)[0] : '';
   if (!foundVersion) {
     report.pnpm.found = false;
-    const detail = probe && (probe.error || String(probe.stderr || '').trim()) ? '（' + String(probe.error || probe.stderr).trim().split(/\r?\n/)[0] + '）' : '';
-    if (!pnpmIssue) pnpmIssue = '没有找到可用的 pnpm' + detail + '。';
+    const detail = probe && (probe.error || String(probe.stderr || '').trim()) ? ' (' + String(probe.error || probe.stderr).trim().split(/\r?\n/)[0] + ')' : '';
+    if (!pnpmIssue) pnpmIssue = 'No usable pnpm found' + detail + '.';
     report.pnpm.message = pnpmIssue;
-    pnpmGuidance.push('如已安装 Corepack，可在本仓库根目录运行 corepack enable pnpm，然后运行：corepack prepare pnpm@' + (manager ? manager.version : '<版本>') + ' --activate');
-    pnpmGuidance.push('也可以自己安装对应版本：npm install -g pnpm@' + (manager ? manager.version : '<版本>') + '。本工具不会替你全局安装或改版本。');
+    pnpmGuidance.push('If Corepack is installed, run corepack enable pnpm in the repository root, then: corepack prepare pnpm@' + (manager ? manager.version : '<Version>') + ' --activate');
+    pnpmGuidance.push('Alternatively, install the matching version yourself: npm install -g pnpm@' + (manager ? manager.version : '<Version>') + '. This tool never installs or changes global versions.');
   } else {
     report.pnpm.found = true;
     report.pnpm.version = foundVersion;
     if (report.pnpm.required && compareVersions(foundVersion, report.pnpm.required) !== 0) {
-      if (!pnpmIssue) pnpmIssue = 'pnpm 版本不一致：当前 ' + foundVersion + '，packageManager 要求 ' + report.pnpm.required + '。';
+      if (!pnpmIssue) pnpmIssue = 'pnpm version mismatch: current ' + foundVersion + '; packageManager requires ' + report.pnpm.required + '.';
       report.pnpm.message = pnpmIssue;
-      pnpmGuidance.push('请切到 package.json 指定的版本：corepack prepare pnpm@' + report.pnpm.required + ' --activate；或 npm install -g pnpm@' + report.pnpm.required + '。');
+      pnpmGuidance.push('Switch to the version in package.json: corepack prepare pnpm@' + report.pnpm.required + ' --activate; or npm install -g pnpm@' + report.pnpm.required + '.');
     } else {
       report.pnpm.ok = true;
-      report.pnpm.message = 'pnpm ' + foundVersion + (report.pnpm.required ? '（要求 ' + report.pnpm.required + '）' : '') + ' 正常。';
+      report.pnpm.message = 'pnpm ' + foundVersion + (report.pnpm.required ? ' (required ' + report.pnpm.required + ')' : '') + ' OK.';
     }
   }
 
   const lockText = await readTextFile(path.join(root, 'pnpm-lock.yaml'));
   report.lockfile.present = lockText !== null;
   report.lockfile.ok = lockText !== null;
-  report.lockfile.message = lockText !== null ? 'pnpm-lock.yaml 存在。' : '缺少 pnpm-lock.yaml，无法做固定锁安装；请重新获取完整仓库。';
+  report.lockfile.message = lockText !== null ? 'pnpm-lock.yaml is present.' : 'Missing pnpm-lock.yaml; cannot install with a frozen lockfile. Obtain the complete repository.';
   if (!report.lockfile.ok) report.problems.push(report.lockfile.message);
 
   const dependencies = await inspectDependencies(root, manifest);
   dependencies.message = (() => {
-    if (dependencies.ok) return '依赖 ' + dependencies.checked + '/' + dependencies.declared + ' 就绪，且与 pnpm-lock.yaml 一致。';
-    if (dependencies.reason === 'no-node-modules') return '还没有安装依赖（node_modules 不存在）。';
-    if (dependencies.reason === 'lockfile-missing') return '缺少 pnpm-lock.yaml，无法确认依赖状态。';
-    if (dependencies.reason === 'lockfile-drift') return '依赖与 pnpm-lock.yaml 不一致（package.json 或锁文件更新过）。';
-    if (dependencies.missing.length) return '缺少 ' + dependencies.missing.length + ' 个依赖：' + dependencies.missing.slice(0, 6).join('、') + (dependencies.missing.length > 6 ? ' 等' : '') + '。';
-    if (dependencies.mismatched.length) return dependencies.mismatched.length + ' 个依赖版本与 package.json 不一致。';
-    return '依赖状态异常。';
+    if (dependencies.ok) return 'Dependencies ' + dependencies.checked + '/' + dependencies.declared + ' are ready and match pnpm-lock.yaml.';
+    if (dependencies.reason === 'no-node-modules') return 'Dependencies are not installed (node_modules is missing).';
+    if (dependencies.reason === 'lockfile-missing') return 'Missing pnpm-lock.yaml; cannot determine dependency status.';
+    if (dependencies.reason === 'lockfile-drift') return 'Dependencies differ from pnpm-lock.yaml (package.json or the lockfile changed).';
+    if (dependencies.missing.length) return 'Missing ' + dependencies.missing.length + ' dependencies: ' + dependencies.missing.slice(0, 6).join(', ') + (dependencies.missing.length > 6 ? ' and others' : '') + '.';
+    if (dependencies.mismatched.length) return dependencies.mismatched.length + ' dependency versions differ from package.json.';
+    return 'Unexpected dependency state.';
   })();
   report.dependencies = dependencies;
   const dependenciesReady = dependencies.ok;
   if (!dependenciesReady && report.lockfile.ok) {
-    report.problems.push('依赖需要安装或更新：' + dependencies.message);
+    report.problems.push('Dependencies need installation or updates: ' + dependencies.message);
   }
 
   if (pnpmIssue) {
     for (const line of pnpmGuidance) report.guidance.push(line);
     if (dependenciesReady) {
-      report.pnpm.message = pnpmIssue.replace(/。$/, '') + '（依赖已就绪，这次启动不需要 pnpm；以后重装或升级依赖时会用到）。';
+      report.pnpm.message = pnpmIssue.replace(/\.$/, '') + ' (dependencies are ready; pnpm is needed only for future dependency installs or upgrades).';
       report.warnings.push(report.pnpm.message);
     } else {
       report.problems.push(pnpmIssue);
@@ -317,17 +317,17 @@ export async function inspectEnvironment(options) {
 
 export function formatReport(report) {
   const lines = [];
-  lines.push((report.node.ok ? '[正常] ' : '[问题] ') + report.node.message);
-  lines.push((report.pnpm.ok ? '[正常] ' : (report.warnings.includes(report.pnpm.message) ? '[注意] ' : '[问题] ')) + report.pnpm.message);
-  lines.push((report.lockfile.ok ? '[正常] ' : '[问题] ') + report.lockfile.message);
-  lines.push((report.dependencies.ok ? '[正常] ' : '[问题] ') + report.dependencies.message);
-  if (report.dependencies.lockDrift) lines.push('[问题] 依赖与锁文件不一致，需要按锁文件重新安装。');
+  lines.push((report.node.ok ? '[OK] ' : '[PROBLEM] ') + report.node.message);
+  lines.push((report.pnpm.ok ? '[OK] ' : (report.warnings.includes(report.pnpm.message) ? '[WARNING] ' : '[PROBLEM] ')) + report.pnpm.message);
+  lines.push((report.lockfile.ok ? '[OK] ' : '[PROBLEM] ') + report.lockfile.message);
+  lines.push((report.dependencies.ok ? '[OK] ' : '[PROBLEM] ') + report.dependencies.message);
+  if (report.dependencies.lockDrift) lines.push('[PROBLEM] Dependencies differ from the lockfile; reinstall using the lockfile.');
   return lines;
 }
 
 /**
- * 检查环境；允许安装时，用 package.json 指定的 pnpm 做一次固定锁安装。
- * 返回 { ok, installed, report, problems, guidance }，不抛异常。
+ * Check the environment; if allowed, install once with the declared pnpm and a frozen lockfile.
+ * Return { ok, installed, report, problems, guidance } without throwing.
  */
 export async function ensureEnvironment(options) {
   const settings = options || {};
@@ -338,46 +338,46 @@ export async function ensureEnvironment(options) {
   let report = await inspectEnvironment(settings);
   for (const line of formatReport(report)) log(line);
   if (report.ok) {
-    log('[正常] 环境就绪，可以启动创作工具。');
+    log('[OK] Environment ready. The creator tool can start.');
     return { ok: true, installed: false, report, problems: [], guidance: [] };
   }
   const canInstall = allowInstall && report.needsInstall && report.node.ok && report.pnpm.ok;
   if (canInstall) {
     const install = pnpmInvocation(settings.platform || process.platform, INSTALL_ARGS);
-    log('[进行中] 依赖缺失或已更新，正在按锁文件安装：' + install.display);
+    log('[WORKING] Dependencies are missing or outdated. Installing with the lockfile: ' + install.display);
     const result = await runCommand(install.command, install.args, {
       cwd: report.root,
       env: settings.env || process.env,
       stdio: 'inherit',
     });
     if (!result || result.code !== 0) {
-      const detail = result && result.error ? '：' + result.error : '';
-      // pnpm 会因为跳过的构建脚本（例如 esbuild 的提示）返回非零；以实际依赖状态为准，别误判成失败。
+      const detail = result && result.error ? ': ' + result.error : '';
+      // pnpm may exit nonzero for skipped build scripts such as esbuild; inspect actual dependency state before reporting failure.
       const after = await inspectEnvironment(settings);
       if (after.ok) {
         for (const line of formatReport(after)) log(line);
-        log('[注意] pnpm 结束时返回非零' + detail + '，但依赖已经就绪（pnpm 的构建脚本提示常见于此），本次继续启动。');
+        log('[WARNING] pnpm exited with a nonzero status' + detail + ', but dependencies are ready (often caused by build-script notices). Continuing startup.');
         return { ok: true, installed: true, report: after, problems: [], guidance: [] };
       }
-      logError('[错误] 依赖安装失败' + detail + '。请检查网络与上面的 pnpm 输出，然后重新打开启动器。');
-      return { ok: false, installed: false, report: after, problems: ['依赖安装失败。'], guidance: ['确认网络可用后重新打开启动器；仍然失败时在本仓库根目录运行：' + install.display + '，并把输出发给维护者。'] };
+      logError('[ERROR] Dependency installation failed' + detail + '. Check the network and pnpm output above, then reopen the launcher.');
+      return { ok: false, installed: false, report: after, problems: ['Dependency installation failed.'], guidance: ['Confirm network access, then reopen the launcher. If it still fails, run in the repository root: ' + install.display + ', and send the output to the maintainer.'] };
     }
     report = await inspectEnvironment(settings);
     for (const line of formatReport(report)) log(line);
     if (!report.ok) {
-      logError('[错误] 安装完成后依赖检查仍未通过，请把上面的输出发给维护者。');
+      logError('[ERROR] Dependency checks still fail after installation. Send the output above to the maintainer.');
       return { ok: false, installed: true, report, problems: report.problems, guidance: report.guidance };
     }
-    log('[正常] 依赖已就绪，可以启动创作工具。');
+    log('[OK] Dependencies ready. The creator tool can start.');
     return { ok: true, installed: true, report, problems: [], guidance: [] };
   }
   if (!allowInstall && report.needsInstall) {
-    report.guidance.unshift('只读检查不会安装依赖；需要安装时在仓库根目录运行：pnpm install --frozen-lockfile。');
+    report.guidance.unshift('Read-only checks do not install dependencies. To install, run in the repository root: pnpm install --frozen-lockfile.');
   }
   return { ok: false, installed: false, report, problems: report.problems, guidance: report.guidance };
 }
 
-/* ===================== 命令行入口 ===================== */
+/* ===================== CLI entry point ===================== */
 
 function parseArgs(argv) {
   const values = Array.isArray(argv) ? argv : [];
@@ -403,15 +403,15 @@ export async function main(argv, options) {
   const log = settings.log || ((line) => console.log(line));
   const logError = settings.logError || ((line) => console.error(line));
   if (parsed.mode === 'help') {
-    log('用法：node tools/setup.mjs [--ensure|--check] [--json] [--root <仓库目录>]');
-    log('  --ensure  检查环境，缺依赖或锁文件漂移时按 pnpm-lock.yaml 安装（默认）');
-    log('  --check   只读检查，不安装任何依赖（doctor 使用）');
-    log('  --json    以 JSON 输出检查结果');
+    log('Usage: node tools/setup.mjs [--ensure|--check] [--json] [--root <repository-directory>]');
+    log('  --ensure  Check environment and install missing/outdated dependencies using pnpm-lock.yaml (default)');
+    log('  --check   Read-only checks; do not install dependencies (used by doctor)');
+    log('  --json    Print check results as JSON');
     return { exitCode: 0, report: null };
   }
   if (parsed.unknown.length) {
-    logError('[错误] 无法识别的参数：' + parsed.unknown.join(' '));
-    logError('[操作] 用法：node tools/setup.mjs [--ensure|--check] [--json] [--root <仓库目录>]');
+    logError('[ERROR] Unknown arguments: ' + parsed.unknown.join(' '));
+    logError('[Operation] Usage: node tools/setup.mjs [--ensure|--check] [--json] [--root <repository-directory>]');
     return { exitCode: 1, report: null };
   }
   const shared = {
@@ -426,11 +426,11 @@ export async function main(argv, options) {
     if (parsed.json) log(JSON.stringify(report, null, 2));
     else {
       for (const line of formatReport(report)) log(line);
-      if (report.ok) log('[正常] 环境就绪，可以启动创作工具。');
+      if (report.ok) log('[OK] Environment ready. The creator tool can start.');
       else {
-        if (report.needsInstall) log('[操作] 只读检查不会安装依赖；需要安装时在仓库根目录运行：pnpm install --frozen-lockfile。');
-        for (const line of report.guidance) log('[操作] ' + line);
-        logError('[错误] 环境检查未通过（只读检查，未安装任何依赖）。');
+        if (report.needsInstall) log('[Operation] Read-only checks do not install dependencies. To install, run in the repository root: pnpm install --frozen-lockfile.');
+        for (const line of report.guidance) log('[Operation] ' + line);
+        logError('[ERROR] Environment check failed (read-only; no dependencies installed).');
       }
     }
     return { exitCode: report.ok ? 0 : 1, report };
@@ -438,8 +438,8 @@ export async function main(argv, options) {
   const result = await ensureEnvironment({ ...shared, log, logError });
   if (parsed.json) log(JSON.stringify({ ok: result.ok, installed: result.installed, report: result.report }, null, 2));
   if (!result.ok) {
-    for (const line of result.guidance) logError('[操作] ' + line);
-    logError('[错误] 环境准备未完成，已停止启动。');
+    for (const line of result.guidance) logError('[Operation] ' + line);
+    logError('[ERROR] Environment preparation incomplete; startup stopped.');
   }
   return { exitCode: result.ok ? 0 : 1, report: result.report };
 }
@@ -448,7 +448,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   main().then((result) => {
     process.exitCode = result.exitCode;
   }).catch((error) => {
-    console.error('[错误] 环境检查本身出错：' + (error && error.message ? error.message : String(error)));
+    console.error('[ERROR] Environment check error: ' + (error && error.message ? error.message : String(error)));
     process.exitCode = 1;
   });
 }

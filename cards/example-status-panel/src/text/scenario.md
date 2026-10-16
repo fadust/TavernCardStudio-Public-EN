@@ -1,0 +1,1 @@
+Describe when and where the story begins, and both participants' current circumstances.

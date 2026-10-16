@@ -10,12 +10,12 @@ import { archiveImport } from './imports.mjs';
 import { allocateWorldbook } from './worldbook-layout.mjs';
 
 export function assertCard(card) {
-  if (!card || typeof card !== 'object' || Array.isArray(card)) throw new Error('角色卡必须是 JSON 对象。');
-  if (!['chara_card_v2', 'chara_card_v3'].includes(card.spec)) throw new Error(`不支持的角色卡格式 ${JSON.stringify(card.spec)}。目前支持 V2／V3 PNG、JSON，不自动转换旧版或 CHARX。`);
-  if (!card.data || typeof card.data !== 'object' || Array.isArray(card.data)) throw new Error('角色卡缺少 data 对象。');
+  if (!card || typeof card !== 'object' || Array.isArray(card)) throw new Error('The card must be a JSON object.');
+  if (!['chara_card_v2', 'chara_card_v3'].includes(card.spec)) throw new Error(`Unsupported card format ${JSON.stringify(card.spec)}. V2/V3 PNG and JSON are supported; legacy cards and CHARX are not converted automatically.`);
+  if (!card.data || typeof card.data !== 'object' || Array.isArray(card.data)) throw new Error('Card is missing its data object.');
 }
 function label(text) {
-  return String(text || '未命名').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').replace(/[. ]+$/g, '').slice(0, 45) || '未命名';
+  return String(text || 'Untitled').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').replace(/[. ]+$/g, '').slice(0, 45) || 'Untitled';
 }
 export async function extractFields(card, projectDir, { worldbookFolders = [] } = {}) {
   const base = structuredClone(card); const fields = [];
@@ -69,7 +69,7 @@ export async function createProject(card, name, { root = ROOT, originalBytes, or
   assertCard(card); safeName(name);
   const cardsDir = path.join(root, 'cards'); await fs.mkdir(cardsDir, { recursive: true });
   const destination = path.join(cardsDir, name);
-  if (await exists(destination)) throw new Error(`已存在 ${destination}；拒绝覆盖已有编辑。请使用 --name 指定新名称。`);
+  if (await exists(destination)) throw new Error(`Already exists: ${destination}; refusing to overwrite existing edits. Use --name to choose a new name.`);
   const temporary = await fs.mkdtemp(path.join(cardsDir, '.tmp-'));
   try {
     const baseline = jsonText(card);
@@ -86,14 +86,14 @@ export async function createProject(card, name, { root = ROOT, originalBytes, or
     }
     if (image) { project.avatar = 'src/assets/avatar.png'; await write(path.join(temporary, project.avatar), image); }
     await writeJSON(path.join(temporary, 'tests/regex.json'), []);
-    await write(path.join(temporary, '创作说明.md'), '# 创作说明\n\n此文件不打包，不会发送给模型。\n\n- 目标体验：\n- 角色关系与边界：\n- 当前待完善：\n- 已验证环境：未进行真实酒馆实测。\n');
+    await write(path.join(temporary, "AUTHORING.md"), '# Authoring notes\n\nThis file is not packaged or sent to the model.\n\n- Intended experience:\n- Character relationships and boundaries:\n- Remaining work:\n- Verified environment: no real SillyTavern session verified.\n');
     if (setup) await setup(project, temporary);
     await writeJSON(path.join(temporary, 'project.json'), project);
     if (formatVersion === 2) await writeAuthoring(temporary, card, project);
     // Windows can briefly deny a directory rename after its files have been written.
     // Retry only sharing/permission failures, and recheck the no-overwrite boundary each time.
     for (let attempt = 0; ; attempt++) {
-      if (await exists(destination)) throw new Error(`已存在 ${destination}；拒绝覆盖已有编辑。请使用 --name 指定新名称。`);
+      if (await exists(destination)) throw new Error(`Already exists: ${destination}; refusing to overwrite existing edits. Use --name to choose a new name.`);
       try { await fs.rename(temporary, destination); break; }
       catch (error) {
         if (process.platform !== 'win32' || !['EPERM', 'EACCES', 'EBUSY'].includes(error.code) || attempt >= 3) throw error;
@@ -111,12 +111,12 @@ export async function splitCard(file, { name, root = ROOT, formatVersion = 2 } =
   if (extension === '.png') card = readCardPNG(originalBytes).card;
   else if (extension === '.json') {
     try { card = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(originalBytes).replace(/^\uFEFF/, '')); }
-    catch (error) { throw new Error(`角色卡 JSON 无效: ${error.message}`); }
-  } else throw new Error('目前只支持 .png 和 .json 角色卡。');
+    catch (error) { throw new Error(`Invalid card JSON: ${error.message}`); }
+  } else throw new Error('Only .png and .json character cards are supported.');
   assertCard(card);
   const projectName = name ?? path.basename(file, path.extname(file));
   safeName(projectName);
-  if (await exists(path.join(root, 'cards', projectName))) throw new Error(`已存在 ${projectName}；拒绝覆盖已有编辑。请指定新名称。`);
+  if (await exists(path.join(root, 'cards', projectName))) throw new Error(`Already exists: ${projectName}; refusing to overwrite existing edits. Choose a new name.`);
   const archived = await archiveImport(root, path.basename(file), originalBytes);
   try {
     return await createProject(card, projectName, { root, originalBytes, originalExtension: extension, image: extension === '.png' ? originalBytes : undefined, formatVersion,
@@ -131,44 +131,44 @@ export async function loadProject(name, root = ROOT) {
   safeName(name); const dir = path.join(root, 'cards', name);
   const project = await readJSON(path.join(dir, 'project.json'));
   if (project.schemaVersion === 2) {
-    if (!Array.isArray(project.dependencies) || !Array.isArray(project.modules)) throw new Error('project.json 结构不受支持');
+    if (!Array.isArray(project.dependencies) || !Array.isArray(project.modules)) throw new Error('Unsupported project.json structure');
     if (project.original) for (const [file, hash] of [[project.original.baseline, project.original.baselineSha256], [project.original.file, project.original.sha256]]) {
-      if (file && sha256(await fs.readFile(await safeFile(dir, file))) !== hash) throw new Error(`原件校验失败，不能覆盖或编辑 original/: ${file}`);
+      if (file && sha256(await fs.readFile(await safeFile(dir, file))) !== hash) throw new Error(`Original checksum failed; do not overwrite or edit original/: ${file}`);
     }
     if (project.avatar) await safeFile(dir, project.avatar);
     return { ...await loadAuthoring(dir, project), dir, root, name };
   }
-  if (project.schemaVersion !== 1 || !Array.isArray(project.fields) || !Array.isArray(project.builds) || !Array.isArray(project.dependencies)) throw new Error(`${name}: project.json 结构或版本不受支持。`);
+  if (project.schemaVersion !== 1 || !Array.isArray(project.fields) || !Array.isArray(project.builds) || !Array.isArray(project.dependencies)) throw new Error(`${name}: unsupported project.json structure or version.`);
   const card = await readJSON(await safeFile(dir, 'src/card.json')); assertCard(card);
   const pointers = new Set(); const files = new Set();
   for (const field of project.fields) {
-    if (!field || typeof field.pointer !== 'string' || typeof field.file !== 'string') throw new Error('fields 必须包含 pointer、file。');
-    if (pointers.has(field.pointer)) throw new Error(`重复字段映射: ${field.pointer}`);
-    if (files.has(field.file.toLowerCase())) throw new Error(`重复源文件映射: ${field.file}`);
-    if (!field.file.startsWith('src/')) throw new Error(`字段源必须放在 src/: ${field.file}`);
-    if (getPointer(card, field.pointer) !== '') throw new Error(`${field.pointer} 已拆分，src/card.json 对应值必须保持空字符串；请编辑 ${field.file}。`);
+    if (!field || typeof field.pointer !== 'string' || typeof field.file !== 'string') throw new Error('fields must contain pointer and file.');
+    if (pointers.has(field.pointer)) throw new Error(`Duplicate field mapping: ${field.pointer}`);
+    if (files.has(field.file.toLowerCase())) throw new Error(`Duplicate source mapping: ${field.file}`);
+    if (!field.file.startsWith('src/')) throw new Error(`Field sources must be inside src/: ${field.file}`);
+    if (getPointer(card, field.pointer) !== '') throw new Error(`${field.pointer} was split; its src/card.json value must remain an empty string. Edit ${field.file}.`);
     setPointer(card, field.pointer, await fs.readFile(await safeFile(dir, field.file), 'utf8'));
     pointers.add(field.pointer); files.add(field.file.toLowerCase());
   }
   const buildTargets = new Set();
   for (const build of project.builds) {
-    if (!['script', 'html', 'vue'].includes(build.kind)) throw new Error(`未知构建类型: ${build.kind}`);
-    if (!pointers.has(build.pointer)) throw new Error(`构建目标必须是已拆分字段: ${build.pointer}`);
-    if (buildTargets.has(build.pointer)) throw new Error(`多个构建写入同一字段: ${build.pointer}`);
+    if (!['script', 'html', 'vue'].includes(build.kind)) throw new Error(`Unknown build type: ${build.kind}`);
+    if (!pointers.has(build.pointer)) throw new Error(`Build target must be a split field: ${build.pointer}`);
+    if (buildTargets.has(build.pointer)) throw new Error(`Multiple builds target the same field: ${build.pointer}`);
     await safeFile(dir, build.entry); buildTargets.add(build.pointer);
   }
   if (project.avatar) await safeFile(dir, project.avatar);
   if (project.original) {
     const original = project.original;
     for (const [file, hash] of [[original.baseline, original.baselineSha256], [original.file, original.sha256]]) {
-      if (file && sha256(await fs.readFile(await safeFile(dir, file))) !== hash) throw new Error(`原件校验失败，不能覆盖或编辑 original/: ${file}`);
+      if (file && sha256(await fs.readFile(await safeFile(dir, file))) !== hash) throw new Error(`Original checksum failed; do not overwrite or edit original/: ${file}`);
     }
   }
   return { project, card, dir, root, name };
 }
 export async function migrateProject(name, root = ROOT) {
   const loaded = await loadProject(name, root);
-  if (loaded.project.schemaVersion === 2) return { name, ok: true, migrated: false, reason: '已经是创作格式 v2' };
+  if (loaded.project.schemaVersion === 2) return { name, ok: true, migrated: false, reason: 'Already in authoring format v2' };
   await walk(loaded.dir); // Refuse links/special files before copying or writing a staged project.
   const temporary = await fs.mkdtemp(path.join(root, 'cards/.tmp-migrate-'));
   const backup = path.join(root, 'cards', `.tmp-backup-${Date.now()}-${name}`);
@@ -179,7 +179,7 @@ export async function migrateProject(name, root = ROOT) {
     const manifest = await writeAuthoring(temporary, loaded.card, loaded.project);
     const roundtrip = await loadAuthoring(temporary, manifest);
     const sortedBuilds = builds => [...builds].sort((a, b) => a.pointer.localeCompare(b.pointer));
-    if (!isDeepStrictEqual(roundtrip.card, loaded.card) || !isDeepStrictEqual(sortedBuilds(roundtrip.project.builds), sortedBuilds(loaded.project.builds))) throw new Error('迁移保真校验失败，原工程未改动');
+    if (!isDeepStrictEqual(roundtrip.card, loaded.card) || !isDeepStrictEqual(sortedBuilds(roundtrip.project.builds), sortedBuilds(loaded.project.builds))) throw new Error('Migration fidelity check failed; original project unchanged');
     await publishDirectory(temporary, loaded.dir, backup);
     return { name, ok: true, migrated: true, backup: '.card/migration-v1/', source: 'src/index.yaml' };
   } catch (error) { await fs.rm(temporary, { recursive: true, force: true }); throw error; }

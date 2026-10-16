@@ -1,0 +1,20 @@
+name: location·Old Drydock
+enabled: true
+keys:
+  - dock
+  - drydock
+  - slipway
+secondary_keys: []
+selective: true
+use_regex: false
+order: 5
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: before_character
+role: system
+file: src/worldbook/geography/old-drydock.md
+link: worldbook-977c8d74-27cf-4270-bed9-9e91afbfc6fe

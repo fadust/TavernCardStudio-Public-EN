@@ -1,24 +1,19 @@
 ---
 name: tavern-regex
-description: 编写或审查角色卡酒馆正则，区分显示、提示词和消息改写，处理 MVU 流式更新块、折叠块及前端占位符，并验证执行顺序。
+description: Write or review card regex routing for display, prompts, stored messages, MVU streaming/complete blocks, and frontend markers; verify execution order.
 ---
 
-# 酒馆正则
+# Tavern regexes
 
-读 [正则机制与字段](../../../docs/REGEX.md)。每条正则对应一个 `src/regex/*.yaml`，由 `src/index.yaml` 的 `正则` 引用：匹配写 `查找`，替换正文写 `替换文件` 指向的 `src/...`；其余键为 `名称`、`裁剪`、`禁用`、`仅显示`、`仅提示词`、`编辑时运行`、`宏替换模式`、`最小深度`、`最大深度`、`作用于`（可多选）。保留工具生成的 `关联`，增删或重排引用后打包自动生效。
+Read [Regexes](../../../docs/REGEX.md) and [field mapping](../../../docs/ARCHITECTURE.md#authoring-field-mapping). Each src/regex/*.yaml is referenced by index.regex. Use find, replacement_file, name, trim, disabled, display_only, prompt_only, run_on_edit, substitute_regex, min_depth, max_depth, and placement. Preserve link and IDs. Reference changes take effect on build without pointer edits.
 
-键名与卡 JSON 字段、`作用于` 枚举的完整对照见 [中文键对照](../../../docs/ARCHITECTURE.md#中文键对照)。
+Before editing, identify each input/output, placement, display/prompt flags, depth bounds, edit behavior, and prior rule output.
 
-开始前列出每条正则的输入来源、目标输出、placement、markdownOnly/promptOnly、minDepth/maxDepth、runOnEdit，以及前一条输出是否会成为本条输入。
+- Separate display hiding from prompt cleanup, preserving raw messages for MVU. Both flags false may rewrite stored history and require explicit intent.
+- Cover unfinished streaming and complete blocks; use bounded/non-greedy matches and test multiple blocks with intervening prose.
+- Min/max depth are lower/upper bounds from newest 0; max 3 is a recent range, not old-only history. Verify system/tool/continuation routes separately. Regex placement/depth differs from worldbook position/depth.
+- Render UI markers only on display and remove them from prompts. If only recent panels render, separately clean old markers without hiding narration.
+- Standard MVU consumes automatic `<StatusPlaceHolderImpl/>`; independent/special UIs need a reliable custom producer. For remote loaders see [Remote assets](../../../docs/REMOTE-ASSETS.md), keeping fences/body/dependencies.
+- Preserve the repository's Base64 transport to protect capture/macro-like text. It is encoding, not encryption or a way to conceal dependencies.
 
-- 显示隐藏与提示词清理分成两条，原消息保留供 MVU 解析。两开关同时为 false 可能改写存档，只有用户明确需要该行为才采用。
-- 流式未闭合块和完整块分别考虑；使用非贪婪或边界明确的表达式，测试同一消息出现多个块，不要把中间正文一并吞掉。
-- `minDepth` 下界、`maxDepth` 上界；“最大深度 3”是最近消息范围，不是“只处理旧历史”。系统/工具和继续生成路径可能不同，查宿主源码。
-- 世界书 position/depth 与正则 placement/depth 属于不同系统，不互相套用。
-- 只在显示路径替换 UI 标签，提示词路径移除标签。若只渲染最新若干楼层，另设旧楼层标签清理；不要借此隐藏正常叙事。
-- MVU 的标准显示入口是框架自动添加的 `<StatusPlaceHolderImpl/>`，不为它再写让模型输出的条目；非 MVU 卡或特殊布局才另选标记并提供生产者。替换成远程界面加载页时读 [外链资源](../../../docs/REMOTE-ASSETS.md)，保留围栏、body 与依赖登记。
-- 前端内嵌沿用本仓库构建工具的 Base64 传输包装，防止 `$1` 和 `{{...}}` 被宿主替换。编码不能用于隐藏依赖或宣称加密。
-
-在 `tests/regex.json` 添加正例、无匹配、跨行、多块、未闭合、正文相邻等有意义样例。`card check` 当前执行单条捕获替换，不模拟全局正则、宏展开、宿主深度路由或完整多条链；链路结果需要单独样例或真实宿主核对。
-
-运行 `pnpm card check <卡名>` 与 `pnpm card build <卡名>`。如果不能在真实宿主核对流式效果，明确留为未验证，不凭静态正则成功宣称显示已正确。
+Add meaningful tests/regex.json examples for positive/no match, multiline, multiple/unfinished blocks, adjacent prose, and replacement boundaries. Card check covers supported single-rule capture/trim replacement, not host global rules, macro expansion, depth routing, or complete chains. Run check/build and state any missing real-host streaming verification.

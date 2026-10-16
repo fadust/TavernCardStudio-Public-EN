@@ -1,0 +1,18 @@
+name: Events·Lighthouse outage investigation
+enabled: true
+keys:
+  - /light goes out|extinguished|lighthouse stops|outage/i
+secondary_keys: []
+selective: true
+use_regex: true
+order: 7
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: before_character
+role: system
+file: src/worldbook/events/lighthouse-outage-investigation.md
+link: worldbook-ca88bee8-0359-4ad3-817b-72abdec8ad3c

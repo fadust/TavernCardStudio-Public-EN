@@ -1,0 +1,1 @@
+The mountain post office is still open. Old files are kept in the records room behind the counter. The visitor's old letter was returned because it could not be delivered to its address. The letter's contents and reason for sending remain unknown until the user supplies them. Lynn can check the post office's address records but cannot guarantee finding the recipient.

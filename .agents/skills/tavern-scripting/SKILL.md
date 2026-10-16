@@ -1,46 +1,32 @@
 ---
 name: tavern-scripting
-description: 编写或维护角色卡酒馆助手脚本与 EJS，处理事件、按钮、变量作用域、MVU 读写和生命周期，以及世界书条目里的宏、EJS 与变量组合；界面布局使用 tavern-frontend。
+description: Maintain Tavern Helper scripts and EJS, including events, buttons, variable scopes, MVU reads/writes, lifecycle, and dynamic worldbook macros; use tavern-frontend for layout.
 ---
 
-# 酒馆助手脚本与 EJS
+# Helper scripts and EJS
 
-先读本卡 `src/index.yaml`、`src/scripts/*.yaml` 与 [脚本文档](../../../docs/SCRIPTS.md)。需要具体接口、事件或故障定位时读 [运行时参考](references/script-runtime.md)，再从锁定 `@types` 查函数签名，不全量加载上游。
+Read the current index/script YAML and [Scripts](../../../docs/SCRIPTS.md). Use [Runtime reference](references/script-runtime.md) and pinned types for signatures/events/troubleshooting rather than loading all upstream material. English/native mappings are in [Architecture](../../../docs/ARCHITECTURE.md#authoring-field-mapping).
 
-条目键名与卡 JSON 字段的完整对照见 [中文键对照](../../../docs/ARCHITECTURE.md#中文键对照)。
+## Environment and lifecycle
 
-## 环境与生命周期
+Script bodies compile to one browser ESM file. Type is script/folder; small data is inline and larger data uses exclusive data_file. Helper variables live in index.helper_variables. Preserve link/IDs. There are no auto-imports: symbols must be resolvable imports or verified host globals; syntax check does not find undefined names.
 
-- 脚本在宿主 iframe 中运行，正文由 esbuild 打成单个 ESM 写回该脚本条目的正文。条目用 `类型: 脚本`／`类型: 文件夹` 组织，按钮与数据写在条目 YAML：数据小就内联 `数据`，超过 2000 字符时用同名 `.data.yaml` 的 `数据文件`，两者互斥。脚本保存的变量写在 `src/index.yaml` 的 `助手变量`；保留工具生成的 `关联`。
-- 本仓库没有自动导入。符号要么显式 import 可解析的本地包，要么由目标宿主提供全局；`check` 不验证未定义名字。
-- 自写脚本默认随卡内嵌；要把源码放到公开 Git，先按上面的构建打成单文件再发布，卡里只写固定提交的外链，并在 `project.json` 的 `dependencies` 登记同一串地址。外链 ESM 需要对方返回 JavaScript MIME 并允许跨域；`$.getScript`、经典 `<script src>` 加载的脚本不能写 `import` 语法。地址写法、主机响应头与升级步骤见 [公开外链资源](../../../docs/REMOTE-ASSETS.md)。
-- 注册 Zod 时使用宿主全局 z，不能额外打包另一份 Zod。其它包是否使用全局或打包由实际需求和兼容性决定。
-- 初始副作用放在 `$(() => {...})` 等可靠加载入口；动态加载场景不依赖已经触发的 DOMContentLoaded。
-- 用 pagehide 清理 DOM、样式、定时器和监听。重复加载、swipe、编辑和切聊天时保持幂等，避免同一副作用执行多次。
-- 脚本 iframe 中 `$` 可能指向宿主页面，document 仍是自身 iframe；需要挂 DOM/样式时先确认目标文档。
+Embed custom code by default. For [public hosting](../../../docs/REMOTE-ASSETS.md), publish reviewed single-file output at a full commit, declare the exact URL, and use a matching loader. ESM requires JavaScript MIME/CORS; classic getScript/script-src loaders cannot accept static import syntax. Registration uses host z rather than a second bundled Zod.
 
-## 事件、按钮与变量
+Use reliable dynamic-load initialization such as $(() => {...}), and pagehide cleanup for DOM/styles/timers/listeners. Keep reload/swipe/edit/chat-switch effects idempotent. Script iframe jQuery may target the host while document is local; choose the intended document explicitly.
 
-`eventOn` 返回的 stop 可显式取消；签名以 `@types/iframe/event.d.ts` 为准。跨脚本通信使用自定义事件名，不伪造宿主内建事件。新旧状态比较放更新事件，纯值归一交 Schema。
+## Events, buttons, and scopes
 
-按钮名称保持稳定，`appendInexistentScriptButtons` 只补缺失按钮；整体替换用 `replaceScriptButtons`。脚本设置使用 `{ type: 'script', script_id: getScriptId() }`，不要混入玩家世界状态。读写前检查作用域和缺失值。
+Check event signatures in @types/iframe/event.d.ts. `eventOn` returns a stoppable listener; use custom event names for inter-script communication. Old/new comparisons belong in events; current-value normalization belongs in Schema.
+
+Keep button names stable. AppendInexistent adds missing buttons, while replaceScriptButtons replaces a group. Script settings use {type:'script',script_id:getScriptId()}, separate from game state. Validate scope and missing values before writes.
 
 ## MVU
 
-- 调用 Mvu API 前 `await waitGlobalInitialized('Mvu')`。脚本列表顺序不保证远程 import 和异步初始化顺序。
-- 普通脚本指定 message_id 或 latest；只有楼层 iframe 可用 getCurrentMessageId。写回前保留原变量表的其它键。
-- 自己生成但未创建楼层的消息才需要手动 parseMessage，再写回目标楼层；正常框架已解析的消息不重复应用。
-- `registerMvuSchema` 的独立注册脚本须尽早订阅初始化事件，和“等待 Mvu 后读写”的消费者流程区分；详细约束见 [Zod skill](../tavern-mvu-zod/SKILL.md)。
-- 直接 helper/Mvu 写入不等于走完整模型补丁流程；需要约束时明确校验，不能默认注册器拦截所有直接写入。
+Consumers waitGlobalInitialized('Mvu'); list order is not initialization completion. Ordinary scripts choose message_id/latest; getCurrentMessageId belongs to message iframes. Preserve unrelated variables on replacement. Manually parse only independently generated text not already handled by the framework. Registration subscribes early enough for initialization and is separate from consumer waiting. Direct Helper/Mvu writes do not necessarily traverse every model-patch constraint; validate explicitly where needed. See [Zod skill](../tavern-mvu-zod/SKILL.md).
 
 ## EJS
 
-按状态决定提示文本用 EJS；持续监听、按钮或数据写入用助手脚本。EJS 依赖 Prompt Template，生成和楼层渲染都可能执行，用 runType 区分 `generate/preparation/render/render_permanent`，不要假定只执行一次。
+Use EJS for conditional prompt text and Helper scripts for persistent listeners/buttons/writes. Prompt Template controls generate/preparation/render/render_permanent stages; EJS may run repeatedly. Host macros are separate. Treat user text as data rather than executable template fragments, choose correct escaping, and handle stage-specific variables. See [Dynamic worldbooks](../../../docs/WORLDBOOK-TEMPLATING.md).
 
-宏 `{{user}}`/`{{char}}` 由宿主处理，不是 EJS。没有 Prompt Template 时 EJS 不会自行执行。把用户文本当数据，不拼成可执行模板；接口与阶段变量见脚本文档。
-
-- 条目正文把宿主宏、变量与 EJS 组合起来属于进阶用法：处理方不同，变量分多层作用域，取值要在生成与渲染阶段分别核对。约定与示例见 [世界书里的宏、EJS 与变量](../../../docs/WORLDBOOK-TEMPLATING.md)。变量不会自动进入世界书关键词扫描；要让状态驱动激活，先由脚本在扫描前注入。
-
-## 验证
-
-`card check` 解析语法并审计依赖；`card build` 合并代码。对自编受信任逻辑做必要测试，导入卡脚本不执行。真实宿主验证事件、切聊天、重复加载与卸载后的行为；没有证据时不宣称已实机兼容。
+Variables do not automatically enter keyword scanning. State-driven activation needs a reviewed pre-scan injection path. Check/build parse/audit/package only; test trusted custom logic appropriately and verify events, chat switches, reloads, and teardown in a real host before claiming runtime compatibility.

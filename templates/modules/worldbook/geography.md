@@ -1,4 +1,4 @@
-地理总览:
-  港口片区: 码头与周边商铺组成的沿海街区
-  通行: 日常往来以街道和步行为主
-  范围: 总览说明区域关系，具体地点细节按实际提及加载
+Geography overview:
+  Harbor district: The docks and nearby shops form a coastal neighborhood.
+  Travel: Most everyday journeys follow streets on foot.
+  Scope: This overview describes area relationships; load location details when actually mentioned.

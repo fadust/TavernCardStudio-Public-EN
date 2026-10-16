@@ -1,0 +1,1 @@
+The example character is the story's main character. Add their identity, background, goals, and relationship with {{user}} here.

@@ -19,7 +19,7 @@ async function fixture(t) {
   return root;
 }
 
-test('公开导出只包含明确清单，排除作品与会话，并校验实际字节', async t => {
+test("public exports follow the explicit manifest, exclude local work and sessions, and verify actual bytes", async t => {
   const root = await fixture(t); const out = path.join(root, 'work/export');
   assert.equal((await checkRelease(root)).ok, true);
   await exportRelease(out, root);
@@ -31,18 +31,18 @@ test('公开导出只包含明确清单，排除作品与会话，并校验实�
   await assert.rejects(exportRelease(out, root), /EEXIST/);
 });
 
-test('公开检查拒绝断链和越界清单', async t => {
+test("release checks reject broken links and escaping manifest paths", async t => {
   const root = await fixture(t);
   await write(path.join(root, 'README.md'), '[missing](docs/missing.md)');
   assert.equal((await checkRelease(root)).ok, false);
   const manifest = JSON.parse(await fs.readFile(path.join(root, 'maintenance/public-release.json'), 'utf8'));
   manifest.files.push('../secret.json'); await writeJSON(path.join(root, 'maintenance/public-release.json'), manifest);
-  await assert.rejects(checkRelease(root), /无效发布路径/);
+  await assert.rejects(checkRelease(root), /Invalid release path/);
 });
 
-test('公开检查拒绝清单目录中的符号链接', async t => {
+test("release checks reject symlinks inside manifest directories", async t => {
   const root = await fixture(t);
   try { await fs.symlink(path.join(root, 'cards'), path.join(root, 'tools/link'), 'junction'); }
   catch (error) { if (error.code === 'EPERM') return t.skip('当前系统不允许创建测试链接'); throw error; }
-  await assert.rejects(checkRelease(root), /符号链接/);
+  await assert.rejects(checkRelease(root), /symbolic links/);
 });

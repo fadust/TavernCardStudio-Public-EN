@@ -1,5 +1,5 @@
 ---
-变量输出格式:
+Variable output format:
   rule:
     - you must output the update analysis and the actual update commands at once in the end of the next reply
     - the update commands works like the **JSON Patch (RFC 6902)** standard, must be a valid JSON array containing operation objects, but supports the following operations instead:
@@ -11,7 +11,7 @@
     - every operation except move needs path; move needs from and to; a wrong op name is silently ignored instead of raising an error
     - paths start from the root of stat_data, so never write the stat_data. prefix; write ~0 and ~1 for ~ and / inside a field name
     - "${...} only marks a placeholder: replace it with a legal JSON value (strings in quotes, the delta value a bare number like 1, [] when nothing changed)"
-    - don't update field names starts with _ as they are readonly, such as _变量
+    - don't update field names starts with _ as they are readonly, such as _variables
   format: |-
     <UpdateVariable>
     <Analysis>$(IN ENGLISH, no more than 80 words)

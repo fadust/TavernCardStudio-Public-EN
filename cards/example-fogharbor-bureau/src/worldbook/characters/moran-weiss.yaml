@@ -1,0 +1,19 @@
+name: people·Moran Weiss
+enabled: true
+keys:
+  - Weiss
+  - director
+secondary_keys: []
+selective: true
+use_regex: false
+order: 12
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: after_character
+role: system
+file: src/worldbook/characters/moran-weiss.md
+link: worldbook-3946498e-770f-4230-981e-0c4c310e885f

@@ -1,4 +1,4 @@
-// refs restore：按锁文件还原参考资料（离线注入 fetcher，不访问网络）。
+// refs restore uses pinned references and an offline injected fetcher.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import fss from 'node:fs';
@@ -8,9 +8,9 @@ import { test } from 'node:test';
 
 import { restoreReferences, updateReferences, checkReferences, searchReferences, sha256, parseArgs } from '../tools/refs.mjs';
 
-// 离线保证：本文件只允许注入 fetcher，任何真实网络访问都会立刻失败。
+// Only injected fetchers are allowed; real network access fails immediately.
 const realFetch = globalThis.fetch;
-globalThis.fetch = () => { throw new Error('refs restore 测试不应访问网络'); };
+globalThis.fetch = () => { throw new Error('refs restore tests must not access the network'); };
 test.after(() => { globalThis.fetch = realFetch; });
 
 const COMMIT = 'a'.repeat(40);
@@ -20,7 +20,7 @@ const createdRoots = [];
 test.after(async () => {
   const prefix = path.resolve(os.tmpdir()) + path.sep + 'tavern-refs-restore-';
   for (const root of createdRoots) {
-    if (!path.resolve(root).startsWith(prefix)) throw new Error('测试清理路径越界');
+    if (!path.resolve(root).startsWith(prefix)) throw new Error('Test cleanup path escapes the workspace');
     await fs.rm(root, { recursive: true, force: true });
   }
 });
@@ -75,20 +75,20 @@ function offlineReader(seed) {
   };
 }
 
-/** 注入的 URL 取数：只认 raw.githubusercontent.com/<repo>/<commit>/<path>，记录全部调用。 */
+/** Injected URL fetcher accepts only raw.githubusercontent.com/<repo>/<commit>/<path> and records all calls. */
 function urlFetcher(seed, { fail = null, override = null } = {}) {
   const calls = [];
   const fetch = async url => {
     calls.push(url);
     const match = /^https:\/\/raw\.githubusercontent\.com\/([^/]+\/[^/]+)\/([a-f0-9]{40})\/(.+)$/.exec(url);
-    if (!match) throw new Error('restore 访问了非 raw 地址: ' + url);
+    if (!match) throw new Error('restore requested a non-raw URL: ' + url);
     const [, repo, commit, encoded] = match;
-    if (commit !== COMMIT) throw new Error('restore 未使用锁定的完整提交: ' + url);
+    if (commit !== COMMIT) throw new Error('restore did not use the pinned full commit: ' + url);
     const upstream = encoded.split('/').map(decodeURIComponent).join('/');
     const key = REPOS[repo] + '/' + upstream;
-    if (fail && fail(key)) throw new Error('注入的下载失败: ' + key);
+    if (fail && fail(key)) throw new Error('Injected download failure: ' + key);
     if (override && override.has(key)) return override.get(key);
-    if (!seed.has(key)) throw new Error('未命中种子: ' + key);
+    if (!seed.has(key)) throw new Error('Seed entry missing: ' + key);
     return seed.get(key);
   };
   fetch.calls = calls;
@@ -120,7 +120,7 @@ function leftover(root) {
   return fss.readdirSync(dir).filter(name => /^\.(staging|backup)-restore-/.test(name));
 }
 
-test('restore 按锁还原缺失缓存、不改锁文件并重建索引', async () => {
+test('restore repairs missing caches without changing the lockfile and rebuilds the index', async () => {
   const seed = seedMap();
   const root = await fixture();
   await lockFrom(root, seed);
@@ -142,11 +142,11 @@ test('restore 按锁还原缺失缓存、不改锁文件并重建索引', async 
   assert.equal(result.indexRebuilt, true);
 
   assert.ok(fetcher.calls.length >= 4);
-  assert.ok(fetcher.calls.every(url => url.startsWith('https://raw.githubusercontent.com/')), '只走 raw 地址');
-  assert.ok(fetcher.calls.every(url => url.includes('/' + COMMIT + '/')), '只用锁定的完整提交');
-  assert.ok(fetcher.calls.every(url => !url.includes('api.github.com')), '不使用 GitHub tree/commits API');
+  assert.ok(fetcher.calls.every(url => url.startsWith('https://raw.githubusercontent.com/')), 'Only raw URLs are requested');
+  assert.ok(fetcher.calls.every(url => url.includes('/' + COMMIT + '/')), 'Only full pinned commits are used');
+  assert.ok(fetcher.calls.every(url => !url.includes('api.github.com')), 'No GitHub tree or commits API requests');
 
-  assert.deepEqual(await lockBytes(root), lockBefore, '锁文件内容与时间不变');
+  assert.deepEqual(await lockBytes(root), lockBefore, 'Lockfile content and timestamps remain unchanged');
   assert.equal(sha256(await fs.readFile(path.join(root, 'references/upstream/demo-docs/guide.md'))), sha256(seed.get('demo/docs/guide.md')));
   assert.equal(sha256(await fs.readFile(path.join(root, 'references/upstream/extra/LICENSE'))), sha256(seed.get('extra/LICENSE')));
 
@@ -154,10 +154,10 @@ test('restore 按锁还原缺失缓存、不改锁文件并重建索引', async 
   assert.equal(summary.files, 4);
   const found = await searchReferences(root, 'world info');
   assert.equal(found.matched, 1);
-  assert.deepEqual(await fs.readFile(path.join(root, 'references/index.json')), indexBefore, '重建的索引与锁一致');
+  assert.deepEqual(await fs.readFile(path.join(root, 'references/index.json')), indexBefore, 'Rebuilt index matches the lockfile');
 });
 
-test('restore 复用已校验文件，不重复下载；索引可单独重建', async () => {
+test('restore reuses verified files and can rebuild the index separately', async () => {
   const seed = seedMap();
   const root = await fixture();
   await lockFrom(root, seed);
@@ -167,8 +167,8 @@ test('restore 复用已校验文件，不重复下载；索引可单独重建', 
   const again = await restoreReferences({ root, fetcher: reuse });
   assert.equal(again.fetched, 0);
   assert.equal(again.reused, 4);
-  assert.equal(again.indexRebuilt, false, '索引已一致时不重写');
-  assert.equal(reuse.calls.length, 0, '完整缓存下不应联网');
+  assert.equal(again.indexRebuilt, false, 'Do not rewrite a matching index');
+  assert.equal(reuse.calls.length, 0, 'A complete cache needs no network access');
 
   await fs.rm(path.join(root, 'references/index.json'), { force: true });
   const rebuild = await restoreReferences({ root, fetcher: urlFetcher(seed) });
@@ -178,7 +178,7 @@ test('restore 复用已校验文件，不重复下载；索引可单独重建', 
   assert.deepEqual(await lockBytes(root), lockBefore);
 });
 
-test('restore --source 只还原指定来源，其它来源可缺', async () => {
+test('restore --source restores selected sources independently', async () => {
   const seed = seedMap();
   const root = await fixture();
   await lockFrom(root, seed);
@@ -189,7 +189,7 @@ test('restore --source 只还原指定来源，其它来源可缺', async () => 
   assert.equal(onlyExtra.sources, 1);
   assert.equal(onlyExtra.fetched, 1);
   assert.ok(fss.existsSync(path.join(root, 'references/upstream/extra/LICENSE')));
-  assert.ok(!fss.existsSync(path.join(root, 'references/upstream/demo')), '未选中的来源不还原');
+  assert.ok(!fss.existsSync(path.join(root, 'references/upstream/demo')), 'Unselected sources are not restored');
   await checkReferences(root, { sources: new Set(['extra']) });
 
   const onlyDemo = await restoreReferences({ root, fetcher: urlFetcher(seed), only: 'demo' });
@@ -198,28 +198,28 @@ test('restore --source 只还原指定来源，其它来源可缺', async () => 
   assert.equal(summary.files, 4);
 });
 
-test('restore 下载失败时不损伤旧缓存并清理暂存目录', async () => {
+test('restore download failures preserve old cache and remove staging directories', async () => {
   const seed = seedMap();
   const root = await fixture();
   await lockFrom(root, seed);
   const lockBefore = await lockBytes(root);
 
   const guide = path.join(root, 'references/upstream/demo-docs/guide.md');
-  await fs.writeFile(guide, textFile('# Guide\n\n本地缓存被改动，需要重新取回。\n'));
+  await fs.writeFile(guide, textFile('# Guide\n\nLocal cache was modified and must be fetched again.\n'));
   const before = await snapshot(root);
 
   const broken = urlFetcher(seed, { fail: key => key === 'demo/docs/guide.md' });
-  await assert.rejects(restoreReferences({ root, fetcher: broken }), /注入的下载失败/);
-  assert.deepEqual(await snapshot(root), before, '失败后资料与索引保持原样');
+  await assert.rejects(restoreReferences({ root, fetcher: broken }), /Injected download failure/);
+  assert.deepEqual(await snapshot(root), before, 'References and index remain unchanged after failure');
   assert.deepEqual(await lockBytes(root), lockBefore);
-  assert.deepEqual(leftover(root), [], '不残留 staging/backup 目录');
+  assert.deepEqual(leftover(root), [], 'No leftover staging or backup directories');
 });
 
-test('restore 拒绝与锁记录不一致的内容且不落地', async () => {
+test('restore rejects content that differs from lock records before writing', async () => {
   const seed = seedMap();
   const original = seed.get('demo/docs/guide.md');
   const cases = [
-    { override: textFile('x'), pattern: /长度/ },
+    { override: textFile('x'), pattern: /byte count/ },
     { override: Buffer.alloc(original.length, 0x23), pattern: /sha256/ },
   ];
   for (const { override, pattern } of cases) {
@@ -230,12 +230,12 @@ test('restore 拒绝与锁记录不一致的内容且不落地', async () => {
 
     const wrong = urlFetcher(seed, { override: new Map([['demo/docs/guide.md', override]]) });
     await assert.rejects(restoreReferences({ root, fetcher: wrong }), pattern);
-    assert.ok(!fss.existsSync(path.join(root, 'references/upstream')), '失败后不落地半成品');
+    assert.ok(!fss.existsSync(path.join(root, 'references/upstream')), 'No partial files remain after failure');
     assert.deepEqual(leftover(root), []);
   }
 });
 
-test('restore 拒绝越界路径、漂移映射与坏哈希的锁记录', async () => {
+test('restore rejects escaping paths, drifted mappings, and invalid hashes', async () => {
   const seed = seedMap();
   const root = await fixture();
   await lockFrom(root, seed);
@@ -250,19 +250,19 @@ test('restore 拒绝越界路径、漂移映射与坏哈希的锁记录', async 
   };
 
   await mutate(lock => { lock.sources.demo.files['docs/guide.md'].local = '../escaped.md'; });
-  await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /路径越界/);
+  await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /Path escapes the workspace/);
   assert.ok(!fss.existsSync(path.resolve(root, '..', 'escaped.md')));
 
   await mutate(lock => { lock.sources.demo.files['docs/guide.md'].local = 'references/upstream/demo-docs/other.md'; });
-  await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /漂移/);
+  await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /has drifted/);
 
   await mutate(lock => { lock.sources.demo.files['docs/guide.md'].sha256 = 'zz'; });
-  await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /sha256 无效/);
+  await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /Invalid lock record sha256/);
 
   await fs.writeFile(lockPath, baseline);
 });
 
-test('restore 不信任符号链接缓存，重新取回普通文件', async t => {
+test('restore replaces untrusted symlink cache files with regular files', async t => {
   const seed = seedMap();
   const root = await fixture();
   await lockFrom(root, seed);
@@ -271,9 +271,9 @@ test('restore 不信任符号链接缓存，重新取回普通文件', async t =
   const link = path.join(root, 'references/upstream/demo-docs/guide.md');
   await fs.rm(link, { force: true });
   try { await fs.symlink(target, link, 'file'); }
-  catch (error) { t.skip('当前环境不支持创建符号链接: ' + error.code); return; }
+  catch (error) { t.skip('This environment cannot create symlinks: ' + error.code); return; }
 
-  // 只有符号链接那一条需要下载，其余都应命中复用；未命中就抛错。
+  // Only the symlinked file needs downloading; fail if other files are not reused.
   const fetcher = urlFetcher(seed, { fail: key => key !== 'demo/docs/guide.md' });
   const result = await restoreReferences({ root, fetcher });
   assert.equal(result.fetched, 1);
@@ -281,32 +281,32 @@ test('restore 不信任符号链接缓存，重新取回普通文件', async t =
   assert.equal(fetcher.calls.length, 1);
 
   const stat = fss.lstatSync(link);
-  assert.ok(stat.isFile() && !stat.isSymbolicLink(), '符号链接被替换为普通文件');
+  assert.ok(stat.isFile() && !stat.isSymbolicLink(), 'Symlink was replaced with a regular file');
   assert.equal(sha256(await fs.readFile(link)), sha256(seed.get('demo/docs/guide.md')));
 });
 
-test('parseArgs 识别 restore 与 --source', () => {
+test('parseArgs recognizes restore and --source', () => {
   const parsed = parseArgs(['restore', '--source', 'demo', '--source=extra']);
   assert.equal(parsed.command, 'restore');
   assert.deepEqual(parsed.sources, ['demo', 'extra']);
 });
 
-test('restore 在缺锁文件时给出清楚提示', async () => {
+test('restore reports a missing lockfile clearly', async () => {
   const root = await fixture();
   await assert.rejects(restoreReferences({ root, fetcher: async () => Buffer.alloc(0) }), /references\.lock\.json/);
 });
 
-test('按来源检索只返回选中来源，混合未知来源不能静默忽略', async () => {
+test('Source search returns selected sources and rejects unknown sources', async () => {
   const root = await fixture(); const seed = seedMap();
   await lockFrom(root, seed);
   assert.equal(searchReferences(root, 'World Info', { sources: ['extra'] }).shown, 0);
   const result = searchReferences(root, 'World Info', { sources: ['demo'] });
   assert.equal(result.shown, 1);
   assert.equal(result.results[0].file, 'references/upstream/demo-docs/guide.md');
-  await assert.rejects(restoreReferences({ root, only: ['demo', 'not-a-source'], fetcher: urlFetcher(seed) }), /未知来源/);
+  await assert.rejects(restoreReferences({ root, only: ['demo', 'not-a-source'], fetcher: urlFetcher(seed) }), /Unknown source/);
 });
 
-test('索引写入失败且目录回滚被占用时，最后一份旧缓存保留在备份', async () => {
+test('Keep the last old cache backup if index writing and directory rollback fail', async () => {
   const root = await fixture(); const seed = seedMap();
   await lockFrom(root, seed);
   const guide = path.join(root, 'references/upstream/demo-docs/guide.md');
@@ -316,7 +316,7 @@ test('索引写入失败且目录回滚被占用时，最后一份旧缓存保�
     if (String(from).includes('index.json.tmp-') || String(from).includes('.backup-restore-')) throw new Error('simulated locked destination');
     return rename(from, to);
   };
-  try { await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /保留备份目录/); }
+  try { await assert.rejects(restoreReferences({ root, fetcher: urlFetcher(seed) }), /Keep the backup directory/); }
   finally { fss.renameSync = rename; }
   const backups = (await fs.readdir(path.join(root, 'references'))).filter(name => name.startsWith('.backup-restore-'));
   assert.equal(backups.length, 1);

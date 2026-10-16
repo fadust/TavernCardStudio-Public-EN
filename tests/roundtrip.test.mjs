@@ -1,5 +1,5 @@
-// 角色卡工作区的往返与防御性检查。
-// 只使用公开 API：tools/lib/png.mjs 与 tools/lib/project.mjs，不改工具本身。
+// Character workspace roundtrip and defensive checks.
+// Uses only tools/lib/png.mjs and tools/lib/project.mjs public APIs without changing the tools.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -16,14 +16,14 @@ const NUL = String.fromCharCode(0);
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const CARD_KEYWORDS = ['chara', 'ccv3'];
 
-// ---------- 测试用最小 PNG ----------
+// ---------- Minimal test PNG ----------
 
 function ihdr(width = 1, height = 1) {
   const data = Buffer.alloc(13);
   data.writeUInt32BE(width, 0);
   data.writeUInt32BE(height, 4);
-  data[8] = 8;  // 位深
-  data[9] = 2;  // 真彩色
+  data[8] = 8;  // Bit depth
+  data[9] = 2;  // Truecolor
   data[10] = 0;
   data[11] = 0;
   data[12] = 0;
@@ -74,7 +74,7 @@ function cardKeywords(bytes) {
     .filter(keyword => CARD_KEYWORDS.includes(keyword));
 }
 
-// ---------- 测试用角色卡 ----------
+// ---------- Test cards ----------
 
 function v2Card() {
   return {
@@ -121,7 +121,7 @@ function v2Card() {
             id: 1,
             keys: [],
             secondary_keys: [],
-            comment: '规则',
+            comment: "rules",
             content: '',
             enabled: true,
             constant: true,
@@ -156,7 +156,7 @@ function v2Card() {
             {
               type: 'folder',
               enabled: true,
-              name: '变量',
+              name: "variables",
               id: 'f1',
               icon: 'fa-cog',
               color: 'blue',
@@ -208,7 +208,7 @@ function v3Card() {
   return card;
 }
 
-// ---------- 测试辅助 ----------
+// ---------- Test helpers ----------
 
 async function tempRoot(t, prefix) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -252,7 +252,7 @@ async function writeProjectFile(dir, project) {
 
 // ---------- semanticDiff ----------
 
-test('semanticDiff 按字段报告差异', () => {
+test("semanticDiff reports differences by field", () => {
   const before = { data: { description: 'a', tags: ['x'] } };
   const after = { data: { description: 'b', tags: ['x', 'y'] } };
   assert.deepEqual(semanticDiff(before, after), [
@@ -266,9 +266,9 @@ test('semanticDiff 按字段报告差异', () => {
   ]);
 });
 
-// ---------- JSON 往返 ----------
+// ---------- JSON roundtrips ----------
 
-test('V2 JSON 拆分后重新加载语义等价', async t => {
+test("V2 JSON splitting and reloading preserves semantics", async t => {
   const root = await tempRoot(t, 'tcs-v2-json-');
   const card = v2Card();
   const { card: loaded, project, dir, file } = await roundtripJSON(card, 'v2-json', root);
@@ -287,7 +287,7 @@ test('V2 JSON 拆分后重新加载语义等价', async t => {
   await fs.access(path.join(dir, 'src', 'card.json'));
 });
 
-test('V3 JSON 往返保留 assets 与 group_only_greetings', async t => {
+test("V3 JSON roundtrips preserve assets and group_only_greetings", async t => {
   const root = await tempRoot(t, 'tcs-v3-json-');
   const card = v3Card();
   const { card: loaded, project, dir } = await roundtripJSON(card, 'v3-json', root);
@@ -300,9 +300,9 @@ test('V3 JSON 往返保留 assets 与 group_only_greetings', async t => {
   assert.equal(await fs.readFile(path.join(dir, 'src', 'greetings', 'group_only_greetings-1.md'), 'utf8'), '群聊开场');
 });
 
-// ---------- PNG 往返 ----------
+// ---------- PNG roundtrips ----------
 
-test('V2 PNG 使用 chara 块并可往返', async t => {
+test("V2 PNG uses chara chunks and roundtrips", async t => {
   const root = await tempRoot(t, 'tcs-v2-png-');
   const card = v2Card();
   const { card: loaded, project, dir } = await roundtripPNG(card, 'chara', 'v2-png', root);
@@ -316,7 +316,7 @@ test('V2 PNG 使用 chara 块并可往返', async t => {
   assert.deepEqual(semanticDiff(card, readCardPNG(rebuilt).card), []);
 });
 
-test('V3 PNG 使用 ccv3 块并可往返', async t => {
+test("V3 PNG uses ccv3 chunks and roundtrips", async t => {
   const root = await tempRoot(t, 'tcs-v3-png-');
   const card = v3Card();
   const { card: loaded, project, dir } = await roundtripPNG(card, 'ccv3', 'v3-png', root);
@@ -330,7 +330,7 @@ test('V3 PNG 使用 ccv3 块并可往返', async t => {
   assert.deepEqual(semanticDiff(card, readCardPNG(rebuilt).card), []);
 });
 
-test('chara 与 ccv3 同时存在时优先 ccv3', () => {
+test("ccv3 takes precedence when both chara and ccv3 exist", () => {
   const v2 = v2Card();
   const v3 = v3Card();
   const png = buildPNG([cardChunk('chara', v2), cardChunk('ccv3', v3)]);
@@ -341,7 +341,7 @@ test('chara 与 ccv3 同时存在时优先 ccv3', () => {
   assert.notDeepEqual(semanticDiff(v2, read.card), []);
 });
 
-test('写 PNG 时保留未知 tEXt 块并消除旧角色数据块', () => {
+test("PNG writes preserve unknown tEXt chunks and remove stale character chunks", () => {
   const v2 = v2Card();
   const v3 = v3Card();
   const image = buildPNG([
@@ -385,52 +385,52 @@ test('写 PNG 时保留未知 tEXt 块并消除旧角色数据块', () => {
   assert.deepEqual(cardKeywords(mismatched), ['chara'], '写入的块类型由卡的 spec 决定，而不是来源块');
 });
 
-// ---------- PNG 防御性检查 ----------
+// ---------- PNG defensive checks ----------
 
-test('CRC 损坏的 PNG 被拒绝', () => {
+test("PNG input with corrupt CRC is rejected", () => {
   const png = buildPNG([cardChunk('chara', v2Card())]);
   const broken = Buffer.from(png);
   const idatAt = broken.indexOf(Buffer.from('IDAT', 'latin1'));
   assert.notEqual(idatAt, -1);
   broken[idatAt + 4] ^= 0xff;
 
-  assert.throws(() => parsePNG(broken), /校验失败/);
-  assert.throws(() => readCardPNG(broken), /校验失败/);
+  assert.throws(() => parsePNG(broken), /checksum failed/);
+  assert.throws(() => readCardPNG(broken), /checksum failed/);
 });
 
-test('截断的 PNG 被拒绝', () => {
+test("truncated PNG input is rejected", () => {
   const png = buildPNG([cardChunk('chara', v2Card())]);
-  assert.throws(() => parsePNG(png.subarray(0, png.length - 8)), /截断|越界|IEND/);
-  assert.throws(() => readCardPNG(png.subarray(0, png.length - 8)), /截断|越界|IEND/);
-  assert.throws(() => parsePNG(png.subarray(0, 12)), /无效 PNG 签名|截断|越界/);
-  assert.throws(() => parsePNG(png.subarray(0, 40)), /截断|越界|IEND/);
-  assert.throws(() => parsePNG(Buffer.concat([png, Buffer.from([0])])), /IEND 后存在无效数据/);
+  assert.throws(() => parsePNG(png.subarray(0, png.length - 8)), /Truncated|out of bounds|IEND/);
+  assert.throws(() => readCardPNG(png.subarray(0, png.length - 8)), /Truncated|out of bounds|IEND/);
+  assert.throws(() => parsePNG(png.subarray(0, 12)), /Invalid PNG signature|Truncated|out of bounds/);
+  assert.throws(() => parsePNG(png.subarray(0, 40)), /Truncated|out of bounds|IEND/);
+  assert.throws(() => parsePNG(Buffer.concat([png, Buffer.from([0])])), /Invalid data after PNG IEND/);
 });
 
-test('缺失或损坏的角色数据块被拒绝', () => {
-  assert.throws(() => readCardPNG(buildPNG([textChunk('Comment', '无卡')])), /没有角色卡数据/);
+test("missing or corrupt character data chunks are rejected", () => {
+  assert.throws(() => readCardPNG(buildPNG([textChunk('Comment', '无卡')])), /no character card data/);
   assert.throws(() => readCardPNG(buildPNG([textChunk('chara', '!!!not-base64!!!')])), /Base64/);
-  assert.throws(() => readCardPNG(buildPNG([textChunk('chara', Buffer.from('{不是 JSON', 'utf8').toString('base64'))])), /不是有效 JSON/);
+  assert.throws(() => readCardPNG(buildPNG([textChunk('chara', Buffer.from('{不是 JSON', 'utf8').toString('base64'))])), /not valid JSON/);
 });
 
-// ---------- split 的输入校验 ----------
+// ---------- Split input validation ----------
 
-test('split 拒绝不支持的文件类型与非法角色卡', async t => {
+test("split rejects unsupported file types and invalid character cards", async t => {
   const root = await tempRoot(t, 'tcs-split-guard-');
   await fs.writeFile(path.join(root, 'card.txt'), 'hello');
-  await assert.rejects(() => splitCard(path.join(root, 'card.txt'), { name: 'txt', root }), /只支持/);
+  await assert.rejects(() => splitCard(path.join(root, 'card.txt'), { name: 'txt', root }), /supported/);
 
   await fs.writeFile(path.join(root, 'array.json'), '[1,2]');
-  await assert.rejects(() => splitCard(path.join(root, 'array.json'), { name: 'array', root }), /必须是 JSON 对象/);
+  await assert.rejects(() => splitCard(path.join(root, 'array.json'), { name: 'array', root }), /must be a JSON object/);
 
   await fs.writeFile(path.join(root, 'v1.json'), JSON.stringify({ spec: 'chara_card_v1', data: {} }));
-  await assert.rejects(() => splitCard(path.join(root, 'v1.json'), { name: 'v1', root }), /不支持的角色卡格式/);
+  await assert.rejects(() => splitCard(path.join(root, 'v1.json'), { name: 'v1', root }), /Unsupported card format/);
 
   await fs.writeFile(path.join(root, 'nodata.json'), JSON.stringify({ spec: 'chara_card_v2' }));
-  await assert.rejects(() => splitCard(path.join(root, 'nodata.json'), { name: 'nodata', root }), /缺少 data 对象/);
+  await assert.rejects(() => splitCard(path.join(root, 'nodata.json'), { name: 'nodata', root }), /missing its data object/);
 });
 
-test('中文路径与中文卡名可用', async t => {
+test("Chinese paths and card names are supported", async t => {
   const root = await tempRoot(t, '角色卡工作区-');
   const card = v2Card();
   const file = await writeCardFile(root, path.join('素材', '冷面剑客.json'), card);
@@ -441,12 +441,12 @@ test('中文路径与中文卡名可用', async t => {
   assert.deepEqual(semanticDiff(card, loaded), []);
   assert.equal(project.name, '冷面剑客');
 
-  await assert.rejects(() => splitCard(file, { name: '冷面剑客', root }), /已存在/);
+  await assert.rejects(() => splitCard(file, { name: '冷面剑客', root }), /Already exists/);
 });
 
-// ---------- 字符串保真 ----------
+// ---------- String fidelity ----------
 
-test('空字段、CRLF、Unicode 与 EJS／宏字符串保真', async t => {
+test("empty fields, CRLF, Unicode, and EJS/macro strings are preserved", async t => {
   const root = await tempRoot(t, 'tcs-fidelity-');
   const card = v2Card();
   const crlf = String.fromCharCode(13, 10);
@@ -475,7 +475,7 @@ test('空字段、CRLF、Unicode 与 EJS／宏字符串保真', async t => {
   assert.equal(cardJSON.data.description, '', '已拆分字段在 card.json 中留空占位');
 });
 
-test('带 BOM 与 CRLF 的 JSON 文件可以导入', async t => {
+test("JSON files with BOM and CRLF can be imported", async t => {
   const root = await tempRoot(t, 'tcs-bom-');
   const card = v2Card();
   const file = path.join(root, 'bom.json');
@@ -489,7 +489,7 @@ test('带 BOM 与 CRLF 的 JSON 文件可以导入', async t => {
   assert.equal(project.original.file, 'original/input.json');
 });
 
-test('非字符串字段保持原值且不拆分', async t => {
+test("nonstring fields remain unchanged and unsplit", async t => {
   const root = await tempRoot(t, 'tcs-nonstring-');
   const card = v2Card();
   card.data.description = 123;
@@ -505,7 +505,7 @@ test('非字符串字段保持原值且不拆分', async t => {
   assert.equal(pointers.includes('/data/character_book/entries/0/content'), false, '非字符串条目正文不应被拆分');
 });
 
-test('未知扩展的深嵌数组与对象原样保留', async t => {
+test("deeply nested arrays and objects in unknown extensions are preserved", async t => {
   const root = await tempRoot(t, 'tcs-unknown-ext-');
   const card = v2Card();
   card.data.extensions['第三方插件'] = {
@@ -519,9 +519,9 @@ test('未知扩展的深嵌数组与对象原样保留', async t => {
   assert.equal(project.fields.some(field => field.pointer.includes('第三方插件')), false, '未知扩展不应被拆分');
 });
 
-// ---------- 脚本与 legacy 字段 ----------
+// ---------- Scripts and legacy fields ----------
 
-test('脚本文件夹树的结构、顺序与元数据保真', async t => {
+test("script folder trees preserve structure, order, and metadata", async t => {
   const root = await tempRoot(t, 'tcs-scripts-');
   const card = v2Card();
   const { card: loaded, project, dir } = await roundtripJSON(card, 'scripts', root);
@@ -549,7 +549,7 @@ test('脚本文件夹树的结构、顺序与元数据保真', async t => {
   assert.deepEqual(scripts.map(script => script.id), ['s1', 's2'], '拆分不应打乱脚本顺序');
 });
 
-test('根层 legacy 字段同样拆分并可还原', async t => {
+test("root-level legacy fields also split and restore", async t => {
   const root = await tempRoot(t, 'tcs-legacy-');
   const card = v2Card();
 
@@ -563,9 +563,9 @@ test('根层 legacy 字段同样拆分并可还原', async t => {
   assert.equal(await fs.readFile(path.join(dir, 'src', 'text', 'description.md'), 'utf8'), card.data.description);
 });
 
-// ---------- 目录与原件保护 ----------
+// ---------- Directory and original protection ----------
 
-test('split 拒绝覆盖已有目录且不留下临时目录', async t => {
+test("split refuses to overwrite directories and leaves no temporary directories", async t => {
   const root = await tempRoot(t, 'tcs-existing-');
   const card = v2Card();
   const file = await writeCardFile(root, 'card.json', card);
@@ -573,14 +573,14 @@ test('split 拒绝覆盖已有目录且不留下临时目录', async t => {
   const dir = await splitCard(file, { name: 'dup', root });
   const before = await fs.readFile(path.join(dir, 'src', 'card.json'), 'utf8');
 
-  await assert.rejects(() => splitCard(file, { name: 'dup', root }), /已存在/);
+  await assert.rejects(() => splitCard(file, { name: 'dup', root }), /Already exists/);
   assert.equal(await fs.readFile(path.join(dir, 'src', 'card.json'), 'utf8'), before, '失败时不应改动已有目录');
 
   const leftovers = (await fs.readdir(path.join(root, 'cards'))).filter(name => name.startsWith('.tmp-'));
   assert.deepEqual(leftovers, [], '失败的导入不应留下临时目录');
 });
 
-test('篡改 original/ 原件会被检测', async t => {
+test("tampering with original files is detected", async t => {
   const root = await tempRoot(t, 'tcs-tamper-');
   const card = v2Card();
   const file = await writeCardFile(root, 'card.json', card);
@@ -590,19 +590,19 @@ test('篡改 original/ 原件会被检测', async t => {
   const inputFile = path.join(dir, 'original', 'input.json');
   const originalBytes = await fs.readFile(inputFile);
   await fs.writeFile(inputFile, JSON.stringify({ ...card, name: '被改过的原件' }));
-  await assert.rejects(() => loadProject('tamper', root), /原件校验失败/);
+  await assert.rejects(() => loadProject('tamper', root), /Original checksum failed/);
 
   await fs.writeFile(inputFile, originalBytes);
   await loadProject('tamper', root);
 
   await fs.writeFile(path.join(dir, project.original.baseline), '{}');
-  await assert.rejects(() => loadProject('tamper', root), /原件校验失败/);
+  await assert.rejects(() => loadProject('tamper', root), /Original checksum failed/);
   assert.equal(project.original.baselineSha256.length, 64);
 });
 
-// ---------- manifest 校验 ----------
+// ---------- Manifest validation ----------
 
-test('project.json 冲突与越界会被拒绝，修复后可恢复加载', async t => {
+test("project.json conflicts and escaping paths are rejected and loading recovers after repairs", async t => {
   const root = await tempRoot(t, 'tcs-manifest-');
   const card = v2Card();
   const file = await writeCardFile(root, 'card.json', card);
@@ -619,21 +619,21 @@ test('project.json 冲突与越界会被拒绝，修复后可恢复加载', asyn
     await assert.rejects(() => loadProject('manifest', root), expected);
   };
 
-  await expectFailure(p => { p.fields.push({ pointer: splitPointer, file: 'src/text/duplicate-pointer.md' }); }, /重复字段映射/);
-  await expectFailure(p => { p.fields.push({ pointer: '/data/creator', file: splitFile }); }, /重复源文件映射/);
-  await expectFailure(p => { p.fields.push({ pointer: '/data/creator', file: 'outside/creator.md' }); }, /字段源必须放在/);
-  await expectFailure(p => { p.fields.push({ pointer: '/data/不存在', file: 'src/text/missing.md' }); }, /字段不存在/);
-  await expectFailure(p => { p.fields.push({ pointer: '/data/name', file: 'src/text/name.md' }); }, /必须保持空字符串/);
-  await expectFailure(p => { p.schemaVersion = 99; }, /不受支持/);
-  await expectFailure(p => { p.builds = [{ kind: 'web', entry: splitFile, pointer: splitPointer }]; }, /未知构建类型/);
-  await expectFailure(p => { p.builds = [{ kind: 'script', entry: splitFile, pointer: '/data/name' }]; }, /构建目标必须是已拆分字段/);
-  await expectFailure(p => { p.builds = [{ kind: 'script', entry: 'src/scripts/缺失.js', pointer: splitPointer }]; }, /ENOENT|不存在|no such file/i);
+  await expectFailure(p => { p.fields.push({ pointer: splitPointer, file: 'src/text/duplicate-pointer.md' }); }, /Duplicate field mapping/);
+  await expectFailure(p => { p.fields.push({ pointer: '/data/creator', file: splitFile }); }, /Duplicate source mapping/);
+  await expectFailure(p => { p.fields.push({ pointer: '/data/creator', file: 'outside/creator.md' }); }, /Field sources must be inside/);
+  await expectFailure(p => { p.fields.push({ pointer: '/data/不存在', file: 'src/text/missing.md' }); }, /Field does not exist/);
+  await expectFailure(p => { p.fields.push({ pointer: '/data/name', file: 'src/text/name.md' }); }, /must remain an empty string/);
+  await expectFailure(p => { p.schemaVersion = 99; }, /unsupported/);
+  await expectFailure(p => { p.builds = [{ kind: 'web', entry: splitFile, pointer: splitPointer }]; }, /Unknown build type/);
+  await expectFailure(p => { p.builds = [{ kind: 'script', entry: splitFile, pointer: '/data/name' }]; }, /Build target must be a split field/);
+  await expectFailure(p => { p.builds = [{ kind: 'script', entry: 'src/scripts/缺失.js', pointer: splitPointer }]; }, /ENOENT|does not exist|no such file/i);
   await expectFailure(p => {
     p.builds = [
       { kind: 'script', entry: splitFile, pointer: splitPointer },
       { kind: 'script', entry: splitFile, pointer: splitPointer },
     ];
-  }, /多个构建写入同一字段/);
+  }, /Multiple builds target the same field/);
 
   await writeProjectFile(dir, baseline);
   const { card: loaded } = await loadProject('manifest', root);

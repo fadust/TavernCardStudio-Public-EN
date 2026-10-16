@@ -1,0 +1,19 @@
+name: location·Tide Lane Fish Market
+enabled: true
+keys:
+  - fish market
+  - Tide Lane
+secondary_keys: []
+selective: true
+use_regex: false
+order: 4
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: before_character
+role: system
+file: src/worldbook/geography/tide-lane-fish-market.md
+link: worldbook-382dd0a9-649d-463d-b1af-72894b113f60

@@ -1,77 +1,51 @@
-# 运行环境与语法
+# Runtime environment and syntax
 
-写卡前先确认一段内容会被谁、在什么时机处理。弄错层是最常见的返工原因。
+Before writing content, identify which component processes it and at what stage.
 
-## 组件
-
-| 组件 | 角色 |
+| Component | Responsibility |
 | --- | --- |
-| SillyTavern | 宿主程序，负责组装提示词、管理角色卡、世界书和聊天记录 |
-| 酒馆助手（Tavern Helper） | 扩展，提供脚本、前端界面和操作宿主的接口 |
-| Prompt Template（EJS） | 扩展，在生成准备、请求构建及楼层渲染等阶段处理模板；按 runType 区分 |
-| 正则扩展 | 内置扩展，对用户输入、模型输出、提示词和显示文本做替换 |
-| MVU 变量框架 | 由卡内固定提交的加载脚本引入的独立脚本，维护消息楼层变量并解析模型输出的更新块 |
-| 本工作区工具 | 本地拆分、检查与打包，不参与聊天运行时 |
+| SillyTavern | Prompt assembly, character cards, worldbooks, and chat history |
+| Tavern Helper | Extension providing scripts, frontend rendering, and host APIs |
+| Prompt Template (EJS) | Template evaluation at generation preparation, request building, and message rendering; APIs depend on runType |
+| Regex extension | Replacements on user input, model output, prompt text, and display text |
+| MVU | Independently loaded pinned script maintaining message variables and parsing update blocks |
+| Workspace tools | Local splitting, validation, and packaging; no chat runtime role |
 
-卡可以只用其中一部分。每多一个组件，玩家就需要多装一个东西，`project.json` 的 `dependencies` 要如实记录。
+A card can use any subset. Each extra runtime component is an installation requirement for the player; record external resources accurately in `project.json.dependencies`.
 
-## 各语法在哪里生效
+## Syntax and evaluation
 
-| 语法 | 生效位置 | 处理时机 |
+| Syntax | Location | Evaluation |
 | --- | --- | --- |
-| 酒馆宏 `{{user}}`、`{{char}}` 等 | 提示词、世界书条目、楼层文本 | 请求组装或显示时由宿主替换；`{{char}}` 指卡名，只在单角色同名卡中按需代指角色 |
-| STScript（`/命令`） | 输入框、快捷回复、预设 | 由玩家或脚本触发 |
-| EJS `<% %>`、`<%- %>` | 提示词、角色卡字段、世界书条目、楼层文本 | 由 Prompt Template 按生成或渲染阶段处理，接口随 runType 变化 |
-| 酒馆助手脚本 | 浏览器内的 iframe | 页面加载或事件触发 |
-| MVU 更新块 | 模型输出或消息文本 | 新楼层产生或手动解析时 |
-| 前端 HTML/Vue | 消息楼层内的 iframe | 楼层渲染后 |
+| Host macros such as `{{user}}`, `{{char}}` | Prompts, worldbooks, messages | Host substitution during assembly/display; char is the card name |
+| STScript slash commands | Input, quick replies, presets | Player/script invocation |
+| EJS `<% %>`, `<%- %>` | Prompts, card fields, worldbooks, messages | Prompt Template generation or render stage |
+| Tavern Helper JavaScript | Browser iframe | Load/event time |
+| MVU update blocks | Model output/message text | New-message processing or explicit parsing |
+| HTML/Vue frontend | Message iframe | After message rendering |
 
-### 不要混用
+Macros, EJS, Helper scripts, STScript, and MVU data are separate systems. EJS requires Prompt Template; without it the template may remain literal text. Helper scripts can listen, update state, and mount UI; EJS can run repeatedly at several stages. Prefer host APIs over assembling slash-command strings. MVU update syntax is ordinary text without the MVU parser.
 
-- **宏不是 EJS**。`{{user}}` 由宿主替换；`<%- variables.x %>` 由 Prompt Template 处理。写了 EJS 但玩家没装 Prompt Template，这段文本会原样发给模型。
-- **EJS 不是助手脚本**。EJS 由 Prompt Template 在相应阶段求值，不能假定只执行一次；助手脚本在浏览器 iframe 中运行，能监听事件、改变量、挂界面。阶段接口见 [助手脚本与 EJS](SCRIPTS.md)。
-- **助手脚本不是 STScript**。需要操作宿主时优先用酒馆助手接口，而不是拼接 `/命令` 字符串。
-- **MVU 更新块是数据格式**，需要 MVU 脚本在场才会被解析；没有 MVU 时它只是发给模型的普通文本。
+## Load order
 
-### 加载与依赖顺序
+Wait for `waitGlobalInitialized('Mvu')` before reading/writing MVU. Script list order is useful for organization but cannot guarantee completion of network imports or asynchronous initialization. Card scripts need Tavern Helper and enabled card scripting; interfaces also need frontend rendering and their regexes enabled.
 
-- 使用 MVU 的脚本或界面，必须在代码顶部等待 MVU 初始化完成再读写变量，写法见 [变量与 MVU](VARIABLES.md)。
-- MVU 脚本条目排在依赖它的脚本之前便于管理，但网络 import 与初始化是异步的，列表顺序不能代替 `waitGlobalInitialized('Mvu')`。
-- 卡内脚本（包括 MVU 加载脚本）需要玩家安装酒馆助手并启用卡内脚本才会运行；界面还需要启用前端渲染，并保持本卡正则启用。
-- 用于生成提示词的 EJS 早于模型收到请求；该阶段要用到的变量必须事先写入。不要把渲染阶段才有的楼层上下文当成生成阶段必定可用。
+Generation-time EJS runs before the model request, so required state must already exist. Render-time message context is not necessarily available during generation. See [Scripts](SCRIPTS.md) and [Variables](VARIABLES.md).
 
-## 触发方式
+## Trigger choices
 
-同样的内容可以按不同方式决定"什么时候出现"：
+Always-active entries are scan candidates regardless of keywords but still subject to enabled state, probability, and budget. Keywords activate topical facts; insertion depth controls proximity to messages; probability supports random/optional content. Helper events handle message/chat changes and buttons support manual actions. See [Worldbooks](WORLDBOOK.md) and [Regexes](REGEX.md).
 
-| 方式 | 用什么控制 | 用在哪里 |
-| --- | --- | --- |
-| 常驻 | 世界书条目的常驻开关 | 不依赖关键字、每次扫描都会进入候选的规则（仍受启用、概率与预算限制） |
-| 关键字 | 条目主关键字、次关键字与匹配逻辑 | 提到某人、某地、某事件时 |
-| 深度 | 世界书条目的深度与角色 | 需要固定出现在最近若干楼层附近 |
-| 概率 | 条目触发概率 | 随机事件、可选项 |
-| 事件 | 助手脚本监听酒馆事件 | 收到消息、切换聊天、楼层变化 |
-| 手动 | 脚本按钮或快捷回复 | 玩家主动触发的功能 |
+## Versions and evidence
 
-世界书部分的细节见 [世界书](WORLDBOOK.md)，正则部分的细节见 [正则](REGEX.md)。
+Use restored pinned sources and types under `references/upstream/`, not remembered APIs. Different host/extension versions may differ. `runtimeVerified` records real host/version evidence; null means unverified. Check/build only establish local validation and packaging.
 
-## 版本与证据边界
-
-- 字段名、枚举值和接口以 `references/upstream/` 里锁定的上游资料为准（先 `pnpm refs restore` 取回缓存）；酒馆助手的类型声明在 `references/upstream/tavern-helper/@types/`。
-- 不同酒馆版本、不同扩展版本的行为可能不同。写卡时不要把"某版本可用"当成"所有版本可用"。
-- `project.json` 的 `runtimeVerified` 记录实际核实过的宿主与扩展版本。`null` 表示尚未核实，不是"不支持"。
-- `pnpm card check` 和 `pnpm card build` 只在本机跑静态检查和打包，不能证明在真实酒馆里能工作。
-
-## 查资料
-
-```powershell
-pnpm refs restore       # 新克隆或缓存缺失时先按锁版本取回参考资料
-pnpm refs search <关键词>
+```sh
+pnpm refs restore
+pnpm refs search <keyword>
 pnpm refs check
 ```
 
-公开包不带上游实体，`pnpm refs restore` 按 `maintenance/references.lock.json` 只取锁定的完整提交与文件、按 sha256 校验，把资料还原到 `references/upstream/<来源>/`：酒馆助手的类型声明在 `references/upstream/tavern-helper/@types/`，MVU 的接口与教程在 `references/upstream/mvu/`，SillyTavern 源码在 `references/upstream/sillytavern/`。每个来源固定到某个提交，逐文件哈希与许可证记录在锁文件，检索索引是 `references/index.json`。`pnpm refs update` 会刷新来源并重写锁文件，属于维护者有意的锁版本升级，日常写卡不用跑。
+Restore retrieves only locked complete commits/files and verifies SHA-256 without upgrading. Types are under `tavern-helper/@types/`, MVU sources under `mvu/`, and host sources under `sillytavern/`. The generated index is `references/index.json`. `refs update` intentionally rewrites source locks and is a maintenance operation.
 
-检索顺序建议：本卡 `src/index.yaml` 与条目 YAML → `references/upstream/` → 公开文档。资料清单与固定提交见 [来源索引](SOURCES.md)。
-
-如果本地资料没有覆盖，把结论标注为待核实，不要凭印象填字段。不查参考资料也能跑的是离线校验 `pnpm verify`（单元测试与官方示例的检查／构建）；参考资料一致性用 `pnpm verify:refs`，前提是先 restore。
+Research the current card YAML, then pinned sources, then public documentation. See [Sources](SOURCES.md). If evidence is missing, describe the uncertainty and how to verify it. Offline `pnpm verify` needs no reference cache; `pnpm verify:refs` requires restore first.

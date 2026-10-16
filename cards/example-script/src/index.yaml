@@ -1,0 +1,19 @@
+character:
+  name: example-script
+  creator: ""
+  version: 0.1.0
+  tags: []
+text:
+  description: src/text/description.md
+  personality: src/text/personality.md
+  scenario: src/text/scenario.md
+  first_mes: src/text/first_mes.md
+  creator_notes: src/text/creator_notes.md
+alternate_greetings: []
+group_only_greetings: []
+worldbook:
+  entries: []
+regex: []
+scripts:
+  - src/scripts/001-message-event-example.yaml
+helper_variables: {}

@@ -1,0 +1,13 @@
+name: Hide MVU placeholder (display, no interface)
+find: <StatusPlaceHolderImpl/>
+trim: []
+disabled: false
+display_only: true
+prompt_only: false
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - ai_output
+replacement_file: src/regex/003-hide-mvu-placeholder-display-no-interface.txt

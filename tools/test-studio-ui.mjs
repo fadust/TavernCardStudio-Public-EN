@@ -28,12 +28,12 @@ try {
   const channel = process.env.TAVERN_TEST_BROWSER || 'chrome';
   browser = await chromium.launch({ ...(channel === 'chromium' ? {} : { channel }), headless: true });
 
-  // ---- 入门引导、官方示例标识与「复制示例」：独立临时工作区，不碰真实 cards/ ----
+  // ---- Onboarding, official example badges, and copying in an isolated workspace ----
   const examplesRoot = await fs.mkdtemp(path.join(ROOT, 'work/test-studio-examples-'));
   const examples = await createStudioServer({ root: examplesRoot, openFolder: async () => {} });
   try {
-    assert.equal((await apiPost(examples, '/api/new', { name: '示例-雾港调查局', modules: ['worldbook'] })).ok, true);
-    assert.equal((await apiPost(examples, '/api/new', { name: '我的测试卡', modules: [] })).ok, true);
+    assert.equal((await apiPost(examples, '/api/new', { name: 'example-fogharbor-bureau', modules: ['worldbook'] })).ok, true);
+    assert.equal((await apiPost(examples, '/api/new', { name: 'my-test-card', modules: [] })).ok, true);
     const exampleContext = await browser.newContext({ viewport: { width: 1360, height: 1000 } });
     const examplePage = await exampleContext.newPage();
     const exampleErrors = [];
@@ -41,41 +41,41 @@ try {
     await examplePage.goto(examples.url + '/#token=' + examples.token);
     await expect(examplePage.locator('#app')).toBeVisible();
 
-    // 三条入门入口都在，且说明写清了 src 与 dist 的位置。
+    // All three onboarding actions explain the source and output locations.
     await expect(examplePage.locator('#onboarding')).toBeVisible();
     await expect(examplePage.locator('#onboardingNewBtn')).toBeVisible();
     await expect(examplePage.locator('#onboardingImportBtn')).toBeVisible();
     await expect(examplePage.locator('#onboardingExampleBtn')).toBeVisible();
-    await expect(examplePage.locator('#onboarding')).toContainText('cards/工程名/src');
-    await expect(examplePage.locator('#onboarding')).toContainText('dist/工程名');
+    await expect(examplePage.locator('#onboarding')).toContainText('cards/project-name/src');
+    await expect(examplePage.locator('#onboarding')).toContainText('dist/project-name');
     await examplePage.screenshot({ path: path.join(output, 'onboarding-entry.png'), fullPage: true });
 
-    // 用户卡与官方示例在列表里分开计数，示例带标识。
-    await expect(examplePage.locator('#listMeta')).toContainText('我的卡 1 张 · 官方示例 1 张');
+    // Count user cards and official examples separately and mark examples.
+    await expect(examplePage.locator('#listMeta')).toContainText('My cards: 1 · Official examples: 1 cards');
     await expect(examplePage.locator('#cardList .chip-example')).toHaveCount(1);
-    await expect(examplePage.locator('#cardList button', { hasText: '示例-雾港调查局' })).toContainText('官方示例');
-    await examplePage.locator('#cardList button', { hasText: '示例-雾港调查局' }).click();
-    await expect(examplePage.locator('#detailPanel')).toContainText('官方示例（复制后再改）');
-    await expect(examplePage.locator('#detailPanel .alert-note')).toContainText('复制成我的卡');
+    await expect(examplePage.locator('#cardList button', { hasText: 'example-fogharbor-bureau' })).toContainText('Official example');
+    await examplePage.locator('#cardList button', { hasText: 'example-fogharbor-bureau' }).click();
+    await expect(examplePage.locator('#detailPanel')).toContainText('Official example (copy before editing)');
+    await expect(examplePage.locator('#detailPanel .alert-note')).toContainText('Copy as my card');
 
-    // 复制示例：默认去掉「示例-」前缀，示例原卡保持不动。
+    // Copy examples without their prefix and retain the original.
     await examplePage.locator('#onboardingExampleBtn').click();
     await expect(examplePage.locator('#exampleDialog')).toBeVisible();
     await expect(examplePage.locator('#exampleList input')).toHaveCount(1);
-    await expect(examplePage.locator('#exampleName')).toHaveValue('雾港调查局');
-    await expect(examplePage.locator('#exampleNote')).toContainText('cards/新工程名/src');
+    await expect(examplePage.locator('#exampleName')).toHaveValue('fogharbor-bureau');
+    await expect(examplePage.locator('#exampleNote')).toContainText('cards/new-project/src');
     await examplePage.locator('#exampleForm button[type=submit]').click();
-    await expect(examplePage.locator('#detailPanel h2')).toHaveText('雾港调查局');
+    await expect(examplePage.locator('#detailPanel h2')).toHaveText('fogharbor-bureau');
     await expect(examplePage.locator('#onboarding')).toBeHidden();
-    await expect(examplePage.locator('#listMeta')).toContainText('我的卡 2 张 · 官方示例 1 张');
+    await expect(examplePage.locator('#listMeta')).toContainText('My cards: 2 · Official examples: 1 cards');
     await expect(examplePage.locator('#cardList .chip-example')).toHaveCount(1);
-    const copied = await loadProject('雾港调查局', examplesRoot);
+    const copied = await loadProject('fogharbor-bureau', examplesRoot);
     assert.equal(copied.project.schemaVersion, 2);
-    await fs.access(path.join(examplesRoot, 'cards/示例-雾港调查局/src'));
+    await fs.access(path.join(examplesRoot, 'cards/example-fogharbor-bureau/src'));
     await examplePage.screenshot({ path: path.join(output, 'onboarding.png'), fullPage: true });
     await examplePage.reload();
     await expect(examplePage.locator('#onboarding')).toBeHidden();
-    assert.deepEqual(exampleErrors, [], '示例流程没有未处理错误');
+    assert.deepEqual(exampleErrors, [], 'No unhandled errors in the example flow');
     await exampleContext.close();
   } finally {
     await examples.close();
@@ -91,101 +91,103 @@ try {
   });
   await page.goto(app.url + '/#token=' + app.token);
   await expect(page.locator('#app')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page).toHaveTitle('TavernCardStudio · Card Studio');
   await expect(page.locator('#listEmpty')).toBeVisible();
   await expect(page).toHaveURL(app.url + '/');
   await page.reload();
   await expect(page.locator('#app')).toBeVisible();
   await page.locator('#newBtn').click();
-  await page.locator('#newName').fill('灯塔书店');
+  await page.locator('#newName').fill('lighthouse-bookshop');
   await page.locator('#newForm input[value=worldbook]').check();
   await page.locator('#newForm button[type=submit]').click();
-  await expect(page.locator('#detailPanel h2')).toHaveText('灯塔书店');
-  await page.locator('#detailPanel').getByRole('button', { name: '检查', exact: true }).click();
-  await expect(page.locator('#resultsBody')).toContainText('检查通过');
-  // —— 整理世界书：新卡已按分类目录生成，先核对“无需整理”，再改回旧式平铺路径核对整理数、备份与引用 ——
-  const organizeBtn = () => page.locator('#detailPanel').getByRole('button', { name: '整理世界书', exact: true });
+  await expect(page.locator('#detailPanel h2')).toHaveText('lighthouse-bookshop');
+  await page.locator('#detailPanel').getByRole('button', { name: 'Check', exact: true }).click();
+  await expect(page.locator('#resultsBody')).toContainText('Check passed');
+  // —— Check no-op organization, then flatten one entry to verify relocation, backup, and references ——
+  const organizeBtn = () => page.locator('#detailPanel').getByRole('button', { name: 'Organize worldbook', exact: true });
   await organizeBtn().click();
-  await expect(page.locator('#resultsBody')).toContainText('无需整理');
-  const bookstore = path.join(root, 'cards/灯塔书店');
+  await expect(page.locator('#resultsBody')).toContainText('No organization needed');
+  const bookstore = path.join(root, 'cards/lighthouse-bookshop');
   const bookstoreIndex = path.join(bookstore, 'src/index.yaml');
-  const entryBefore = 'src/worldbook/世界设定/世界观.yaml';
-  const bodyBefore = 'src/worldbook/世界设定/世界观.md';
-  const entryLegacy = 'src/worldbook/001-世界观.yaml';
-  const bodyLegacy = 'src/worldbook/001-世界观.md';
+  const entryBefore = 'src/worldbook/setting/World setting.yaml';
+  const bodyBefore = 'src/worldbook/setting/World setting.md';
+  const entryLegacy = 'src/worldbook/001-World setting.yaml';
+  const bodyLegacy = 'src/worldbook/001-World setting.md';
   const indexDocument = parseDocument(await fs.readFile(bookstoreIndex, 'utf8'));
   let relocated = 0;
-  for (const item of indexDocument.getIn(['世界书', '条目'], true).items) {
+  for (const item of indexDocument.getIn(['worldbook', 'entries'], true).items) {
     if (String(item.value) === entryBefore) { item.value = entryLegacy; relocated += 1; }
   }
-  assert.equal(relocated, 1, '索引里应能找到这一条世界书引用');
+  assert.equal(relocated, 1, 'Index must contain this worldbook reference');
   await fs.writeFile(bookstoreIndex, indexDocument.toString({ lineWidth: 0 }));
   await fs.rename(path.join(bookstore, entryBefore), path.join(bookstore, entryLegacy));
   await fs.rename(path.join(bookstore, bodyBefore), path.join(bookstore, bodyLegacy));
   const entryDocument = parseDocument(await fs.readFile(path.join(bookstore, entryLegacy), 'utf8'));
-  entryDocument.set('文件', bodyLegacy);
+  entryDocument.set('file', bodyLegacy);
   await fs.writeFile(path.join(bookstore, entryLegacy), entryDocument.toString({ lineWidth: 0 }));
   await organizeBtn().click();
-  await expect(page.locator('#resultsBody')).toContainText('已整理 1 项世界书');
-  await expect(page.locator('#resultsBody .result').first()).toContainText('世界书分类已齐');
+  await expect(page.locator('#resultsBody')).toContainText('Organized 1 worldbook entries');
+  await expect(page.locator('#resultsBody .result').first()).toContainText('Worldbook categories are complete');
   const backups = await fs.readdir(path.join(root, 'work/layout-backups'));
-  assert.equal(backups.length, 1, '整理应留下一份备份');
-  assert.match(backups[0], /^灯塔书店-/);
-  await expect(page.locator('#resultsBody')).toContainText('原工程备份：work/layout-backups/' + backups[0]);
+  assert.equal(backups.length, 1, 'Organizing must retain one backup');
+  assert.match(backups[0], /^lighthouse-bookshop-/);
+  await expect(page.locator('#resultsBody')).toContainText('Original project backup: work/layout-backups/' + backups[0]);
   await fs.access(path.join(bookstore, entryBefore));
   await fs.access(path.join(bookstore, bodyBefore));
   await fs.access(path.join(root, 'work/layout-backups', backups[0], entryLegacy));
   await assert.rejects(fs.access(path.join(bookstore, entryLegacy)));
   await assert.rejects(fs.access(path.join(bookstore, bodyLegacy)));
-  assert.equal(parseDocument(await fs.readFile(path.join(bookstore, entryBefore), 'utf8')).get('文件'), bodyBefore);
-  assert.ok((await fs.readFile(bookstoreIndex, 'utf8')).includes(entryBefore), '整理后索引应指回分类目录');
-  // —— 按提示词顺序编号：先把同类条目的旧编号写回去，核对重排、备份与接口返回值 ——
-  const arrangeBtn = () => page.locator('#detailPanel').getByRole('button', { name: '按提示词顺序编号', exact: true });
+  assert.equal(parseDocument(await fs.readFile(path.join(bookstore, entryBefore), 'utf8')).get('file'), bodyBefore);
+  assert.ok((await fs.readFile(bookstoreIndex, 'utf8')).includes(entryBefore), 'Organized index must reference the category directory');
+  // —— Restore old numbering to verify reordering, backups, and API results ——
+  const arrangeBtn = () => page.locator('#detailPanel').getByRole('button', { name: 'Number in prompt order', exact: true });
   async function setEntryValue(relative, key, value) {
     const file = path.join(bookstore, relative);
     const document = parseDocument(await fs.readFile(file, 'utf8'));
     document.set(key, value);
     await fs.writeFile(file, document.toString({ lineWidth: 0 }));
   }
-  await setEntryValue('src/worldbook/世界设定/世界观.yaml', '顺序', 300);
-  await setEntryValue('src/worldbook/地理/地理总览.yaml', '顺序', 200);
-  await setEntryValue('src/worldbook/地理/旧书店.yaml', '顺序', 100);
+  await setEntryValue('src/worldbook/setting/World setting.yaml', 'order', 300);
+  await setEntryValue('src/worldbook/geography/Geography overview.yaml', 'order', 200);
+  await setEntryValue('src/worldbook/geography/Used bookshop.yaml', 'order', 100);
   await arrangeBtn().click();
   const arrangeResult = page.locator('#resultsBody .result').first();
-  await expect(arrangeResult).toContainText('按提示词顺序编号 · 灯塔书店');
-  await expect(arrangeResult).toContainText('已按提示词顺序编号');
-  await expect(arrangeResult).toContainText('顺序变化的条目');
-  const ordered = await loadProject('灯塔书店', root);
-  assert.deepEqual(ordered.card.data.character_book.entries.map((entry) => entry.comment), ['旧书店', '地理总览', '世界观', '角色总览', '书店店主', '信息边界'], '重排后总索引应按提示词次序');
-  assert.deepEqual(ordered.card.data.character_book.entries.map((entry) => entry.insertion_order), [1, 2, 3, 4, 5, 6], '重排后顺序应连续编号 1..N');
-  await fs.access(path.join(bookstore, 'src/worldbook/地理/旧书店.yaml'));
-  // 再改回旧编号，核对接口返回值、备份路径与重复执行不产生改动。
-  await setEntryValue('src/worldbook/世界设定/世界观.yaml', '顺序', 900);
-  const reshuffled = await apiPost(app, '/api/arrange', { name: '灯塔书店' });
+  await expect(arrangeResult).toContainText('Number in prompt order · lighthouse-bookshop');
+  await expect(arrangeResult).toContainText('Numbered in prompt order');
+  await expect(arrangeResult).toContainText('Entries with changed order');
+  const ordered = await loadProject('lighthouse-bookshop', root);
+  assert.deepEqual(ordered.card.data.character_book.entries.map((entry) => entry.comment), ['Used bookshop', 'Geography overview', 'World setting', 'Character overview', 'Bookseller', 'Knowledge boundaries'], 'Reordered index must follow prompt order');
+  assert.deepEqual(ordered.card.data.character_book.entries.map((entry) => entry.insertion_order), [1, 2, 3, 4, 5, 6], 'Reordered entries must be consecutively numbered 1..N');
+  await fs.access(path.join(bookstore, 'src/worldbook/geography/Used bookshop.yaml'));
+  // Restore old numbering again to check API results, backup paths, and idempotence.
+  await setEntryValue('src/worldbook/setting/World setting.yaml', 'order', 900);
+  const reshuffled = await apiPost(app, '/api/arrange', { name: 'lighthouse-bookshop' });
   assert.equal(reshuffled.arranged, true);
   assert.equal(reshuffled.order, 'prompt');
-  assert.ok(reshuffled.changes.length >= 1, '重排应报告顺序变化的条目');
-  assert.ok(reshuffled.backup, '重排应返回备份路径');
+  assert.ok(reshuffled.changes.length >= 1, 'Reordering must report changed entries');
+  assert.ok(reshuffled.backup, 'Reordering must return a backup path');
   await fs.access(path.isAbsolute(reshuffled.backup) ? reshuffled.backup : path.join(root, reshuffled.backup));
-  const settled = await apiPost(app, '/api/arrange', { name: '灯塔书店' });
-  assert.equal(settled.arranged, false, '已经排好时重复执行不应再改动');
+  const settled = await apiPost(app, '/api/arrange', { name: 'lighthouse-bookshop' });
+  assert.equal(settled.arranged, false, 'Repeating an already ordered operation must be a no-op');
   assert.deepEqual(settled.changes, []);
-  // 作者注、出口等复杂位置无法静态排全：拒绝自动排列，要求先用命令行按索引编号。
-  await setEntryValue('src/worldbook/规则/信息边界.yaml', '位置', '出口');
-  const refused = await apiPost(app, '/api/arrange', { name: '灯塔书店' });
+  // Complex positions such as author notes and outlets require explicit index order.
+  await setEntryValue('src/worldbook/rules/Knowledge boundaries.yaml', 'position', 'outlet');
+  const refused = await apiPost(app, '/api/arrange', { name: 'lighthouse-bookshop' });
   assert.equal(refused.ok, false);
   assert.match(String(refused.error), /--order index/);
-  await setEntryValue('src/worldbook/规则/信息边界.yaml', '位置', '指定深度');
+  await setEntryValue('src/worldbook/rules/Knowledge boundaries.yaml', 'position', 'at_depth');
   const jpegData = await page.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 560;
     const ctx = canvas.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 400, 560);
     g.addColorStop(0, '#b6a3d9'); g.addColorStop(1, '#26395d'); ctx.fillStyle = g; ctx.fillRect(0, 0, 400, 560);
     ctx.fillStyle = '#fff4d7'; ctx.beginPath(); ctx.arc(295, 130, 55, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#f6f3ff'; ctx.fillRect(158, 220, 82, 230); ctx.fillStyle = '#54486e'; ctx.fillRect(143, 211, 112, 18); ctx.fillRect(180, 350, 38, 100);
-    ctx.fillStyle = '#fff4d7'; ctx.font = '26px sans-serif'; ctx.fillText('灯塔书店', 145, 510);
+    ctx.fillStyle = '#fff4d7'; ctx.font = '26px sans-serif'; ctx.fillText('lighthouse-bookshop', 145, 510);
     return canvas.toDataURL('image/jpeg').split(',')[1];
   });
-  await page.locator('#detailPanel').getByRole('button', { name: '换封面', exact: true }).click();
-  await page.locator('#coverFile').setInputFiles({ name: '封面.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(jpegData, 'base64') });
+  await page.locator('#detailPanel').getByRole('button', { name: 'Change cover', exact: true }).click();
+  await page.locator('#coverFile').setInputFiles({ name: 'Cover.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(jpegData, 'base64') });
   await expect(page.locator('#coverSubmit')).toBeEnabled();
   await page.locator('#coverSubmit').click();
   await expect(page.locator('#coverDialog')).not.toBeVisible();
@@ -197,76 +199,76 @@ try {
     canvas.getContext('2d').drawImage(source, 0, 0, 200, 280);
     return canvas.toDataURL('image/webp').split(',')[1];
   }, jpegData);
-  await page.locator('#detailPanel').getByRole('button', { name: '换封面', exact: true }).click();
-  await page.locator('#coverFile').setInputFiles({ name: '第二张封面.webp', mimeType: 'image/webp', buffer: Buffer.from(webpData, 'base64') });
+  await page.locator('#detailPanel').getByRole('button', { name: 'Change cover', exact: true }).click();
+  await page.locator('#coverFile').setInputFiles({ name: 'second-cover.webp', mimeType: 'image/webp', buffer: Buffer.from(webpData, 'base64') });
   await expect(page.locator('#coverSubmit')).toBeEnabled();
   await page.locator('#coverSubmit').click();
   await expect(page.locator('#coverDialog')).not.toBeVisible();
   await expect.poll(() => page.locator('#detailPanel img').evaluate(img => img.naturalWidth)).toBe(200);
-  await page.locator('#detailPanel').getByRole('button', { name: '打包', exact: true }).click();
-  await expect(page.locator('#resultsBody')).toContainText('生成 PNG：灯塔书店.png');
-  const built = await readJSON(path.join(root, 'dist/灯塔书店/灯塔书店.json'));
-  assert.deepEqual(readCardPNG(await fs.readFile(path.join(root, 'dist/灯塔书店/灯塔书店.png'))).card, built);
-  const png = parsePNG(await fs.readFile(path.join(root, 'dist/灯塔书店/灯塔书店.png')));
+  await page.locator('#detailPanel').getByRole('button', { name: 'Build', exact: true }).click();
+  await expect(page.locator('#resultsBody')).toContainText('Generated PNG: lighthouse-bookshop.png');
+  const built = await readJSON(path.join(root, 'dist/lighthouse-bookshop/lighthouse-bookshop.json'));
+  assert.deepEqual(readCardPNG(await fs.readFile(path.join(root, 'dist/lighthouse-bookshop/lighthouse-bookshop.png'))).card, built);
+  const png = parsePNG(await fs.readFile(path.join(root, 'dist/lighthouse-bookshop/lighthouse-bookshop.png')));
   assert.equal(png[0].data.readUInt32BE(0), 200); assert.equal(png[0].data.readUInt32BE(4), 280);
-  await page.locator('#detailPanel').getByRole('button', { name: '复制卡', exact: true }).click();
-  await page.locator('#duplicateName').fill('灯塔书店-副本');
+  await page.locator('#detailPanel').getByRole('button', { name: 'Copy card', exact: true }).click();
+  await page.locator('#duplicateName').fill('lighthouse-bookshop-copy');
   await page.locator('#duplicateForm button[type=submit]').click();
-  await expect(page.locator('#detailPanel h2')).toHaveText('灯塔书店-副本');
-  await page.locator('#detailPanel').getByRole('button', { name: '重命名', exact: true }).click();
-  await page.locator('#renameProject').fill('海边旧书店');
-  await page.locator('#renameCharacter').fill('艾琳');
+  await expect(page.locator('#detailPanel h2')).toHaveText('lighthouse-bookshop-copy');
+  await page.locator('#detailPanel').getByRole('button', { name: 'Rename', exact: true }).click();
+  await page.locator('#renameProject').fill('seaside-bookshop');
+  await page.locator('#renameCharacter').fill('Erin');
   await page.locator('#renameForm button[type=submit]').click();
-  await expect(page.locator('#detailPanel h2')).toHaveText('海边旧书店');
-  assert.equal((await loadProject('海边旧书店', root)).card.data.name, '艾琳');
-  assert.equal((await loadProject('灯塔书店', root)).card.data.name, '灯塔书店');
-  await page.locator('#importFileInput').setInputFiles(path.join(root, 'dist/灯塔书店/灯塔书店.png'));
-  await page.locator('#importName').fill('导入的灯塔书店');
+  await expect(page.locator('#detailPanel h2')).toHaveText('seaside-bookshop');
+  assert.equal((await loadProject('seaside-bookshop', root)).card.data.name, 'Erin');
+  assert.equal((await loadProject('lighthouse-bookshop', root)).card.data.name, 'lighthouse-bookshop');
+  await page.locator('#importFileInput').setInputFiles(path.join(root, 'dist/lighthouse-bookshop/lighthouse-bookshop.png'));
+  await page.locator('#importName').fill('imported-lighthouse-bookshop');
   await page.locator('#importForm button[type=submit]').click();
-  await expect(page.locator('#detailPanel h2')).toHaveText('导入的灯塔书店');
-  assert.deepEqual((await loadProject('导入的灯塔书店', root)).card, built);
-  const imported = await loadProject('导入的灯塔书店', root);
-  assert.equal(imported.project.original.importPath, 'imports/灯塔书店.png');
-  assert.deepEqual(await fs.readFile(path.join(root, 'imports/灯塔书店.png')), await fs.readFile(path.join(root, 'dist/灯塔书店/灯塔书店.png')));
-  await expect(page.locator('#detailPanel')).toContainText('imports/灯塔书店.png');
-  // 导入结果要说清待分类数量与“AI 分批读正文后补分类再整理”的流程，不声称工具懂语义。
+  await expect(page.locator('#detailPanel h2')).toHaveText('imported-lighthouse-bookshop');
+  assert.deepEqual((await loadProject('imported-lighthouse-bookshop', root)).card, built);
+  const imported = await loadProject('imported-lighthouse-bookshop', root);
+  assert.equal(imported.project.original.importPath, 'imports/lighthouse-bookshop.png');
+  assert.deepEqual(await fs.readFile(path.join(root, 'imports/lighthouse-bookshop.png')), await fs.readFile(path.join(root, 'dist/lighthouse-bookshop/lighthouse-bookshop.png')));
+  await expect(page.locator('#detailPanel')).toContainText('imports/lighthouse-bookshop.png');
+  // Import results explain uncategorized entries and AI batching without implying semantic classification.
   const importResult = page.locator('#resultsBody .result').first();
-  await expect(importResult).toContainText('导入卡片 · 导入的灯塔书店');
-  await expect(importResult).toContainText(/待分类 \d+ 项/);
-  await expect(importResult).toContainText('src/worldbook/未分类/');
-  await expect(importResult).toContainText('不会读正文猜分类');
-  await expect(importResult).toContainText('再执行「整理世界书」');
-  await page.locator('#detailPanel').getByRole('button', { name: '去封面', exact: true }).click();
+  await expect(importResult).toContainText('Import card · imported-lighthouse-bookshop');
+  await expect(importResult).toContainText(/Uncategorized: \d+ entries/);
+  await expect(importResult).toContainText('src/worldbook/uncategorized/');
+  await expect(importResult).toContainText('never from body content');
+  await expect(importResult).toContainText('then run “Organize worldbook”');
+  await page.locator('#detailPanel').getByRole('button', { name: 'Remove cover', exact: true }).click();
   await page.locator('#confirmOk').click();
-  await expect(page.locator('#detailPanel')).toContainText('无封面');
-  await page.locator('#detailPanel').getByRole('button', { name: '打包', exact: true }).click();
-  await expect(page.locator('#resultsBody')).toContainText('生成 JSON：导入的灯塔书店.json');
-  assert.equal((await fs.readdir(path.join(root, 'dist/导入的灯塔书店'))).some(f => f.endsWith('.png')), false);
-  await page.locator('#detailPanel').getByRole('button', { name: /^(打开 )?内容文件夹$/, exact: true }).click();
+  await expect(page.locator('#detailPanel')).toContainText('No cover');
+  await page.locator('#detailPanel').getByRole('button', { name: 'Build', exact: true }).click();
+  await expect(page.locator('#resultsBody')).toContainText('Generated JSON: imported-lighthouse-bookshop.json');
+  assert.equal((await fs.readdir(path.join(root, 'dist/imported-lighthouse-bookshop'))).some(f => f.endsWith('.png')), false);
+  await page.locator('#detailPanel').getByRole('button', { name: /^(Open )?Source folder$/, exact: true }).click();
   await expect.poll(() => opened.length).toBe(1);
-  assert.equal(opened[0], path.join(root, 'cards/导入的灯塔书店/src'));
+  assert.equal(opened[0], path.join(root, 'cards/imported-lighthouse-bookshop/src'));
   await page.locator('#importsDirBtn').click();
   await expect.poll(() => opened.length).toBe(2);
   assert.equal(opened[1], path.join(root, 'imports'));
-  await page.locator('#searchInput').fill('艾琳');
+  await page.locator('#searchInput').fill('Erin');
   await expect(page.locator('#cardList button')).toHaveCount(1);
   await page.locator('#cardList button').click();
-  await expect(page.locator('#detailPanel h2')).toHaveText('海边旧书店');
+  await expect(page.locator('#detailPanel h2')).toHaveText('seaside-bookshop');
   await page.locator('#searchInput').fill('');
   await page.locator('#newBtn').click();
-  await page.locator('#newName').fill('灯塔书店');
+  await page.locator('#newName').fill('lighthouse-bookshop');
   await page.locator('#newForm button[type=submit]').click();
-  await expect(page.locator('#newError')).toContainText('同名');
+  await expect(page.locator('#newError')).toContainText('A project with that name already exists');
   await expect(page.locator('#newDialog')).toBeVisible();
-  await page.locator('#newDialog').getByRole('button', { name: '取消', exact: true }).click();
+  await page.locator('#newDialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.locator('#cardList button')).toHaveCount(3);
   await page.locator('#resultsClear').click();
   await expect(page.locator('#detailPanel img')).toBeVisible();
   await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, '手机宽度横向溢出');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'Horizontal overflow at mobile width');
   await page.screenshot({ path: path.join(output, 'mobile.png'), fullPage: true });
-  assert.deepEqual(errors, [], '浏览器未处理错误'); assert.deepEqual(external, [], '不请求外部资源');
+  assert.deepEqual(errors, [], 'Unhandled browser errors'); assert.deepEqual(external, [], 'No external resource requests');
   await page.locator('#shutdownBtn').click(); await page.locator('#confirmOk').click();
   await expect(page.locator('#shutdownNotice')).toBeVisible();
   const result = { ok: true, flow: ['entry guidance', 'official example badge', 'copy example', 'new', 'check', 'organize worldbook (no-op + relocate with backup + classification)', 'arrange worldbook order (prompt renumber + backup + refusal)', 'JPEG cover', 'replace WebP cover + preview', 'build PNG + JSON', 'duplicate', 'rename', 'import PNG', 'pending classification feedback', 'remove cover', 'build JSON', 'open folder callback', 'search', 'name collision error', 'refresh session', 'responsive', 'shutdown'], errors, external, realTavern: false };

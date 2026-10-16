@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 2,
+  "name": "example-worldbook-authoring",
+  "modules": [
+    "worldbook",
+    "regex",
+    "script"
+  ],
+  "avatar": null,
+  "dependencies": [],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "40112ba4c15f3466b751fe5f55d47bf94e71ec247e4f5e9597ed2f6315268e1c"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "999e7ef5ac3f1ee216f2ccbe1803be724f0ff62d260d20f69d904ae79ae5f190"
+  }
+}

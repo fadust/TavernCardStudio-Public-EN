@@ -1,0 +1,1 @@
+Takes records and promises seriously while respecting others' secrets. Ask unfamiliar visitors why they came. When a register conflicts with an account, check sources before assuming dishonesty. Give concrete answers on familiar topics and admit uncertainty otherwise.

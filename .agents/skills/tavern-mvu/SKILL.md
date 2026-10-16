@@ -1,43 +1,26 @@
 ---
 name: tavern-mvu
-description: 为角色卡配置 MVU 初始化、标准世界书条目、固定变量列表与输出协议、变量更新规则和 JSONPatch；不把普通酒馆变量或纯文字卡自动改成 MVU 卡。
+description: Configure MVU initialization, standard worldbook entries, fixed current-state/output assets, field update rules, and `<JSONPatch>` without automatically converting ordinary variable/text cards to MVU.
 ---
 
-# MVU 协议与提示词
+# MVU protocol and prompts
 
-读 [MVU 契约](../../../docs/VARIABLES.md)。需要新增/修改字段时再读 [tavern-mvu-zod](../tavern-mvu-zod/SKILL.md)。协议以本仓库锁定的 MVU 版本为准，不能把旧 `_.set` 教程、不同模板方言和 RFC 6902 混用。
+Read [Variables](../../../docs/VARIABLES.md); for structure changes also load [Zod](../tavern-mvu-zod/SKILL.md). Use the pinned parser's protocol rather than mixing old _.set tutorials, other template dialects, and full RFC 6902.
 
-先按创作者需要选择“随 AI 输出”或“额外模型解析”，不能把主 API 和额外 API 混成一套提示词。涉及选择、切换或双模式兼容时读 [更新模式与阶段标记](../../../docs/MVU-MODES.md)：`[mvu_update]` 放更新规则/协议，`[mvu_plot]` 放只供正文的机制提示，无标记的必要事实与变量列表可供两边使用；实际注入仍受触发、预算与过滤设置影响。标签本身不会切换模式或配置 API。
+Choose [main-output versus extra-request mode](../../../docs/MVU-MODES.md). `[mvu_update]` identifies update rules/protocol; `[mvu_plot]` identifies narration-only mechanics; shared facts/state may remain unmarked. Actual injection still depends on activation/budget/filters. Markers do not configure mode or API connections.
 
-额外模式要求有效的角色主世界书与阶段标记，群聊不等于单张多角色卡。作者明确要覆盖模式时才采用禁用的 `[config_override]` 条目：精确名称、JSON 正文，不加分类/后缀，不写密钥；它与普通提示词的 YAML 文体偏好无关。细节及源码见更新模式文档。
+Extra analysis requires a valid primary character worldbook and stage marker. Host group chat is not one multi-character card. Only explicit author requirements justify a disabled exact-name `[config_override]` entry with upstream JSON keys; no suffix or credentials. See the mode guide.
 
-MVU 处理消息时会自动补 `<StatusPlaceHolderImpl/>`。默认界面正则消费这个固定标记，不新增要求模型输出它的提示词，也不再造 `<CardStatus/>` 与之并行。特殊布局才另设生产者并核对重复显示；变量初始化、脚本加载失败应修复链路，不用模型输出占位符掩盖。
+Use MVU's automatic `<StatusPlaceHolderImpl/>` marker for standard UI. Do not additionally instruct the model to emit it or invent a parallel `<CardStatus/>` chain. For special layouts define an explicit producer and verify duplicate display. Fix failed initialization/loading rather than hiding it with model-generated markers.
 
-## 新卡必备链路
+## New-card chain
 
-`schema.ts → 初始化值 → 当前变量列表 → 按字段的更新规则 → 固定输出协议 → MVU 解析 → Zod 注册约束 → 界面读取`。
+Schema → initial state → current-state macro → field update rules → fixed output protocol → MVU parser → registered Zod constraints → UI readers.
 
-使用 `pnpm card new <卡名> --modules "mvu"`，在生成骨架上填内容。四条目职责固定：
+Start with card new --modules mvu. The four responsibilities are disabled `[initvar]` data, fixed current-state macro, card-specific `[mvu_update]` rules, and fixed `[mvu_update]` output format. Bracketed markers are runtime contracts; descriptive suffixes/layout/order are repository conventions.
 
-| 条目 | 可修改部分 |
-| --- | --- |
-| `[initvar]变量初始化勿开` | 与 Schema 对齐的初始值；禁用条目、绑定世界书 |
-| `变量列表` | 使用本仓库固定宏模板；不改成静态描述或手抄状态 |
-| `[mvu_update]变量更新规则` | 按本卡字段和剧情证据编写 |
-| `[mvu_update]变量输出格式` | 本仓库协议资产，普通写卡不改标签、操作字段与结构 |
+Write nested YAML field rules with type/check. Omit type for strings. Shared fixed-key explanations may use descriptive placeholders; dynamic-key rules live at the parent container with an index-signature explanation. Explain when state changes/stays, required evidence, and deliberate limits. Count only new events; do not assign model updates to derived underscore fields or invent numerical limits for completeness. Follow the prompt-style skill while preserving user intent.
 
-`[initvar]`、`[mvu_update]` 是运行时识别标记；中文后缀是规范命名。`变量列表` 名称、D0/system、排序值是本仓库结构约定，不能冒充 MVU 唯一支持的写法。模板原文、源码行为及例外见文档。
+## Verification
 
-## 更新规则写法
-
-使用嵌套 YAML `变量更新规则 → 字段 → type/check`。字符串省略 type；同类固定键可用 `${六维}` 等占位合并规则；动态键只在父容器列规则，以 `type: |-` 写索引签名。占位是说明，不是可直接提交的补丁路径。
-
-每条说明 **何时变化、何时不变、变化依据、必要的幅度或边界**。只根据本轮已发生事实计算增量，不把前文事件再算一次；只读 `_` 字段不写模型更新规则。不要为了“完整”给所有自明字段写重复说明，也不要擅自添加好感上限或物品数量限制。
-
-这些规则是给模型看的提示词文本，按 [tavern-prompt-style](../tavern-prompt-style/SKILL.md) 区分功能规则与叙事：更新条件推荐客观明确，描述性字段按本卡创作目标书写，保留结构与语义。
-
-## 验证
-
-对照同一字段的 Schema、初值、规则、输出路径、UI 五处，消除名称/类型冲突。检查 JSON Pointer 转义、动态键增删、`move` 目的路径、无变化的空数组。补丁值必须是合法 JSON；`delta` 数值不写为字符串。
-
-显示正则和提示词正则都不能先改掉 MVU 解析所需的原消息。完整块和流式未闭合块都要有样例；用 [tavern-regex](../tavern-regex/SKILL.md) 核对。不能把“check/build 通过”报告成 MVU 已在酒馆更新成功。
+Align Schema, initialization, rules, output paths, and UI. Cover Pointer escaping, dynamic add/remove, move.to, empty patch arrays, legal JSON values, numeric delta, and valid intermediate states. Preserve raw messages for parsing; display/prompt regexes must not rewrite them first. Test complete and unfinished streaming blocks with [Regexes](../tavern-regex/SKILL.md). Static check/build success is not evidence of a real MVU update in SillyTavern.

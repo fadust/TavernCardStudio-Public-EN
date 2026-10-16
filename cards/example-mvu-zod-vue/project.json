@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "name": "example-mvu-zod-vue",
+  "modules": [
+    "mvu",
+    "vue"
+  ],
+  "avatar": null,
+  "dependencies": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate@3377b494cd7277230f3056230062124fe117f93f/artifact/bundle.js",
+      "purpose": "Public MVU variable framework; requires Tavern Helper and enabled card scripts.",
+      "version": "3377b494cd7277230f3056230062124fe117f93f"
+    },
+    {
+      "url": "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource@69abb272d46bed4057a0dfb31758f6164cb7ecef/dist/util/mvu_zod.js",
+      "purpose": "Official registerMvuSchema: registers the Zod schema from src/schema.ts with MVU and Tavern Helper's variable manager; imported from a pinned commit.",
+      "version": "69abb272d46bed4057a0dfb31758f6164cb7ecef"
+    }
+  ],
+  "runtimeVerified": null,
+  "original": {
+    "baseline": "original/card.json",
+    "baselineSha256": "71f94dcad046bb321506bd0d4f2ba4bf2394419d7246c9b91af3dc18f112212b"
+  },
+  "source": "src/index.yaml",
+  "state": {
+    "file": ".card/state.json",
+    "sha256": "dad3df4690acc9ee73f5cd2774bae7b7df3903b253e6aa05f5e686b848263fa5"
+  }
+}

@@ -1,0 +1,17 @@
+name: Bureau procedures
+enabled: true
+keys: []
+secondary_keys: []
+selective: true
+use_regex: false
+order: 16
+depth: 1
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: constant
+position: at_depth
+role: system
+file: src/worldbook/rules/bureau-procedures.md
+link: worldbook-b0d008e7-0964-4c23-baa4-989297e9829d

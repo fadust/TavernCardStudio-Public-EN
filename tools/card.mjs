@@ -12,28 +12,28 @@ import { worldbookInventory } from './lib/worldbook-inventory.mjs';
 export async function main(args = process.argv.slice(2), root = ROOT) {
   const [command, target, ...rest] = args;
   if (!command || ['help', '--help', '-h'].includes(command)) {
-    return { usage: ['pnpm card new <名称> [--modules worldbook,regex,script,mvu,html,vue]', 'pnpm card split <PNG或JSON文件> [--name 名称]', 'pnpm card organize <名称|all>', 'pnpm card arrange <名称|all> [--order prompt|index]', 'pnpm card migrate <名称|all>', 'pnpm card map <名称|all>', 'pnpm card check <名称|all>', 'pnpm card build <名称|all>', 'pnpm card diff <名称|all>'], defaults: '新建和拆分生成中文 YAML 创作格式；无 --modules 时新建纯文字卡；可按目标填写传统角色字段或使用世界书组织设定，骨架不代填人物内容；html 与 vue 初始模板二选一。', modules: MODULES };
+    return { usage: ['pnpm card new <name> [--modules worldbook,regex,script,mvu,html,vue]', 'pnpm card split <PNG-or-JSON-file> [--name name]', 'pnpm card organize <name|all>', 'pnpm card arrange <name|all> [--order prompt|index]', 'pnpm card migrate <name|all>', 'pnpm card map <name|all>', 'pnpm card check <name|all>', 'pnpm card build <name|all>', 'pnpm card diff <name|all>'], defaults: 'New and split projects use English YAML authoring keys. Without --modules, new creates a text-only card. Use character fields or a worldbook for your setting; the scaffold does not invent character content. Choose either html or vue for the initial interface.', modules: MODULES };
   }
-  if (!target) throw new Error('缺少角色卡名称或输入文件。运行 pnpm card help 查看用法。');
+  if (!target) throw new Error('Missing card name or input file. Run pnpm card help for usage.');
   const options = {};
   for (let i = 0; i < rest.length; i += 2) {
-    if (!['--modules', '--name', '--order'].includes(rest[i]) || !rest[i + 1] || rest[i + 1].startsWith('--')) throw new Error(`未知或缺少值的参数: ${rest[i]}`);
-    if (options[rest[i]] !== undefined) throw new Error(`重复参数: ${rest[i]}`);
+    if (!['--modules', '--name', '--order'].includes(rest[i]) || !rest[i + 1] || rest[i + 1].startsWith('--')) throw new Error(`Unknown option or missing value: ${rest[i]}`);
+    if (options[rest[i]] !== undefined) throw new Error(`Duplicate option: ${rest[i]}`);
     options[rest[i]] = rest[i + 1];
   }
   if (command === 'new') {
-    if (options['--order']) throw new Error('new 不接受 --order；新卡默认连续编号。');
-    if (options['--name']) throw new Error('new 使用位置参数指定名称。');
+    if (options['--order']) throw new Error('new does not accept --order; new entries use consecutive order values.');
+    if (options['--name']) throw new Error('new takes its name as a positional argument.');
     const directory = await newCard(target, { root, modules: options['--modules']?.split(/[,\s]+/).filter(Boolean) ?? [] });
     return { ok: true, action: 'new', directory };
   }
   if (command === 'split') {
-    if (options['--order']) throw new Error('split 不接受 --order；导入后使用 arrange 调整顺序。');
-    if (options['--modules']) throw new Error('split 保留原有内容，不自动应用新卡模块。');
+    if (options['--order']) throw new Error('split does not accept --order; use arrange after importing.');
+    if (options['--modules']) throw new Error('split preserves existing content and does not apply new-card modules.');
     return { ok: true, action: 'split', directory: await splitCard(path.resolve(target), { root, name: options['--name'] }) };
   }
-  if (rest.length && (command !== 'arrange' || Object.keys(options).some(key => key !== '--order'))) throw new Error(`${command} 不接受这些选项。`);
-  if (!['check', 'build', 'diff', 'migrate', 'map', 'organize', 'arrange'].includes(command)) throw new Error(`未知命令: ${command}`);
+  if (rest.length && (command !== 'arrange' || Object.keys(options).some(key => key !== '--order'))) throw new Error(`${command} does not accept these options.`);
+  if (!['check', 'build', 'diff', 'migrate', 'map', 'organize', 'arrange'].includes(command)) throw new Error(`Unknown command: ${command}`);
   const names = target === 'all' ? await listProjects(root) : [target];
   const results = [];
   for (const name of names) {
@@ -52,7 +52,7 @@ export async function main(args = process.argv.slice(2), root = ROOT) {
         const { project, dir, card } = await loadProject(name, root);
         const before = await readJSON(await safeFile(dir, project.original.baseline));
         const changes = semanticDiff(before, card);
-        results.push({ name, ok: true, comparison: '编辑源字段语义；构建生成内容另见 build-report.json', changes, pendingBuilds: project.builds });
+        results.push({ name, ok: true, comparison: 'Editable source field semantics; see build-report.json for generated content', changes, pendingBuilds: project.builds });
       }
     } catch (error) { results.push({ name, ok: false, errors: [error.message] }); }
   }

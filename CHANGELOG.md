@@ -1,39 +1,46 @@
-# 更新记录
+# Changelog
+
+## Unreleased — English localization
+
+- Localize the maintained application, command output, documentation, repository skills, templates, and bundled examples into English.
+- Use English authoring keys for newly generated projects while retaining legacy Chinese schema compatibility.
+- Document localization boundaries, runtime protocol preservation, and verification limits.
+- Point English-edition download guidance to this fork without implying that an English release has been published.
 
 ## 0.5.1
 
-- 首页改为直接对话上手，开工指令与创作简报变为可选的简短例子和笔记，不再要求用户填表。
-- 增加简短安装说明，支持让 agent 检查、补装环境并验证启动；复杂卡能力与按需技能保留。
-- Node.js 最低版本对齐固定 pnpm 的 22.13 要求，新装推荐与 CI 一致的 Node.js 24。
+- Make conversation the starting point; startup prompts and creative briefs are optional examples and notes.
+- Add concise installation instructions, including agent-assisted environment setup and startup verification, while keeping complex-card support and specialist skills.
+- Align the minimum Node.js version with pinned pnpm's Node.js 22.13 requirement; recommend Node.js 24 for new installations, matching CI.
 
 ## 0.5.0
 
-- 导入后由 agent 按正文分类；世界书 YAML 支持本地 `分类`，`card map` 列出待分类和待移动条目，目录整理按分类安全搬移。
-- 新卡采用符合常规提示词布局的总索引与全局连续编号；增加 `card arrange` 和界面入口，已有卡先备份再调整，特殊布局支持按已核对的索引编号。
-- 更新示例、创作技能和跨 agent 开工指令，将分类、顺序与宿主核对接入交付流程。
-- 增加大世界选题与组织指南，树状结构可用于种族、政治、社会风俗与组织关系等，分类不限定蓝绿灯或注入位置。
+- Add agent-led classification after import, local worldbook `category` metadata, pending classification/move lists in `card map`, and safe category-based organization.
+- Give new cards a worldbook index and continuous global numbering matching the usual prompt layout. Add `card arrange` and its Studio action, with project backups and index-based numbering for reviewed custom layouts.
+- Update examples, authoring skills, and agent instructions to include classification, ordering, and host verification.
+- Add world-design guidance covering peoples, politics, customs, and organizations without binding categories to activation or insertion positions.
 
 ## 0.4.0
 
-- 世界书新建与拆分采用分类目录和语义文件名，保留原始条目名与酒馆设置；同名只加局部消歧后缀。
-- 增加 `card organize` 与本地界面整理入口，自动备份、更新引用并验证卡片数据及构建绑定不变；旧路径继续兼容。
-- 补全世界书宏、EJS 与变量的按需进阶指引，明确深度条目默认系统角色，清理依赖私人参考背景的说明。
+- Use category directories and meaningful worldbook filenames for new and split cards; preserve original entry names/settings and resolve filename collisions locally.
+- Add CLI and Studio worldbook organization with backups, reference updates, and card/build-binding preservation checks; retain old paths.
+- Expand optional macro, EJS, and variable guidance and clarify system-role defaults for depth entries.
 
 ## 0.3.0
 
-- MVU 界面改用框架自动添加的固定占位符，移除多余的模型输出要求；无界面时清理显示，独立界面保留自身占位链路。
-- 默认世界书按世界观、地理、人物和深度规则组织，双向递归关闭；设定正文推荐简洁 YAML，通用叙事视角交给预设。
-- 明确卡名宏的适用范围，更新轻量与综合示例，补充关键词树和按地点扫描的进阶参考。
-- 补充主 API 与额外 API 变量更新的选择、阶段标记、切换与验证说明。
-- 支持创作者选择固定版本外链发布脚本和前端；补齐加载页、构建切换与依赖审计，覆盖 jQuery 请求地址。
-- 新建/导入工程遇到 Windows 临时目录占用时有限重试，持续失败仍中止，重试前再次确认不覆盖已有工程。
+- Use MVU's automatic status placeholder and remove redundant model-output instructions; hide the marker without a UI and preserve independent UI marker chains.
+- Organize default worldbook content by setting, geography, characters, and depth rules; disable recursion in both directions. Recommend concise YAML-style setting text and leave general narration style to presets.
+- Clarify card-name macros, refresh lightweight and comprehensive examples, and document keyword trees and state-driven scans.
+- Document main versus extra API variable updates, stage markers, switching, and verification.
+- Support publicly hosted scripts/interfaces at fixed versions, including loaders, build switching, dependency audits, and jQuery request URLs.
+- Retry temporary-directory contention on Windows a bounded number of times, checking again that an existing project will not be overwritten.
 
 ## 0.2.0
 
-- 提供独立的非商业公开工作区，保留纯文字、世界书、正则、脚本、EJS、MVU、Zod、HTML/Vue 全部创作能力。
-- 增加入门和复杂卡创作路径、跨 agent 协作说明、分层示例及原创综合示例。
-- 分离工具约束与创作偏好，支持传统角色字段与世界书组织两种写法。
-- 增加环境准备与诊断、固定版本参考资料恢复、官方示例验证和公开包导出检查。
-- 默认排除个人作品、导入件、生成产物、参考缓存与 agent 会话资料，使用本地打包与手动导入流程。
+- Publish an independent non-commercial workspace supporting text, worldbooks, regexes, scripts, EJS, MVU, Zod, HTML, and Vue.
+- Add beginner/complex-card workflows, cross-agent instructions, tiered examples, and an original comprehensive example.
+- Separate tool constraints from authoring preferences and support both traditional card fields and worldbook-based settings.
+- Add environment setup/diagnostics, pinned reference restore, official-example verification, and public-export checks.
+- Exclude personal cards, imports, generated output, reference caches, and agent session data by default; use local builds and manual host imports.
 
-检查和构建结果不代表真实酒馆、扩展或模型的运行验证。
+Checks and builds are separate from real host, extension, and model verification.

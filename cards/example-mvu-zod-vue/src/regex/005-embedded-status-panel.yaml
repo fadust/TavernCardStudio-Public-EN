@@ -1,0 +1,17 @@
+link: regex-10
+name: Embedded status panel
+find: <StatusPlaceHolderImpl/>
+trim: []
+disabled: false
+display_only: true
+prompt_only: false
+run_on_edit: true
+substitute_regex: 0
+min_depth: null
+max_depth: null
+placement:
+  - ai_output
+replacement_file: src/regex/005-embedded-status-panel.txt
+build:
+  type: vue
+  entry: src/ui/vue/index.html

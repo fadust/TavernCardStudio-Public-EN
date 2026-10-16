@@ -1,0 +1,20 @@
+name: location·Bureau headquarters
+enabled: true
+keys:
+  - Clocktower Street
+  - archives
+  - registration hall
+secondary_keys: []
+selective: true
+use_regex: false
+order: 6
+depth: 4
+probability: 100
+use_probability: true
+exclude_recursion: true
+prevent_recursion: true
+activation: keyword
+position: before_character
+role: system
+file: src/worldbook/geography/bureau-headquarters.md
+link: worldbook-123aaa90-47dd-4684-bd41-5a4fe8ada72c

@@ -1,5 +1,5 @@
-旧书店:
-  位置: 码头附近
-  门前: 遮雨棚下摆着二手书箱
-  营业: 通常在傍晚关门
-  周边: 隔壁修理铺的敲击声能传进店里
+Used bookshop:
+  Location: Near the docks.
+  Entrance: Crates of secondhand books stand beneath an awning.
+  Hours: Usually closes at dusk.
+  Surroundings: Hammering from the repair shop next door carries inside.
